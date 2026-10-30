@@ -127,7 +127,7 @@ function ForceStep({ draft }: { draft: SetupDraft }) {
           <span className={over ? 'text-danger' : 'text-signal-blue'}>
             {over
               ? `${pv - FORCE_PV_LIMIT} PV over the limit`
-              : pv > FORCE_PV_LIMIT ? 'Carried over above the limit' : `${unspent} PV unspent → +${unspent * SP_PER_UNSPENT_PV} SP to the Warchest`}
+              : pv > FORCE_PV_LIMIT ? 'Carried over above the limit' : null}
           </span>
         </div>
       </div>
