@@ -1,8 +1,8 @@
 import { act } from '@testing-library/react'
 import { useCampaignStore } from '@/store/campaign'
-import { convertCatalog, omniConfigurations, searchUnitList, unitFromEntry, unitListName, unitListRoles } from '@/lib/unit-list/convert'
+import { convertCatalog, omniConfigurations, searchUnitList, unitFromEntry, unitListFactions, unitListName, unitListRoles } from '@/lib/unit-list/convert'
 import { ALL_STEP_IDS } from '@/lib/steps'
-import type { CatalogUnit } from '@/lib/unit-list/convert'
+import type { CatalogUnit, FactionCatalog } from '@/lib/unit-list/convert'
 import { unitIconUrl } from '@/lib/unit-list/icons'
 import { UNIT_LIST } from '@/lib/unit-list/manifest'
 
@@ -163,12 +163,18 @@ describe('OMNI configurations from the unit list', () => {
 })
 
 describe('unit list filters (#37)', () => {
-  it('filter by PV range, Size, role, ground move and medium-range damage', () => {
+  it('filter by PV range, Size, role and ground move', () => {
     expect(searchUnitList(LIST, { pvMin: 30, pvMax: 45 }).map(e => e.id)).toEqual(['Demolisher_Tank', 'BA_Elemental', 'Goth_A', 'Goth_B'])
     expect(searchUnitList(LIST, { sizes: [1] }).map(e => e.id)).toEqual(['BA_Elemental', 'CI_Foot'])
     expect(searchUnitList(LIST, { role: 'Striker' }).map(e => e.id)).toEqual(['Goth_A', 'Goth_B'])
     expect(searchUnitList(LIST, { minMove: 6 }).map(e => e.id)).toEqual(['BMAtlas_AS7D', 'Demolisher_Tank', 'Goth_A', 'Goth_B'])
-    expect(searchUnitList(LIST, { minMediumDamage: 5 }).map(e => e.id)).toEqual(['BMAtlas_AS7D', 'Demolisher_Tank', 'Goth_A', 'Goth_B'])
+  })
+
+  it('filter by damage at every selected range, or every range when none are selected', () => {
+    expect(searchUnitList(LIST, { minDamage: 5, damageRanges: [1] }).map(e => e.id)).toEqual(['BMAtlas_AS7D', 'Demolisher_Tank', 'Goth_A', 'Goth_B'])
+    expect(searchUnitList(LIST, { minDamage: 2, damageRanges: [0, 2] }).map(e => e.id)).toEqual(['BMAtlas_AS7D', 'Goth_A', 'Goth_B'])
+    expect(searchUnitList(LIST, { minDamage: 1, damageRanges: [0] }).map(e => e.id)).toEqual(['BMAtlas_AS7D', 'Demolisher_Tank', 'BA_Elemental', 'CI_Foot', 'Goth_A', 'Goth_B'])
+    expect(searchUnitList(LIST, { minDamage: 2 }).map(e => e.id)).toEqual(['BMAtlas_AS7D', 'Goth_A', 'Goth_B'])
   })
 
   it('combine with the name search and type', () => {
@@ -177,6 +183,47 @@ describe('unit list filters (#37)', () => {
 
   it('list the roles for the role filter', () => {
     expect(unitListRoles(LIST)).toEqual(['Juggernaut', 'Striker'])
+  })
+})
+
+describe('faction and era filters (ADR 0008)', () => {
+  // MekBay era ids: 256 is Late Succession War - Renaissance, 13 Clan Invasion, 15 and 254 the Republic Age.
+  const FACTIONS: FactionCatalog = {
+    version: 1,
+    factions: [
+      { id: 2, name: 'Federated Suns', group: 'Inner Sphere', eras: { 256: [140], 13: [140, 77] } },
+      { id: 1, name: 'Clan Wolf', group: 'IS Clan', eras: { 13: [77], 15: [77], 254: [77] } },
+      { id: 3, name: 'Capellan Confederation', group: 'Inner Sphere', eras: { 256: [140], 999: [9] } },
+    ],
+  }
+  const ATLAS_MUL = catalogUnit('BMAtlas_AS7D', 'Atlas', 'AS7-D', {}, { mul1id: 140 })
+  const GOTH_MUL = catalogUnit('Goth_A', 'Goth', 'A', { PV: 40 }, { mul1id: 77 })
+  const NO_MUL = catalogUnit('CI_Foot', 'Foot Platoon', '(Rifle)', { TP: 'CI' }, { mul1id: undefined })
+  const UNITS = convertCatalog([ATLAS_MUL, GOTH_MUL, NO_MUL], undefined, FACTIONS)
+  const names = unitListFactions(FACTIONS).map(f => f.name)
+  const index = (name: string) => names.indexOf(name)
+
+  it('sorts factions by group then name', () => {
+    expect(unitListFactions(FACTIONS)).toEqual([
+      { name: 'Capellan Confederation', group: 'Inner Sphere' },
+      { name: 'Federated Suns', group: 'Inner Sphere' },
+      { name: 'Clan Wolf', group: 'IS Clan' },
+    ])
+  })
+
+  it('stores each unit’s factions with a bitmask of Sarna eras, merging MekBay’s two Republic eras', () => {
+    expect(UNITS.find(e => e.id === 'BMAtlas_AS7D')?.factions).toEqual([[index('Capellan Confederation'), 1 << 4], [index('Federated Suns'), (1 << 4) | (1 << 5)]])
+    expect(UNITS.find(e => e.id === 'Goth_A')?.factions).toEqual([[index('Federated Suns'), 1 << 5], [index('Clan Wolf'), (1 << 5) | (1 << 8)]])
+    expect(UNITS.find(e => e.id === 'CI_Foot')).not.toHaveProperty('factions')
+  })
+
+  it('match any selected faction, in the selected era', () => {
+    const ids = (q: Parameters<typeof searchUnitList>[1]) => searchUnitList(UNITS, q).map(e => e.id)
+    expect(ids({ factions: [index('Clan Wolf')] })).toEqual(['Goth_A'])
+    expect(ids({ factions: [index('Clan Wolf'), index('Capellan Confederation')] })).toEqual(['BMAtlas_AS7D', 'Goth_A'])
+    expect(ids({ factions: [index('Federated Suns')], era: 4 })).toEqual(['BMAtlas_AS7D'])
+    expect(ids({ era: 8 })).toEqual(['Goth_A'])
+    expect(ids({ factions: [index('Capellan Confederation')], era: 5 })).toEqual([])
   })
 })
 
