@@ -4,7 +4,10 @@ unit catalog as published by MekBay (https://db.mekbay.com/units.json).
 
 It is licensed under Creative Commons Attribution-NonCommercial-ShareAlike 4.0
 International (CC BY-NC-SA 4.0): https://creativecommons.org/licenses/by-nc-sa/4.0/
-It is not covered by the app's GPL license. Use it only non-commercially, credit the
+Each unit's faction availability per era comes from MekBay's faction file
+(https://db.mekbay.com/factions.json), which publishes no license of its own (see the app's ADR 0008).
+
+The unit data is not covered by the app's GPL license. Use it only non-commercially, credit the
 MegaMek Team, and share anything derived from it under the same license.
 
 MechWarrior Copyright Microsoft Corporation. MegaMek Data was created under Microsoft's

@@ -40,6 +40,10 @@ export function LegalNotice() {
         <ExternalLink href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</ExternalLink>:
         non-commercial use, with attribution, shared under the same license.
       </p>
+      <p className="m-0">
+        Faction availability per era comes from <ExternalLink href="https://mekbay.com">MekBay</ExternalLink>. Era
+        names and dates follow <ExternalLink href="https://www.sarna.net/wiki/BattleTech_eras">Sarna</ExternalLink>.
+      </p>
       <p className="m-0 text-text-secondary">
         This software is provided &ldquo;as is&rdquo;, without warranty of any kind, express or implied.
       </p>
