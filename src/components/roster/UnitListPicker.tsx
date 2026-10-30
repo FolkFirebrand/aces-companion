@@ -1,9 +1,9 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { loadUnitList } from '@/lib/unit-list/load'
-import { ACES_UNIT_TYPES, searchUnitList, unitListName, unitListRoles } from '@/lib/unit-list/convert'
-import type { AcesTypeCode, UnitListEntry, UnitListQuery } from '@/lib/unit-list/convert'
+import { loadUnitListFile } from '@/lib/unit-list/load'
+import { ACES_UNIT_TYPES, ERAS, searchUnitList, unitListName, unitListRoles } from '@/lib/unit-list/convert'
+import type { AcesTypeCode, UnitListEntry, UnitListFaction, UnitListQuery } from '@/lib/unit-list/convert'
 import { unitIconUrl } from '@/lib/unit-list/icons'
 import { NumberInput, Select, TextInput } from '@/components/sortie/fields'
 import { cn } from '@/lib/utils'
@@ -11,11 +11,11 @@ import { cn } from '@/lib/utils'
 const TYPE_LABELS: Record<AcesTypeCode, string> = { BM: "'Mech", CV: 'Vehicle', BA: 'B. Armor', CI: 'Infantry' }
 const SIZES = [1, 2, 3, 4]
 const MOVES = [4, 6, 8, 10, 12]
-const DAMAGES = [1, 2, 3, 4, 5, 6]
+const RANGES = ['Short', 'Medium', 'Long']
 const LIMIT = 50
 
-type Filters = Pick<UnitListQuery, 'pvMin' | 'pvMax' | 'role' | 'minMove' | 'minMediumDamage'> & { sizes: number[] }
-const NO_FILTERS: Filters = { sizes: [] }
+type Filters = Pick<UnitListQuery, 'pvMin' | 'pvMax' | 'role' | 'minMove' | 'minDamage' | 'era'> & { types: AcesTypeCode[]; sizes: number[]; damageRanges: number[]; factions: number[] }
+const NO_FILTERS: Filters = { types: [], sizes: [], damageRanges: [], factions: [] }
 
 function chip(on: boolean) {
   return cn('h-touch border-2 font-condensed font-bold text-[13px] tracking-[1px] uppercase', on ? 'border-amber text-amber' : 'border-steel-500 text-text-secondary')
@@ -24,24 +24,24 @@ function chip(on: boolean) {
 /** Search MegaMek's unit list (ADR 0005) and pick a unit. `pvLeft` adds a hint in setup. */
 export function UnitListPicker({ onPick, initialText = '', pvLeft }: { onPick: (entry: UnitListEntry) => void; initialText?: string; pvLeft?: number }) {
   const [units, setUnits] = useState<UnitListEntry[] | null>(null)
+  const [factions, setFactions] = useState<UnitListFaction[]>([])
   const [error, setError] = useState('')
   const [text, setText] = useState(initialText)
-  const [types, setTypes] = useState<AcesTypeCode[]>([])
   const [filters, setFilters] = useState<Filters>(NO_FILTERS)
 
   useEffect(() => {
     let live = true
-    loadUnitList().then(list => { if (live) setUnits(list) }, err => { if (live) setError(err instanceof Error ? err.message : 'The unit list could not be loaded.') })
+    loadUnitListFile().then(file => { if (live) { setUnits(file.units); setFactions(file.factions ?? []) } }, err => { if (live) setError(err instanceof Error ? err.message : 'The unit list could not be loaded.') })
     return () => { live = false }
   }, [])
 
   const roles = useMemo(() => (units ? unitListRoles(units) : []), [units])
-  const filtersOn = [filters.pvMin, filters.pvMax, filters.role, filters.minMove, filters.minMediumDamage].filter(v => v !== undefined && v !== '').length
-    + (filters.sizes.length ? 1 : 0)
-  const searching = text.trim() !== '' || types.length > 0 || filtersOn > 0
+  const filtersOn = [filters.pvMin, filters.pvMax, filters.role, filters.minMove, filters.minDamage, filters.era].filter(v => v !== undefined && v !== '').length
+    + (filters.types.length ? 1 : 0) + (filters.sizes.length ? 1 : 0) + (filters.factions.length ? 1 : 0)
+  const searching = text.trim() !== '' || filtersOn > 0
   const matches = useMemo(
-    () => (units && searching ? searchUnitList(units, { text, types, ...filters, limit: Number.POSITIVE_INFINITY }) : []),
-    [units, searching, text, types, filters],
+    () => (units && searching ? searchUnitList(units, { text, ...filters, limit: Number.POSITIVE_INFINITY }) : []),
+    [units, searching, text, filters],
   )
   const results = matches.slice(0, LIMIT)
   const set = (change: Partial<Filters>) => setFilters(f => ({ ...f, ...change }))
@@ -50,17 +50,6 @@ export function UnitListPicker({ onPick, initialText = '', pvLeft }: { onPick: (
     <div className="flex flex-col gap-2.5">
       <label htmlFor="unit-list-search" className="dossier-label text-text-secondary">Search the unit list</label>
       <TextInput id="unit-list-search" value={text} onChange={setText} placeholder="e.g. Atlas AS7-D" autoComplete="off" />
-      <div className="grid grid-cols-4 gap-1.5" role="group" aria-label="Unit types">
-        {(Object.keys(ACES_UNIT_TYPES) as AcesTypeCode[]).map(t => {
-          const on = types.includes(t)
-          return (
-            <button key={t} type="button" aria-pressed={on} onClick={() => setTypes(on ? types.filter(x => x !== t) : [...types, t])} className={chip(on)}>
-              {TYPE_LABELS[t]}
-            </button>
-          )
-        })}
-      </div>
-
       <details className="border-t border-steel-500 pt-2">
         <summary className="min-h-8 flex items-center cursor-pointer list-none dossier-label text-signal-blue">
           Filters{filtersOn ? ` · ${filtersOn} on` : ''}
@@ -68,6 +57,32 @@ export function UnitListPicker({ onPick, initialText = '', pvLeft }: { onPick: (
         <div className="flex flex-col gap-3 pt-2">
           {filtersOn > 0 && (
             <button type="button" onClick={() => setFilters(NO_FILTERS)} className="self-start dossier-label text-signal-blue min-h-8">Clear filters</button>
+          )}
+          <div className="flex flex-col gap-1">
+            <span className="dossier-label text-text-secondary">Type</span>
+            <div className="grid grid-cols-4 gap-1.5" role="group" aria-label="Unit types">
+              {(Object.keys(ACES_UNIT_TYPES) as AcesTypeCode[]).map(t => {
+                const on = filters.types.includes(t)
+                return (
+                  <button key={t} type="button" aria-pressed={on} className={chip(on)}
+                    onClick={() => set({ types: on ? filters.types.filter(x => x !== t) : [...filters.types, t] })}>
+                    {TYPE_LABELS[t]}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+          {factions.length > 0 && (
+            <>
+              <FactionPicker factions={factions} selected={filters.factions} onChange={selected => set({ factions: selected })} />
+              <label className="flex flex-col gap-1">
+                <span className="dossier-label text-text-secondary">Era</span>
+                <Select id="unit-list-era" value={String(filters.era ?? '')} onChange={v => set({ era: v ? Number(v) : undefined })}>
+                  <option value="">Any era</option>
+                  {ERAS.map((era, i) => <option key={era.name} value={i}>{era.name} ({era.from}–{era.to ?? ''})</option>)}
+                </Select>
+              </label>
+            </>
           )}
           <div className="grid grid-cols-2 gap-2.5">
             <label className="flex flex-col gap-1">
@@ -109,19 +124,28 @@ export function UnitListPicker({ onPick, initialText = '', pvLeft }: { onPick: (
               </Select>
             </label>
           </div>
-          <label className="flex flex-col gap-1">
-            <span className="dossier-label text-text-secondary">Damage at medium, at least</span>
-            <Select id="unit-list-damage" value={String(filters.minMediumDamage ?? '')} onChange={v => set({ minMediumDamage: v ? Number(v) : undefined })}>
-              <option value="">Any</option>
-              {DAMAGES.map(d => <option key={d} value={d}>{d}</option>)}
-            </Select>
-          </label>
+          <div className="flex flex-col gap-1">
+            <label htmlFor="unit-list-damage" className="dossier-label text-text-secondary">Damage at least</label>
+            <div className="grid grid-cols-4 gap-1.5">
+              <NumberInput id="unit-list-damage" value={filters.minDamage ?? 0} min={0} onChange={v => set({ minDamage: v > 0 ? v : undefined })} className="max-w-none" />
+              <div className="col-span-3 grid grid-cols-3 gap-1.5" role="group" aria-label="Damage ranges">
+                {RANGES.map((range, r) => {
+                  const on = filters.damageRanges.includes(r)
+                  return (
+                    <button key={range} type="button" aria-pressed={on} className={chip(on)}
+                      onClick={() => set({ damageRanges: on ? filters.damageRanges.filter(x => x !== r) : [...filters.damageRanges, r] })}>
+                      {range}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          </div>
         </div>
       </details>
 
       {error && <p role="alert" className="m-0 text-sm text-danger">{error}</p>}
       {!units && !error && <p className="m-0 text-sm text-text-secondary">Loading the unit list…</p>}
-      {units && !searching && <p className="m-0 text-[13px] text-text-secondary">{units.length.toLocaleString()} units. Type a name or set a filter.</p>}
       {units && searching && (
         <p className="m-0 text-[13px] text-text-secondary">
           {matches.length === 0 ? 'No units match.' : `${matches.length.toLocaleString()} unit${matches.length === 1 ? ' matches' : 's match'}`}
@@ -153,7 +177,46 @@ export function UnitListPicker({ onPick, initialText = '', pvLeft }: { onPick: (
         </ul>
       )}
       {matches.length > LIMIT && <p className="m-0 text-[13px] text-text-secondary">Showing the first {LIMIT}. Narrow the search or add a filter.</p>}
-      <p className="m-0 text-[11px] text-text-secondary">Unit data and icons: MegaMek Data, CC BY-NC-SA 4.0.</p>
+    </div>
+  )
+}
+
+/** Multi-select of factions, grouped as MekBay groups them (ADR 0008). */
+function FactionPicker({ factions, selected, onChange }: { factions: UnitListFaction[]; selected: number[]; onChange: (selected: number[]) => void }) {
+  const groups = [...new Set(factions.map(f => f.group))]
+  const toggle = (i: number) => onChange(selected.includes(i) ? selected.filter(x => x !== i) : [...selected, i])
+  return (
+    <div className="flex flex-col gap-1">
+      <span className="dossier-label text-text-secondary">Faction</span>
+      {selected.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {selected.map(i => (
+            <button key={i} type="button" onClick={() => toggle(i)} aria-label={`Remove ${factions[i].name}`}
+              className="min-h-8 px-2 border-2 border-amber text-amber font-condensed font-bold text-[12px] tracking-[0.5px] uppercase">
+              {factions[i].name} ✕
+            </button>
+          ))}
+        </div>
+      )}
+      <details className="border border-steel-500">
+        <summary className="min-h-touch px-3 flex items-center cursor-pointer list-none text-[15px] text-text-secondary">
+          {selected.length ? `${selected.length} selected · change` : 'Any faction · choose'}
+        </summary>
+        <div className="max-h-72 overflow-y-auto px-3 pb-2 flex flex-col">
+          {groups.map(group => (
+            <fieldset key={group} className="m-0 p-0 border-0 pt-2">
+              <legend className="dossier-label text-text-secondary pb-1">{group}</legend>
+              {factions.map((f, i) => f.group === group && (
+                <label key={f.name} className="flex items-center gap-2.5 min-h-8 text-sm cursor-pointer">
+                  <input type="checkbox" checked={selected.includes(i)} onChange={() => toggle(i)}
+                    className="w-[18px] h-[18px] shrink-0 accent-[var(--color-amber)]" />
+                  {f.name}
+                </label>
+              ))}
+            </fieldset>
+          ))}
+        </div>
+      </details>
     </div>
   )
 }

@@ -30,6 +30,10 @@ The unit list (public/unit-list/) is built from MegaMek's generated unit
 catalog as published by MekBay (https://db.mekbay.com/units.json), trimmed to
 Alpha Strike stats by scripts/build-unit-list.mjs. Unit icons are loaded from
 mm-data's data/images/units/ at a pinned commit (see docs/adr/0006).
+Each unit's faction availability per era comes from MekBay's faction file
+(https://db.mekbay.com/factions.json), which publishes no license of its own
+(see docs/adr/0008). Era names and dates follow Sarna,
+https://www.sarna.net/wiki/BattleTech_eras.
 That data is not covered by this program's GPL license. Files derived from it
 carry their own CC BY-NC-SA 4.0 notice and may only be used non-commercially,
 with attribution, and shared under the same license.
