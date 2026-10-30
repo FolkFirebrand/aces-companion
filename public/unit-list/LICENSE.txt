@@ -1,0 +1,12 @@
+The unit list in this folder is derived from MegaMek Data
+(https://github.com/MegaMek/mm-data), (C) The MegaMek Team, via MegaMek's generated
+unit catalog as published by MekBay (https://db.mekbay.com/units.json).
+
+It is licensed under Creative Commons Attribution-NonCommercial-ShareAlike 4.0
+International (CC BY-NC-SA 4.0): https://creativecommons.org/licenses/by-nc-sa/4.0/
+It is not covered by the app's GPL license. Use it only non-commercially, credit the
+MegaMek Team, and share anything derived from it under the same license.
+
+MechWarrior Copyright Microsoft Corporation. MegaMek Data was created under Microsoft's
+"Game Content Usage Rules" (https://www.xbox.com/en-US/developers/rules) and it is not
+endorsed by or affiliated with Microsoft.

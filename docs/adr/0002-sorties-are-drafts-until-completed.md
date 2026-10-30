@@ -1,0 +1,3 @@
+# Sorties are drafts until completed; only the latest can be reopened
+
+A sortie's effects on the Player Force — units leaving for the Memorial, pilots wounded or killed, SP allocated, units bought or sold — are applied all at once when the player completes it, and reverted all at once if it is reopened. Only the most recent sortie can be reopened, because every later sortie was set up against the force it left behind; older mistakes are corrected in the next sortie, as on paper. The alternative, freely editing any past sortie and replaying everything after it, was rejected as confusing at the table and hard to make trustworthy.

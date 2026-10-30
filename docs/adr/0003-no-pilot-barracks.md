@@ -1,0 +1,3 @@
+# No pilot barracks; a force has only its 2–6 Named Pilots
+
+An earlier branch (`sortie-enhancements`) added a "barracks" holding up to 100 pilots outside a 6-pilot active roster. We dropped it unmerged because the Aces Rulebook has no such pool: a force has 2–6 Named Pilots who stay until they die, extra pilots are hired or replaced for 150 SP, and a pilot not assigned to a Fielded Unit simply didn't participate in that sortie. Carrying pilots between campaigns is handled by starting a new campaign with an Existing Force. Pilots may be dismissed (removed with confirmation), which the book doesn't forbid.

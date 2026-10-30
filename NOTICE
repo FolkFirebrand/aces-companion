@@ -1,0 +1,48 @@
+Aces Campaign Log
+Copyright (C) 2026 The Aces Campaign Log contributors
+
+This program is free software: you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later
+version. See LICENSE.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE.
+
+Unofficial fan project
+----------------------
+This is an unofficial, non-commercial fan tool for BattleTech: Aces. It is not
+affiliated with or endorsed by Catalyst Game Labs, Topps, or Microsoft.
+BattleTech, MechWarrior and related names are trademarks of their respective
+owners. The game's rules text, art and logos are not included; players need
+the Aces box set.
+
+Unit data and icons
+-------------------
+Unit data and unit icons come from MegaMek Data (mm-data),
+https://github.com/MegaMek/mm-data, (C) The MegaMek Team, licensed under
+Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International
+(CC BY-NC-SA 4.0), https://creativecommons.org/licenses/by-nc-sa/4.0/.
+The unit list (public/unit-list/) is built from MegaMek's generated unit
+catalog as published by MekBay (https://db.mekbay.com/units.json), trimmed to
+Alpha Strike stats by scripts/build-unit-list.mjs. Unit icons are loaded from
+mm-data's data/images/units/ at a pinned commit (see docs/adr/0006).
+That data is not covered by this program's GPL license. Files derived from it
+carry their own CC BY-NC-SA 4.0 notice and may only be used non-commercially,
+with attribution, and shared under the same license.
+
+MechWarrior Copyright Microsoft Corporation. MegaMek Data was created under
+Microsoft's "Game Content Usage Rules", https://www.xbox.com/en-US/developers/rules,
+and it is not endorsed by or affiliated with Microsoft.
+
+Ported code
+-----------
+Code ported from other GPL projects is credited here, with its source and
+license, as it is added:
+
+- Alpha Strike heat and critical-hit effect formulas in src/lib/battle.ts follow
+  BattleTech Tools' Alpha Strike play mode (src/classes/alpha-strike-unit.ts),
+  https://github.com/jdgwf/battletech-tools and the HeySporky fork
+  https://github.com/HeySporky/battletech-tools, by Jeffrey D. Gordon and
+  contributors, licensed GNU GPL v3. Reimplemented, not copied verbatim.
