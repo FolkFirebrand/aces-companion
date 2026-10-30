@@ -89,6 +89,12 @@ _Avoid_: OpFor (in user-facing text), enemy force, AI force
 A unit entered by hand rather than picked from the unit list, e.g. a homebrew design or one the list doesn't have.
 _Avoid_: Typed-in unit, manual unit
 
+**Era**:
+A span of BattleTech history used to filter the unit list, named and dated as on Sarna (e.g. Clan Invasion, 3050–3061).
+
+**Faction**:
+A power a unit-list unit is available to in a given era, e.g. Federated Suns or Clan Wolf (ADR 0008).
+
 **Play Mode**:
 The "Play the Sortie" screen where the battle is tracked on Alpha Strike Cards, round by round. Marks stay pending until applied to a card or until the round ends.
 _Avoid_: Battle tracker (in user-facing text), game mode
