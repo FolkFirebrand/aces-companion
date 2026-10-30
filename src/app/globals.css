@@ -1,0 +1,188 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* Company Dossier design system tokens: https://claude.ai/artifact/KDNaW45CRMQcSp77vkQ188 (tokens.json) */
+@theme {
+  --color-steel-900: #17191b;
+  --color-steel-800: #1c1e20;
+  --color-steel-700: #26292c;
+  --color-steel-600: #33373b;
+  --color-steel-500: #44484c;
+  --color-text-primary: #ece7dc;
+  --color-text-secondary: #b3ac9f;
+  --color-text-muted: #a39c8f;
+  --color-text-disabled: #8f897e;
+  --color-amber: #e89a2c;
+  --color-on-amber: #17191b;
+  --color-signal-blue: #5ab8f0;
+  --color-danger: #f07a4a;
+
+  --spacing-gutter: 18px;
+  --spacing-touch: 44px;
+  --spacing-button-primary: 52px;
+  --spacing-tabbar: 56px;
+  --spacing-hazard: 10px;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-plex-condensed), "Roboto Condensed", "Arial Narrow", sans-serif;
+  --font-mono: ui-monospace, monospace;
+  --font-heading: var(--font-saira-condensed), "Arial Narrow", sans-serif;
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+
+  /* Draft colour names, mapped onto Company Dossier until the remaining screens convert */
+  --color-bt-background: var(--color-steel-700);
+  --color-bt-surface: var(--color-steel-800);
+  --color-bt-accent: var(--color-amber);
+  --color-bt-danger: var(--color-danger);
+  --color-bt-text-primary: var(--color-text-primary);
+  --color-bt-border: var(--color-steel-500);
+
+  /* Company Dossier fonts (loaded by next/font in the root layout) */
+  --font-stencil: var(--font-saira-stencil), "Saira Condensed", Impact, sans-serif;
+  --font-condensed: var(--font-saira-condensed), "Arial Narrow", sans-serif;
+  --font-body: var(--font-plex-condensed), "Roboto Condensed", "Arial Narrow", sans-serif;
+}
+
+:root {
+  color-scheme: dark;
+  --background: #26292c;
+  --foreground: #ece7dc;
+  --card: #1c1e20;
+  --card-foreground: #ece7dc;
+  --popover: #1c1e20;
+  --popover-foreground: #ece7dc;
+  --primary: #e89a2c;
+  --primary-foreground: #17191b;
+  --secondary: #33373b;
+  --secondary-foreground: #ece7dc;
+  --muted: #33373b;
+  --muted-foreground: #b3ac9f;
+  --accent: #33373b;
+  --accent-foreground: #ece7dc;
+  --destructive: #f07a4a;
+  --border: #44484c;
+  --input: #44484c;
+  --ring: #5ab8f0;
+  --chart-1: #e89a2c;
+  --chart-2: #5ab8f0;
+  --chart-3: #f07a4a;
+  --chart-4: #b3ac9f;
+  --chart-5: #44484c;
+  --radius: 0px;
+  --sidebar: #1c1e20;
+  --sidebar-foreground: #ece7dc;
+  --sidebar-primary: #e89a2c;
+  --sidebar-primary-foreground: #17191b;
+  --sidebar-accent: #33373b;
+  --sidebar-accent-foreground: #ece7dc;
+  --sidebar-border: #44484c;
+  --sidebar-ring: #5ab8f0;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    background-color: var(--color-steel-700);
+    /* Thin gunmetal scroll bars instead of the browser's wide grey ones (Windows especially). */
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-steel-500) var(--color-steel-800);
+  }
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-steel-500) transparent;
+  }
+  /* Older WebKit/Blink without scrollbar-color support. */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--color-steel-800);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-steel-500);
+    border-radius: 0;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-amber);
+  }
+  body {
+    color: var(--color-text-primary);
+    font-family: var(--font-body);
+    background-color: var(--color-steel-700);
+    background-image: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.018) 0 2px, transparent 2px 5px);
+  }
+  h1 {
+    font-family: var(--font-stencil);
+    font-weight: 400;
+    text-transform: uppercase;
+    text-wrap: balance;
+  }
+  h2, h3, h4, h5 {
+    font-family: var(--font-condensed);
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-signal-blue);
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  .hazard-band {
+    height: var(--spacing-hazard);
+    background-image: repeating-linear-gradient(-45deg, var(--color-amber) 0 10px, var(--color-steel-900) 10px 20px);
+  }
+  .dossier-label {
+    font-family: var(--font-condensed);
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+}
