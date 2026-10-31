@@ -183,7 +183,10 @@ export function UnitListPicker({ onPick, initialText = '', pvLeft }: { onPick: (
 
 /** Multi-select of factions, grouped as MekBay groups them (ADR 0008). */
 function FactionPicker({ factions, selected, onChange }: { factions: UnitListFaction[]; selected: number[]; onChange: (selected: number[]) => void }) {
-  const groups = [...new Set(factions.map(f => f.group))]
+  const [query, setQuery] = useState('')
+  const q = query.trim().toLowerCase()
+  const shown = (f: UnitListFaction) => !q || f.name.toLowerCase().includes(q)
+  const groups = [...new Set(factions.filter(shown).map(f => f.group))]
   const toggle = (i: number) => onChange(selected.includes(i) ? selected.filter(x => x !== i) : [...selected, i])
   return (
     <div className="flex flex-col gap-1">
@@ -202,11 +205,15 @@ function FactionPicker({ factions, selected, onChange }: { factions: UnitListFac
         <summary className="min-h-touch px-3 flex items-center cursor-pointer list-none text-[15px] text-text-secondary">
           {selected.length ? `${selected.length} selected · change` : 'Any faction · choose'}
         </summary>
+        <div className="px-3 pt-1">
+          <TextInput id="unit-list-faction-search" value={query} onChange={setQuery} placeholder="Type to find a faction" autoComplete="off" aria-label="Find a faction" className="max-w-none" />
+        </div>
         <div className="max-h-72 overflow-y-auto px-3 pb-2 flex flex-col">
+          {groups.length === 0 && <p className="m-0 pt-2 text-sm text-text-secondary">No factions match.</p>}
           {groups.map(group => (
             <fieldset key={group} className="m-0 p-0 border-0 pt-2">
               <legend className="dossier-label text-text-secondary pb-1">{group}</legend>
-              {factions.map((f, i) => f.group === group && (
+              {factions.map((f, i) => f.group === group && shown(f) && (
                 <label key={f.name} className="flex items-center gap-2.5 min-h-8 text-sm cursor-pointer">
                   <input type="checkbox" checked={selected.includes(i)} onChange={() => toggle(i)}
                     className="w-[18px] h-[18px] shrink-0 accent-[var(--color-amber)]" />
