@@ -444,7 +444,7 @@ export const useCampaignStore = create<CampaignStore>()(
           outcome: 'victory',
           listedPv: 0,
           primaryObjective: 0, otherObjectives: 0,
-          reconnaissanceCost: 0, reconnaissanceNote: '', waypointsSP: 0, waypointsNote: '',
+          reconnaissanceCost: 0, reconnaissanceNote: '', waypointsSP: 0, waypointsGainedSP: 0, waypointsNote: '',
           legacyUnitsWithoutENE: 0, fieldedUnits: [], forceCommanderPilotId: null, legacyWoundedOrKilledCrew: 0, legacyNewReplacementPilots: 0, hires: [],
           legacyRepairs: [], legacyNamedPilotSp: 0, maxSpPerPilot: 0, mvpPilotId: null, pilotAllocations: [], pilotShares: [], purchases: [], keywordsGained: [], nextSortieNote: '',
           appliedEffects: null,

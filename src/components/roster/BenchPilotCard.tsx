@@ -3,19 +3,20 @@
 import { useDraggable } from '@dnd-kit/core'
 import Link from 'next/link'
 import { useCampaignStore } from '@/store/campaign'
-import { selectAvailableSP, selectEffectivePilot, selectPilotSkill, selectPilotEdgeTokens } from '@/store/selectors'
+import { selectAvailableSP, selectEffectivePilot, selectPilotAssignedUnit, selectPilotSkill, selectPilotEdgeTokens } from '@/store/selectors'
 import { StatusTag } from '@/components/dossier/StatusTag'
 import { PilotPhoto, WOUNDED_LABEL } from '@/components/pilots/PilotPhoto'
 import type { NamedPilot } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
-/** An unassigned Named Pilot; drag the handle onto a unit to assign them. */
+/** A Named Pilot on the Roster; drag the handle onto a unit to assign or move them. */
 export function BenchPilotCard({ pilot: stored }: { pilot: NamedPilot }) {
   const campaign = useCampaignStore(s => s.campaign)
   const pilot = selectEffectivePilot(campaign, stored)
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id: pilot.id })
   const tokens = selectPilotEdgeTokens(pilot)
   const available = selectAvailableSP(pilot)
+  const unit = selectPilotAssignedUnit(campaign.units, pilot.id)
   const style = transform ? { transform: `translate3d(${transform.x}px, ${transform.y}px, 0)` } : undefined
 
   return (
@@ -33,7 +34,10 @@ export function BenchPilotCard({ pilot: stored }: { pilot: NamedPilot }) {
           <span className="text-[13px] text-text-secondary">
             Skill {selectPilotSkill(pilot)} · {tokens} token{tokens === 1 ? '' : 's'}{available > 0 ? ` · ${available} SP unspent` : ''}
           </span>
-          {pilot.wounded && <StatusTag tone="hurt" className="self-start">{WOUNDED_LABEL}</StatusTag>}
+          <span className="flex flex-wrap gap-1.5">
+            {pilot.wounded && <StatusTag tone="hurt">{WOUNDED_LABEL}</StatusTag>}
+            <StatusTag tone={unit ? 'neutral' : 'amber'}>{unit ? `On ${unit.nameAndVariant || 'unnamed unit'}` : 'No unit'}</StatusTag>
+          </span>
           {pilot.edgeAbilitiesLearned.filter(Boolean).length > 0 && (
             <span className="flex flex-wrap gap-1 pt-0.5">
               {pilot.edgeAbilitiesLearned.filter(Boolean).map(a => <StatusTag key={a} tone="keyword">{a}</StatusTag>)}
@@ -46,7 +50,7 @@ export function BenchPilotCard({ pilot: stored }: { pilot: NamedPilot }) {
         <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" className="w-3.5 h-3.5">
           <path d="M7 2a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm6 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-6 6a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm6 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-6 6a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm6 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4z" />
         </svg>
-        Drag onto a unit
+        {unit ? 'Drag to move to another unit' : 'Drag onto a unit'}
       </button>
     </div>
   )

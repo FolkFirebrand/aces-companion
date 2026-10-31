@@ -20,7 +20,7 @@ export function DismissPilot({ pilotId, callsign }: { pilotId: string; callsign:
       ) : confirming ? (
         <div className="flex flex-wrap items-center gap-3">
           <span className="text-sm text-danger">Dismiss {callsign}? They leave your force for good, with no refund.</span>
-          <DossierButton variant="danger" onClick={() => { dismissPilot(pilotId); router.push('/pilots') }}>Dismiss pilot</DossierButton>
+          <DossierButton variant="danger" onClick={() => { dismissPilot(pilotId); router.push('/roster') }}>Dismiss pilot</DossierButton>
           <DossierButton variant="secondary" onClick={() => setConfirming(false)}>Keep them</DossierButton>
         </div>
       ) : (

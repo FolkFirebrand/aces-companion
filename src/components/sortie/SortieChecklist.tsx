@@ -24,7 +24,7 @@ function stepValue(stepId: string, sortie: Sortie, pvLimit: number, earnings: nu
     case 'setup-3': return `${sortie.reconnaissanceCost} SP`
     case 'setup-5': return sortie.listedPv > 0 ? `LIMIT ${pvLimit} PV` : null
     case 'setup-6': return sortie.opposingForce?.length ? `${sortie.opposingForce.length} UNIT${sortie.opposingForce.length > 1 ? 'S' : ''}` : null
-    case 'after-1': return `${sortie.waypointsSP} SP`
+    case 'after-1': return signedSp(sortie.waypointsGainedSP - sortie.waypointsSP)
     case 'after-2': return sortie.keywordsGained.length > 0 ? `${sortie.keywordsGained.length} KEYWORD${sortie.keywordsGained.length > 1 ? 'S' : ''}` : null
     case 'after-7': return sortie.nextSortieNote.trim() ? sortie.nextSortieNote.trim().toUpperCase() : null
     case 'after-3': return `${selectRepairCost(sortie) + selectPersonnelCost(sortie)} SP`
