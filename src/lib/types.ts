@@ -298,9 +298,10 @@ export interface SetupDraft {
   customSpPercent: number
   units: Unit[]
   pilots: NamedPilot[]
-  chassisConfirmed: boolean
   /** Set when the setup carries over an Existing Force. */
   existingForce?: ExistingForceStart | null
+  /** Set by Review's Edit links: the step offers a way straight back to Review. */
+  fromReview?: boolean
 }
 
 export interface ExistingForceStart {

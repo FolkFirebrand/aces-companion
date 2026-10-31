@@ -6,43 +6,54 @@ import { useCampaignStore } from '@/store/campaign'
 import { selectDifficultyName, selectWarchestBalance } from '@/store/selectors'
 import { MAIN_TABS, TabBar, isTabActive } from '@/components/dossier/TabBar'
 import { cn } from '@/lib/utils'
+import { SaveMenu } from './SaveMenu'
 
-/** Wide screens: a top bar with the force, the tabs, and the Warchest. */
 // The welcome page and the setup wizard come before there's a campaign to navigate.
 function outsideCampaign(pathname: string): boolean {
   return pathname === '/' || pathname.startsWith('/setup')
 }
 
+/** Every screen after the welcome page: the force and the Save menu; wide screens add the tabs and the Warchest. */
 export function TopBar() {
   const pathname = usePathname()
   const campaign = useCampaignStore(s => s.campaign)
-  if (outsideCampaign(pathname)) return null
+  const draft = useCampaignStore(s => s.setupDraft)
+  if (pathname === '/') return null
+  const inCampaign = !outsideCampaign(pathname)
+  const forceName = inCampaign ? campaign.forceName : draft?.forceName
 
   return (
-    <div className="hidden md:block bg-steel-900 border-b border-steel-500">
-      <div className="max-w-6xl mx-auto px-gutter flex items-center gap-6">
-        <span className="dossier-label text-amber">{campaign.forceName || 'NEW FORCE'}</span>
-        <nav aria-label="Main" className="flex">
-          {MAIN_TABS.map(tab => {
-            const active = isTabActive(tab, pathname)
-            return (
-              <Link
-                key={tab.href}
-                href={tab.href}
-                aria-current={active ? 'page' : undefined}
-                className={cn(
-                  'h-touch px-4 flex items-center font-condensed text-sm tracking-[1px] border-b-[3px]',
-                  active ? 'font-bold text-amber border-amber' : 'font-semibold text-text-secondary border-transparent hover:text-text-primary'
-                )}
-              >
-                {tab.label}
-              </Link>
-            )
-          })}
-        </nav>
-        <span className="ml-auto dossier-label text-text-secondary">
-          WARCHEST <span className="text-amber">{selectWarchestBalance(campaign)} SP</span> · {selectDifficultyName(campaign).toUpperCase()}
-        </span>
+    <div className="bg-steel-900 border-b border-steel-500">
+      <div className="max-w-6xl mx-auto px-gutter min-h-12 flex items-center gap-6">
+        <span className="dossier-label text-amber truncate">{forceName || 'NEW FORCE'}</span>
+        {inCampaign && (
+          <nav aria-label="Main" className="hidden md:flex">
+            {MAIN_TABS.map(tab => {
+              const active = isTabActive(tab, pathname)
+              return (
+                <Link
+                  key={tab.href}
+                  href={tab.href}
+                  aria-current={active ? 'page' : undefined}
+                  className={cn(
+                    'h-touch px-4 flex items-center font-condensed text-sm tracking-[1px] border-b-[3px]',
+                    active ? 'font-bold text-amber border-amber' : 'font-semibold text-text-secondary border-transparent hover:text-text-primary'
+                  )}
+                >
+                  {tab.label}
+                </Link>
+              )
+            })}
+          </nav>
+        )}
+        <div className="ml-auto flex items-center gap-6">
+          {inCampaign && (
+            <span className="hidden md:inline dossier-label text-text-secondary">
+              WARCHEST <span className="text-amber">{selectWarchestBalance(campaign)} SP</span> · {selectDifficultyName(campaign).toUpperCase()}
+            </span>
+          )}
+          <SaveMenu />
+        </div>
       </div>
     </div>
   )

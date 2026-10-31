@@ -121,9 +121,12 @@ export function UnitCard({ unit, assignedPilot, onUpdate, onRemove, onUnassignPi
           {linking
             ? <div className="py-1.5"><LinkUnitPanel unit={unit} onDone={() => setLinking(false)} /></div>
             : (
-              <button type="button" onClick={() => setLinking(true)} className="dossier-label text-signal-blue min-h-touch">
-                Custom unit · Link to the unit list &gt;
-              </button>
+              <div className="flex flex-wrap items-center justify-between gap-x-3">
+                <span className="text-[13px] text-text-secondary">Not on the unit list</span>
+                <button type="button" onClick={() => setLinking(true)} className="dossier-label text-signal-blue min-h-touch">
+                  Match to the unit list ›
+                </button>
+              </div>
             )}
         </div>
       )}

@@ -29,7 +29,7 @@ const FORCE = [96, 52, 44, 40, 35, 31, 29, 28, 22, 18].map((pv, i) => unit(`u${i
 function buildValidDraft() {
   act(() => {
     store().startSetup()
-    store().updateSetup({ name: 'Ashfall Contract', forceName: 'Iron Ravens', difficultyLevel: 'veteran', chassisConfirmed: true })
+    store().updateSetup({ name: 'Ashfall Contract', forceName: 'Iron Ravens', difficultyLevel: 'veteran' })
     FORCE.forEach(u => store().addSetupUnit(u))
     ;['ghost', 'rook', 'ash', 'kestrel'].forEach(id => store().addSetupPilot(pilot(id)))
   })
@@ -53,7 +53,7 @@ describe('the force rules', () => {
     expect(selectSetupForceErrors(draft())).toEqual([])
   })
 
-  it('block more than 400 PV, fewer than 8 units, and an unconfirmed chassis check', () => {
+  it('block more than 400 PV and fewer than 8 units', () => {
     act(() => {
       store().startSetup()
       store().addSetupUnit(unit('big', 401))
@@ -62,7 +62,6 @@ describe('the force rules', () => {
     expect(selectSetupForceErrors(draft())).toEqual([
       'Your force is 1 PV over the 400 PV limit.',
       'Your force needs at least 8 units (it has 1).',
-      'Confirm the chassis rule.',
     ])
   })
 })

@@ -21,13 +21,24 @@ function chip(on: boolean) {
   return cn('h-touch border-2 font-condensed font-bold text-[13px] tracking-[1px] uppercase', on ? 'border-amber text-amber' : 'border-steel-500 text-text-secondary')
 }
 
-/** Search MegaMek's unit list (ADR 0005) and pick a unit. `pvLeft` adds a hint in setup. */
-export function UnitListPicker({ onPick, initialText = '', pvLeft }: { onPick: (entry: UnitListEntry) => void; initialText?: string; pvLeft?: number }) {
+/**
+ * Search MegaMek's unit list (ADR 0005) and pick a unit. `pvLeft` adds a hint in setup; `tapToAdd` marks each result
+ * with + for pickers that add on tap; `aside` sits right of the Filters button.
+ */
+export function UnitListPicker({ onPick, initialText = '', pvLeft, label = 'Search the unit list', tapToAdd = false, aside }: {
+  onPick: (entry: UnitListEntry) => void
+  initialText?: string
+  pvLeft?: number
+  label?: string
+  tapToAdd?: boolean
+  aside?: React.ReactNode
+}) {
   const [units, setUnits] = useState<UnitListEntry[] | null>(null)
   const [factions, setFactions] = useState<UnitListFaction[]>([])
   const [error, setError] = useState('')
   const [text, setText] = useState(initialText)
   const [filters, setFilters] = useState<Filters>(NO_FILTERS)
+  const [showFilters, setShowFilters] = useState(false)
 
   useEffect(() => {
     let live = true
@@ -48,16 +59,35 @@ export function UnitListPicker({ onPick, initialText = '', pvLeft }: { onPick: (
 
   return (
     <div className="flex flex-col gap-2.5">
-      <label htmlFor="unit-list-search" className="dossier-label text-text-secondary">Search the unit list</label>
-      <TextInput id="unit-list-search" value={text} onChange={setText} placeholder="e.g. Atlas AS7-D" autoComplete="off" />
-      <details className="border-t border-steel-500 pt-2">
-        <summary className="min-h-8 flex items-center cursor-pointer list-none dossier-label text-signal-blue">
-          Filters{filtersOn ? ` · ${filtersOn} on` : ''}
-        </summary>
-        <div className="flex flex-col gap-3 pt-2">
+      <label htmlFor="unit-list-search" className={cn('dossier-label', tapToAdd ? 'text-amber' : 'text-text-secondary')}>{label}</label>
+      <div className="relative">
+        <TextInput id="unit-list-search" type="search" value={text} onChange={setText} placeholder="Search the unit list, e.g. Atlas AS7-D"
+          autoComplete="off" className="max-w-none pr-12 [&::-webkit-search-cancel-button]:hidden" />
+        {text && (
+          <button type="button" aria-label="Clear search" onClick={() => setText('')}
+            className="absolute right-0 top-0 w-touch h-touch text-text-secondary hover:text-text-primary">✕</button>
+        )}
+      </div>
+      <div className="flex flex-wrap items-center gap-2">
+        <button type="button" aria-expanded={showFilters} aria-controls="unit-list-filters" onClick={() => setShowFilters(o => !o)}
+          className={cn('h-touch px-3 flex items-center gap-2 border-2 border-signal-blue text-signal-blue font-condensed font-bold text-[13px] tracking-[1px] uppercase',
+            showFilters && 'bg-steel-600')}>
+          Filters
           {filtersOn > 0 && (
-            <button type="button" onClick={() => setFilters(NO_FILTERS)} className="self-start dossier-label text-signal-blue min-h-8">Clear filters</button>
+            <span className="min-w-5 h-5 px-1 flex items-center justify-center bg-amber text-on-amber text-xs" aria-label={`${filtersOn} on`}>{filtersOn}</span>
           )}
+          <span aria-hidden="true">{showFilters ? '▴' : '▾'}</span>
+        </button>
+        {filtersOn > 0 && (
+          <button type="button" onClick={() => setFilters(NO_FILTERS)}
+            className="h-touch px-3 border-2 border-danger text-danger font-condensed font-bold text-[13px] tracking-[1px] uppercase">
+            Clear filters ✕
+          </button>
+        )}
+        {aside && <div className="ml-auto min-h-touch flex items-center">{aside}</div>}
+      </div>
+      {showFilters && (
+        <div id="unit-list-filters" className="flex flex-col gap-3 p-3 bg-steel-800 border border-steel-500">
           <div className="flex flex-col gap-1">
             <span className="dossier-label text-text-secondary">Type</span>
             <div className="grid grid-cols-4 gap-1.5" role="group" aria-label="Unit types">
@@ -142,7 +172,7 @@ export function UnitListPicker({ onPick, initialText = '', pvLeft }: { onPick: (
             </div>
           </div>
         </div>
-      </details>
+      )}
 
       {error && <p role="alert" className="m-0 text-sm text-danger">{error}</p>}
       {!units && !error && <p className="m-0 text-sm text-text-secondary">Loading the unit list…</p>}
@@ -171,11 +201,15 @@ export function UnitListPicker({ onPick, initialText = '', pvLeft }: { onPick: (
                 <span className={cn('font-stencil text-lg whitespace-nowrap', pvLeft !== undefined && e.pv > pvLeft ? 'text-danger' : 'text-amber')}>
                   {e.pv} <span className="text-xs text-text-secondary">PV</span>
                 </span>
+                {tapToAdd && (
+                  <span aria-hidden="true" className="w-8 h-8 shrink-0 flex items-center justify-center border-2 border-signal-blue text-signal-blue font-condensed font-bold text-lg">+</span>
+                )}
               </button>
             </li>
           ))}
         </ul>
       )}
+      {tapToAdd && results.length > 0 && <p className="m-0 text-[13px] text-text-secondary">Tap a unit to add it. Tap again to add another.</p>}
       {matches.length > LIMIT && <p className="m-0 text-[13px] text-text-secondary">Showing the first {LIMIT}. Narrow the search or add a filter.</p>}
     </div>
   )
@@ -183,7 +217,10 @@ export function UnitListPicker({ onPick, initialText = '', pvLeft }: { onPick: (
 
 /** Multi-select of factions, grouped as MekBay groups them (ADR 0008). */
 function FactionPicker({ factions, selected, onChange }: { factions: UnitListFaction[]; selected: number[]; onChange: (selected: number[]) => void }) {
-  const groups = [...new Set(factions.map(f => f.group))]
+  const [query, setQuery] = useState('')
+  const q = query.trim().toLowerCase()
+  const shown = (f: UnitListFaction) => !q || f.name.toLowerCase().includes(q)
+  const groups = [...new Set(factions.filter(shown).map(f => f.group))]
   const toggle = (i: number) => onChange(selected.includes(i) ? selected.filter(x => x !== i) : [...selected, i])
   return (
     <div className="flex flex-col gap-1">
@@ -202,18 +239,22 @@ function FactionPicker({ factions, selected, onChange }: { factions: UnitListFac
         <summary className="min-h-touch px-3 flex items-center cursor-pointer list-none text-[15px] text-text-secondary">
           {selected.length ? `${selected.length} selected · change` : 'Any faction · choose'}
         </summary>
-        <div className="max-h-72 overflow-y-auto px-3 pb-2 flex flex-col">
+        <div className="px-3 pt-1">
+          <TextInput id="unit-list-faction-search" value={query} onChange={setQuery} placeholder="Type to find a faction" autoComplete="off" aria-label="Find a faction" className="max-w-none" />
+        </div>
+        <div className="max-h-72 overflow-y-auto px-3 pt-1 pb-2 flex flex-col">
+          {groups.length === 0 && <p className="m-0 pt-2 text-sm text-text-secondary">No factions match.</p>}
           {groups.map(group => (
-            <fieldset key={group} className="m-0 p-0 border-0 pt-2">
-              <legend className="dossier-label text-text-secondary pb-1">{group}</legend>
-              {factions.map((f, i) => f.group === group && (
+            <div key={group} role="group" aria-label={group} className="pt-2">
+              <div className="dossier-label text-text-secondary pb-1">{group}</div>
+              {factions.map((f, i) => f.group === group && shown(f) && (
                 <label key={f.name} className="flex items-center gap-2.5 min-h-8 text-sm cursor-pointer">
                   <input type="checkbox" checked={selected.includes(i)} onChange={() => toggle(i)}
                     className="w-[18px] h-[18px] shrink-0 accent-[var(--color-amber)]" />
                   {f.name}
                 </label>
               ))}
-            </fieldset>
+            </div>
           ))}
         </div>
       </details>

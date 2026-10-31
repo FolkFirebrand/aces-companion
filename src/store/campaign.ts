@@ -8,14 +8,14 @@ import type {
 import {
   selectAvailableSP, selectCompletionBlockers, selectEffectivePilot, selectMvpCandidates, selectPilotHasSortieSp,
   selectPilotShares, selectReopenBlocker, selectHireBlocker, selectDismissBlocker, MAX_NAMED_PILOTS,
-  selectSetupForceErrors, selectSetupPilotErrors, selectTotalRosterPV, selectWarchestBalance,
+  selectSetupForceErrors, selectSetupPilotErrors, selectTotalRosterPV, selectWarchestBalance, selectCanEditStartingForce,
 } from './selectors'
 import { configurationStats } from '@/lib/unit-list/convert'
 import { battleDamageState, commitUnit, sortieBattle, trulyDestroyedCause, unitBattle, withPending } from '@/lib/battle'
 import { addCopies } from '@/lib/opposing-force'
 import type { OpposingTemplate } from '@/lib/opposing-force'
 import type { UnitListEntry } from '@/lib/unit-list/convert'
-import { NAMED_PILOT_STARTING_SP, existingForceStartingWarchest, omniReconfigurationCost, purchasePrice, salePrice, setupStartingWarchest } from '@/lib/rules'
+import { FORCE_PV_LIMIT, NAMED_PILOT_STARTING_SP, SP_PER_UNSPENT_PV, existingForceStartingWarchest, omniReconfigurationCost, purchasePrice, salePrice, setupStartingWarchest } from '@/lib/rules'
 import { applySortie, revertSortie } from '@/lib/sortie-effects'
 import {
   CAMPAIGN_SCHEMA_VERSION, UPGRADE_STEPS, runUpgrades, createCampaignFile,
@@ -80,6 +80,14 @@ function withValidCommander(sortie: Sortie): Sortie {
   return stillFielded ? sortie : { ...sortie, forceCommanderPilotId: null }
 }
 
+// Setup's Starting Warchest is a base plus 40 SP per unspent PV, so a change to the starting force moves it by that much.
+function withStartingForce(campaign: Campaign, units: Unit[]) {
+  if (!selectCanEditStartingForce(campaign)) return { campaign }
+  const bonus = (list: Unit[]) => Math.max(0, FORCE_PV_LIMIT - selectTotalRosterPV(list)) * SP_PER_UNSPENT_PV
+  const startingWarchest = campaign.startingWarchest - bonus(campaign.units) + bonus(units)
+  return { campaign: touch({ ...campaign, units, startingWarchest }) }
+}
+
 type SetCampaign = (fn: (s: { campaign: Campaign }) => { campaign: Campaign }) => void
 
 function addPurchaseTo(set: SetCampaign, sortieId: string, purchase: PurchaseEntry) {
@@ -96,7 +104,7 @@ function addPurchaseTo(set: SetCampaign, sortieId: string, purchase: PurchaseEnt
 function emptySetup(): SetupDraft {
   return {
     step: 1, name: '', forceName: '', commandingOfficer: '', difficultyLevel: 'standard', customPvPercent: 0,
-    customSpPercent: 100, units: [], pilots: [], chassisConfirmed: false,
+    customSpPercent: 100, units: [], pilots: [],
   }
 }
 
@@ -120,6 +128,9 @@ interface CampaignStore {
   addUnit: (unit: Unit) => void
   updateUnit: (id: string, partial: Partial<Unit>) => void
   removeUnit: (id: string) => void
+  /** Build the Force from the Roster, before the first sortie: unspent PV still converts to SP. */
+  addStartingUnit: (unit: Unit) => void
+  removeStartingUnit: (id: string) => void
   assignPilot: (unitId: string, pilotId: string | null) => void
   addPilot: (pilot: NamedPilot) => void
   updatePilot: (id: string, partial: Partial<NamedPilot>) => void
@@ -266,6 +277,12 @@ export const useCampaignStore = create<CampaignStore>()(
 
       removeUnit: (id) =>
         set(s => ({ campaign: touch({ ...s.campaign, units: s.campaign.units.filter(u => u.id !== id) }) })),
+
+      addStartingUnit: (unit) =>
+        set(s => withStartingForce(s.campaign, [...s.campaign.units, unit])),
+
+      removeStartingUnit: (id) =>
+        set(s => withStartingForce(s.campaign, s.campaign.units.filter(u => u.id !== id))),
 
       assignPilot: (unitId, pilotId) =>
         set(s => ({
