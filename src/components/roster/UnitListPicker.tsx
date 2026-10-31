@@ -21,8 +21,18 @@ function chip(on: boolean) {
   return cn('h-touch border-2 font-condensed font-bold text-[13px] tracking-[1px] uppercase', on ? 'border-amber text-amber' : 'border-steel-500 text-text-secondary')
 }
 
-/** Search MegaMek's unit list (ADR 0005) and pick a unit. `pvLeft` adds a hint in setup. */
-export function UnitListPicker({ onPick, initialText = '', pvLeft }: { onPick: (entry: UnitListEntry) => void; initialText?: string; pvLeft?: number }) {
+/**
+ * Search MegaMek's unit list (ADR 0005) and pick a unit. `pvLeft` adds a hint in setup; `tapToAdd` marks each result
+ * with + for pickers that add on tap; `aside` sits right of the Filters toggle.
+ */
+export function UnitListPicker({ onPick, initialText = '', pvLeft, label = 'Search the unit list', tapToAdd = false, aside }: {
+  onPick: (entry: UnitListEntry) => void
+  initialText?: string
+  pvLeft?: number
+  label?: string
+  tapToAdd?: boolean
+  aside?: React.ReactNode
+}) {
   const [units, setUnits] = useState<UnitListEntry[] | null>(null)
   const [factions, setFactions] = useState<UnitListFaction[]>([])
   const [error, setError] = useState('')
@@ -48,11 +58,20 @@ export function UnitListPicker({ onPick, initialText = '', pvLeft }: { onPick: (
 
   return (
     <div className="flex flex-col gap-2.5">
-      <label htmlFor="unit-list-search" className="dossier-label text-text-secondary">Search the unit list</label>
-      <TextInput id="unit-list-search" value={text} onChange={setText} placeholder="e.g. Atlas AS7-D" autoComplete="off" />
-      <details className="border-t border-steel-500 pt-2">
-        <summary className="min-h-8 flex items-center cursor-pointer list-none dossier-label text-signal-blue">
-          Filters{filtersOn ? ` · ${filtersOn} on` : ''}
+      <label htmlFor="unit-list-search" className={cn('dossier-label', tapToAdd ? 'text-amber' : 'text-text-secondary')}>{label}</label>
+      <div className="relative">
+        <TextInput id="unit-list-search" type="search" value={text} onChange={setText} placeholder="Search the unit list, e.g. Atlas AS7-D"
+          autoComplete="off" className="max-w-none pr-12 [&::-webkit-search-cancel-button]:hidden" />
+        {text && (
+          <button type="button" aria-label="Clear search" onClick={() => setText('')}
+            className="absolute right-0 top-0 w-touch h-touch text-text-secondary hover:text-text-primary">✕</button>
+        )}
+      </div>
+      <div className="relative">
+      {aside && <div className="absolute right-0 top-0 min-h-touch flex items-center">{aside}</div>}
+      <details>
+        <summary className="min-h-touch w-fit flex items-center cursor-pointer list-none dossier-label text-signal-blue">
+          Filters{filtersOn ? ` · ${filtersOn} on` : ''} ›
         </summary>
         <div className="flex flex-col gap-3 pt-2">
           {filtersOn > 0 && (
@@ -143,6 +162,7 @@ export function UnitListPicker({ onPick, initialText = '', pvLeft }: { onPick: (
           </div>
         </div>
       </details>
+      </div>
 
       {error && <p role="alert" className="m-0 text-sm text-danger">{error}</p>}
       {!units && !error && <p className="m-0 text-sm text-text-secondary">Loading the unit list…</p>}
@@ -171,11 +191,15 @@ export function UnitListPicker({ onPick, initialText = '', pvLeft }: { onPick: (
                 <span className={cn('font-stencil text-lg whitespace-nowrap', pvLeft !== undefined && e.pv > pvLeft ? 'text-danger' : 'text-amber')}>
                   {e.pv} <span className="text-xs text-text-secondary">PV</span>
                 </span>
+                {tapToAdd && (
+                  <span aria-hidden="true" className="w-8 h-8 shrink-0 flex items-center justify-center border-2 border-signal-blue text-signal-blue font-condensed font-bold text-lg">+</span>
+                )}
               </button>
             </li>
           ))}
         </ul>
       )}
+      {tapToAdd && results.length > 0 && <p className="m-0 text-[13px] text-text-secondary">Tap a unit to add it. Tap again to add another.</p>}
       {matches.length > LIMIT && <p className="m-0 text-[13px] text-text-secondary">Showing the first {LIMIT}. Narrow the search or add a filter.</p>}
     </div>
   )
@@ -208,11 +232,11 @@ function FactionPicker({ factions, selected, onChange }: { factions: UnitListFac
         <div className="px-3 pt-1">
           <TextInput id="unit-list-faction-search" value={query} onChange={setQuery} placeholder="Type to find a faction" autoComplete="off" aria-label="Find a faction" className="max-w-none" />
         </div>
-        <div className="max-h-72 overflow-y-auto px-3 pb-2 flex flex-col">
+        <div className="max-h-72 overflow-y-auto px-3 pt-1 pb-2 flex flex-col">
           {groups.length === 0 && <p className="m-0 pt-2 text-sm text-text-secondary">No factions match.</p>}
           {groups.map(group => (
-            <fieldset key={group} className="m-0 p-0 border-0 pt-2">
-              <legend className="dossier-label text-text-secondary pb-1">{group}</legend>
+            <div key={group} role="group" aria-label={group} className="pt-2">
+              <div className="dossier-label text-text-secondary pb-1">{group}</div>
               {factions.map((f, i) => f.group === group && shown(f) && (
                 <label key={f.name} className="flex items-center gap-2.5 min-h-8 text-sm cursor-pointer">
                   <input type="checkbox" checked={selected.includes(i)} onChange={() => toggle(i)}
@@ -220,7 +244,7 @@ function FactionPicker({ factions, selected, onChange }: { factions: UnitListFac
                   {f.name}
                 </label>
               ))}
-            </fieldset>
+            </div>
           ))}
         </div>
       </details>

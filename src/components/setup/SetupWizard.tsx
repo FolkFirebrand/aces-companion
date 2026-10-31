@@ -14,8 +14,7 @@ import { UNIT_TYPES } from '@/lib/types'
 import type { DifficultyLevel, NamedPilot, SetupDraft, UnitType } from '@/lib/types'
 import { DossierButton } from '@/components/dossier/DossierButton'
 import { TrackSteppers } from '@/components/pilots/PilotTracks'
-import { AddUnitForm } from '@/components/roster/AddUnitForm'
-import { ForceFileButtons } from '@/components/roster/ForceFileButtons'
+import { ForceBuilder, ForceRules } from '@/components/roster/ForceBuilder'
 import { Field, NumberInput, Section, Select, TextInput } from '@/components/sortie/fields'
 import { cn } from '@/lib/utils'
 
@@ -92,14 +91,12 @@ function NameStep({ draft }: { draft: SetupDraft }) {
 
 function ForceStep({ draft }: { draft: SetupDraft }) {
   const { addSetupUnit, removeSetupUnit, updateSetup } = useCampaignStore()
-  const [adding, setAdding] = useState(false)
   const pv = selectTotalRosterPV(draft.units)
   const existing = draft.existingForce
   const carried = (unitId: string) => !!existing?.unitIds.includes(unitId)
   const added = draft.units.some(u => !carried(u.id))
   // A carried-over force already above 400 PV is allowed; it just can't add units.
   const over = pv > FORCE_PV_LIMIT && (!existing || added)
-  const unspent = Math.max(0, FORCE_PV_LIMIT - pv)
   const typesOk = { ok: draft.units.every(u => UNIT_TYPES.includes(u.unitType)), text: 'BattleMechs, battle armor, vehicles and infantry only' }
   const checks = existing
     ? [{ ok: !over, text: `Added units bring it no higher than ${FORCE_PV_LIMIT} PV` }, typesOk]
@@ -112,58 +109,9 @@ function ForceStep({ draft }: { draft: SetupDraft }) {
 
   return (
     <>
-      <div className="sticky top-0 z-20 -mx-gutter px-gutter py-3 bg-steel-800 border-y border-steel-500 flex flex-col gap-1.5">
-        <div className="flex justify-between items-baseline">
-          <span className="dossier-label text-text-secondary">Force</span>
-          <span className={cn('font-stencil text-2xl tabular-nums', over ? 'text-danger' : 'text-amber')}>
-            {pv} <span className="text-base text-text-secondary">/ {FORCE_PV_LIMIT} PV</span>
-          </span>
-        </div>
-        <div className="h-2 bg-steel-900 border border-steel-500" aria-hidden="true">
-          <div className={cn('h-full', over ? 'bg-danger' : 'bg-amber')} style={{ width: `${Math.min(100, (pv / FORCE_PV_LIMIT) * 100)}%` }} />
-        </div>
-        <div className="flex justify-between text-[13px]">
-          <span className="text-text-secondary">{draft.units.length} units</span>
-          <span className={over ? 'text-danger' : 'text-signal-blue'}>
-            {over
-              ? `${pv - FORCE_PV_LIMIT} PV over the limit`
-              : pv > FORCE_PV_LIMIT ? 'Carried over above the limit' : null}
-          </span>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-2">
-        <DossierButton variant="secondary" className="col-span-2" onClick={() => setAdding(true)}>+ Add a unit</DossierButton>
-      </div>
-      <ForceFileButtons units={draft.units} onUpload={units => units.forEach(u => addSetupUnit({ ...u, id: uuidv4(), pilotId: null }))} />
-      {adding && <AddUnitForm unitList pvLeft={unspent} onAdd={u => { addSetupUnit(u); setAdding(false) }} onCancel={() => setAdding(false)} />}
-
-      <div className="flex flex-col">
-        {[...draft.units].sort((a, b) => b.pvAtSkill4 - a.pvAtSkill4).map(u => (
-          <div key={u.id} className="flex items-center gap-2 min-h-touch border-b border-steel-500 text-[15px]">
-            <span className="flex-1">
-              {u.nameAndVariant}{' '}
-              <span className="font-condensed font-semibold text-[11px] tracking-[1px] text-text-secondary uppercase">
-                · {u.unitType} · Size {u.size}{u.ene ? ' · ENE' : ''}{carried(u.id) ? ' · Carried over' : ''}
-              </span>
-            </span>
-            <span className="font-stencil text-base text-amber w-8 text-right">{u.pvAtSkill4}</span>
-            {carried(u.id)
-              ? <span className="w-touch" aria-hidden="true" />
-              : <button type="button" aria-label={`Remove ${u.nameAndVariant}`} onClick={() => removeSetupUnit(u.id)} className="w-touch h-touch text-text-secondary">✕</button>}
-          </div>
-        ))}
-        {draft.units.length === 0 && <p className="m-0 text-sm text-text-secondary">No units yet.</p>}
-      </div>
-
-      <div className="bg-steel-800 border border-steel-500 px-3 py-2.5 flex flex-col gap-0.5">
-        <span className="dossier-label text-text-secondary pb-1">Force rules</span>
-        {checks.map(c => (
-          <div key={c.text} className="flex items-center gap-2.5 min-h-8 text-sm">
-            <span className={cn('font-condensed font-bold text-xs tracking-[1px] w-7', c.ok ? 'text-signal-blue' : 'text-danger')}>{c.ok ? '✓' : '✕'}</span>
-            {c.text}
-          </div>
-        ))}
+      <ForceBuilder units={draft.units} onAdd={addSetupUnit} onRemove={removeSetupUnit} isCarried={carried} over={over}
+        overNote={pv > FORCE_PV_LIMIT ? 'Carried over above the limit' : null} />
+      <ForceRules checks={checks}>
         {!existing && (
           <label className="flex items-start gap-2.5 pt-1.5 mt-1 border-t border-steel-500 text-sm cursor-pointer">
             <input type="checkbox" checked={draft.chassisConfirmed} onChange={e => updateSetup({ chassisConfirmed: e.target.checked })}
@@ -171,7 +119,7 @@ function ForceStep({ draft }: { draft: SetupDraft }) {
             <span>I&apos;ve checked: no more than two &apos;Mechs share a chassis, and those two are different variants.</span>
           </label>
         )}
-      </div>
+      </ForceRules>
     </>
   )
 }

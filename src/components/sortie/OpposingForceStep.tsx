@@ -13,7 +13,6 @@ import type { OpposingUnit, Sortie, UnitType } from '@/lib/types'
 import { DossierButton } from '@/components/dossier/DossierButton'
 import { Select, TextInput } from '@/components/sortie/fields'
 import { UnitListPicker } from '@/components/roster/UnitListPicker'
-import { AddUnitForm } from '@/components/roster/AddUnitForm'
 import { UnitPhoto } from '@/components/roster/UnitPhoto'
 
 const TYPE_LABELS: Record<UnitType, string> = { BattleMech: "'Mech", 'Combat Vehicle': 'Vehicle', 'Battle Armor': 'Battle armor', 'Conventional Infantry': 'Infantry' }
@@ -33,7 +32,7 @@ function EnemyRow({ sortieId, unit }: { sortieId: string; unit: OpposingUnit }) 
       <div className="flex items-center gap-2.5">
         <UnitPhoto unit={unit} size={40} />
         <button type="button" onClick={() => setEditing(e => !e)} aria-expanded={editing} className="flex-1 min-w-0 flex flex-col text-left min-h-touch justify-center">
-          <span className="font-condensed font-bold text-base tracking-[0.5px] truncate">{unit.nameAndVariant}{!unit.unitListId && ' (custom)'}</span>
+          <span className="font-condensed font-bold text-base tracking-[0.5px] truncate">{unit.nameAndVariant}</span>
           <span className="text-[13px] text-text-secondary">{statLine(unit)}</span>
         </button>
         <button type="button" onClick={() => removeOpposingUnit(sortieId, unit.id)} aria-label={`Remove ${unit.nameAndVariant}`}
@@ -63,7 +62,7 @@ export function OpposingForceStep({ sortie }: { sortie: Sortie }) {
   const force = sortie.opposingForce ?? []
   const fileRef = useRef<HTMLInputElement>(null)
   const [note, setNote] = useState<{ ok: boolean; text: string } | null>(null)
-  const [mode, setMode] = useState<'pick' | 'custom' | null>(force.length === 0 ? 'pick' : null)
+  const [mode, setMode] = useState<'pick' | null>(force.length === 0 ? 'pick' : null)
   const [picked, setPicked] = useState<UnitListEntry | null>(null)
   const [copies, setCopies] = useState(1)
 
@@ -77,7 +76,7 @@ export function OpposingForceStep({ sortie }: { sortie: Sortie }) {
       units.forEach(u => addOpposingCopies(sortie.id, opposingTemplate(u, u.skill), 1))
       setNote({
         ok: true,
-        text: `${units.length} unit${units.length === 1 ? '' : 's'} uploaded.${unmatched.length ? ` Not on the unit list, so added as custom units: ${unmatched.join(', ')}.` : ''}`,
+        text: `${units.length} unit${units.length === 1 ? '' : 's'} uploaded.${unmatched.length ? ` Not on the unit list: ${unmatched.join(', ')}.` : ''}`,
       })
     } catch (err) {
       setNote({ ok: false, text: err instanceof Error ? err.message : 'The file could not be uploaded.' })
@@ -127,10 +126,7 @@ export function OpposingForceStep({ sortie }: { sortie: Sortie }) {
       </section>
 
       {mode === null && (
-        <div className="flex flex-wrap gap-2">
-          <DossierButton variant="secondary" onClick={() => setMode('pick')}>+ Add enemy units</DossierButton>
-          <DossierButton variant="secondary" onClick={() => setMode('custom')}>+ Custom unit</DossierButton>
-        </div>
+        <DossierButton variant="secondary" className="self-start" onClick={() => setMode('pick')}>+ Add enemy units</DossierButton>
       )}
 
       {mode === 'pick' && (
@@ -162,17 +158,10 @@ export function OpposingForceStep({ sortie }: { sortie: Sortie }) {
           ) : (
             <UnitListPicker onPick={entry => { setPicked(entry); setCopies(1) }} />
           )}
-          <div className="flex flex-wrap gap-2">
-            <DossierButton variant="secondary" onClick={() => { setPicked(null); setMode('custom') }}>+ Custom unit</DossierButton>
-            {force.length > 0 && <DossierButton variant="secondary" className="border-steel-500 text-text-secondary" onClick={() => { setPicked(null); setMode(null) }}>Cancel</DossierButton>}
-          </div>
+          {force.length > 0 && (
+            <DossierButton variant="secondary" className="self-start border-steel-500 text-text-secondary" onClick={() => { setPicked(null); setMode(null) }}>Cancel</DossierButton>
+          )}
         </div>
-      )}
-
-      {mode === 'custom' && (
-        <AddUnitForm submitLabel="Add to the Opposing Force"
-          onAdd={unit => { addOpposingCopies(sortie.id, opposingTemplate(unit), 1); setMode(null) }}
-          onCancel={() => setMode(force.length === 0 ? 'pick' : null)} />
       )}
 
       <p className="m-0 text-[13px] text-text-secondary">

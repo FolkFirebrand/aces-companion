@@ -6,7 +6,7 @@ import { selectCampaignKeywords, selectFieldedPv, selectRearmingUnits, selectPvL
 import { omniReconfigurationCost } from '@/lib/rules'
 import { useUnitList } from '@/lib/unit-list/load'
 import { OpposingForceStep } from './OpposingForceStep'
-import { AddUnitForm } from '@/components/roster/AddUnitForm'
+import { BuyUnitPanel } from './BuyUnitPanel'
 import { omniConfigurations, unitListName } from '@/lib/unit-list/convert'
 import type { PurchaseEntry, Sortie } from '@/lib/types'
 import { DossierButton } from '@/components/dossier/DossierButton'
@@ -390,7 +390,7 @@ function PurchaseAdditionalUnits({ sortie }: Props) {
       <Section title="Buy" aside="PV × 40">
         {buys.map(p => <PurchaseLine key={p.id} purchase={p} onRemove={() => removePurchase(sortie.id, p.id)} />)}
         {buying
-          ? <AddUnitForm unitList submitLabel="Buy unit (PV × 40)" onAdd={unit => { buyUnit(sortie.id, unit); setBuying(false) }} onCancel={() => setBuying(false)} />
+          ? <BuyUnitPanel onBuy={unit => { buyUnit(sortie.id, unit); setBuying(false) }} onCancel={() => setBuying(false)} />
           : <DossierButton variant="secondary" className="self-start" onClick={() => setBuying(true)}>+ Buy a unit</DossierButton>}
       </Section>
 

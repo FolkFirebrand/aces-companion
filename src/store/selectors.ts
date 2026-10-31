@@ -99,6 +99,11 @@ export function selectCampaignLog(campaign: Campaign): CampaignLogRow[] {
   })
 }
 
+/** The starting force can still change until the first sortie is logged; after that, units are bought. */
+export function selectCanEditStartingForce(campaign: Campaign): boolean {
+  return campaign.sorties.length === 0
+}
+
 export function selectWarchestBalance(campaign: Campaign): number {
   const rows = selectCampaignLog(campaign)
   return rows.length > 0 ? rows[rows.length - 1].warchest : campaign.startingWarchest

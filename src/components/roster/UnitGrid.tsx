@@ -1,17 +1,12 @@
 'use client'
 
-import { useState } from 'react'
-import { v4 as uuidv4 } from 'uuid'
+import Link from 'next/link'
 import { useCampaignStore } from '@/store/campaign'
-import { selectAssignedPilot } from '@/store/selectors'
-import { DossierButton } from '@/components/dossier/DossierButton'
+import { selectAssignedPilot, selectCanEditStartingForce } from '@/store/selectors'
 import { UnitCard } from './UnitCard'
-import { AddUnitForm } from './AddUnitForm'
-import { ForceFileButtons } from './ForceFileButtons'
 
 export function UnitGrid() {
-  const { campaign, addUnit, updateUnit, removeUnit, assignPilot } = useCampaignStore()
-  const [adding, setAdding] = useState(false)
+  const { campaign, updateUnit, removeUnit, assignPilot } = useCampaignStore()
 
   return (
     <section className="flex flex-col gap-3">
@@ -20,9 +15,12 @@ export function UnitGrid() {
         <span className="text-sm text-text-secondary">Drag a Named Pilot onto a unit to assign them.</span>
       </div>
 
-      <DossierButton variant="secondary" className="self-start" onClick={() => setAdding(true)}>+ Add a unit</DossierButton>
-      <ForceFileButtons units={campaign.units} onUpload={units => units.forEach(u => addUnit({ ...u, id: uuidv4(), pilotId: null }))} />
-      {adding && <AddUnitForm unitList onAdd={unit => { addUnit(unit); setAdding(false) }} onCancel={() => setAdding(false)} />}
+      {selectCanEditStartingForce(campaign) && (
+        <div className="flex flex-wrap justify-between items-center gap-x-3 px-3 bg-steel-800 border border-steel-500">
+          <span className="text-sm text-text-secondary">Missing a unit?</span>
+          <Link href="/roster/force" className="min-h-touch flex items-center dossier-label text-signal-blue">Return to Build the Force ›</Link>
+        </div>
+      )}
 
       {campaign.units.length === 0
         ? <p className="m-0 text-sm text-text-secondary">No units yet.</p>
