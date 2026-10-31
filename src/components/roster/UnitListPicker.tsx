@@ -23,7 +23,7 @@ function chip(on: boolean) {
 
 /**
  * Search MegaMek's unit list (ADR 0005) and pick a unit. `pvLeft` adds a hint in setup; `tapToAdd` marks each result
- * with + for pickers that add on tap; `aside` sits right of the Filters toggle.
+ * with + for pickers that add on tap; `aside` sits right of the Filters button.
  */
 export function UnitListPicker({ onPick, initialText = '', pvLeft, label = 'Search the unit list', tapToAdd = false, aside }: {
   onPick: (entry: UnitListEntry) => void
@@ -38,6 +38,7 @@ export function UnitListPicker({ onPick, initialText = '', pvLeft, label = 'Sear
   const [error, setError] = useState('')
   const [text, setText] = useState(initialText)
   const [filters, setFilters] = useState<Filters>(NO_FILTERS)
+  const [showFilters, setShowFilters] = useState(false)
 
   useEffect(() => {
     let live = true
@@ -67,16 +68,26 @@ export function UnitListPicker({ onPick, initialText = '', pvLeft, label = 'Sear
             className="absolute right-0 top-0 w-touch h-touch text-text-secondary hover:text-text-primary">✕</button>
         )}
       </div>
-      <div className="relative">
-      {aside && <div className="absolute right-0 top-0 min-h-touch flex items-center">{aside}</div>}
-      <details>
-        <summary className="min-h-touch w-fit flex items-center cursor-pointer list-none dossier-label text-signal-blue">
-          Filters{filtersOn ? ` · ${filtersOn} on` : ''} ›
-        </summary>
-        <div className="flex flex-col gap-3 pt-2">
+      <div className="flex flex-wrap items-center gap-2">
+        <button type="button" aria-expanded={showFilters} aria-controls="unit-list-filters" onClick={() => setShowFilters(o => !o)}
+          className={cn('h-touch px-3 flex items-center gap-2 border-2 border-signal-blue text-signal-blue font-condensed font-bold text-[13px] tracking-[1px] uppercase',
+            showFilters && 'bg-steel-600')}>
+          Filters
           {filtersOn > 0 && (
-            <button type="button" onClick={() => setFilters(NO_FILTERS)} className="self-start dossier-label text-signal-blue min-h-8">Clear filters</button>
+            <span className="min-w-5 h-5 px-1 flex items-center justify-center bg-amber text-on-amber text-xs" aria-label={`${filtersOn} on`}>{filtersOn}</span>
           )}
+          <span aria-hidden="true">{showFilters ? '▴' : '▾'}</span>
+        </button>
+        {filtersOn > 0 && (
+          <button type="button" onClick={() => setFilters(NO_FILTERS)}
+            className="h-touch px-3 border-2 border-danger text-danger font-condensed font-bold text-[13px] tracking-[1px] uppercase">
+            Clear filters ✕
+          </button>
+        )}
+        {aside && <div className="ml-auto min-h-touch flex items-center">{aside}</div>}
+      </div>
+      {showFilters && (
+        <div id="unit-list-filters" className="flex flex-col gap-3 p-3 bg-steel-800 border border-steel-500">
           <div className="flex flex-col gap-1">
             <span className="dossier-label text-text-secondary">Type</span>
             <div className="grid grid-cols-4 gap-1.5" role="group" aria-label="Unit types">
@@ -161,8 +172,7 @@ export function UnitListPicker({ onPick, initialText = '', pvLeft, label = 'Sear
             </div>
           </div>
         </div>
-      </details>
-      </div>
+      )}
 
       {error && <p role="alert" className="m-0 text-sm text-danger">{error}</p>}
       {!units && !error && <p className="m-0 text-sm text-text-secondary">Loading the unit list…</p>}
