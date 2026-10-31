@@ -41,12 +41,15 @@ export default function SortieStepPage({ params }: { params: Promise<{ id: strin
   // The next unfinished data step after this one, wrapping round to any earlier one left behind.
   const here = steps.findIndex(s => s.id === stepId)
   const open = (s: (typeof steps)[number]) =>
-    !s.done && s.id !== stepId && !s.tickOff && (sortie.outcome !== 'failed' || s.section === 'setup')
+    !s.done && s.id !== stepId && (sortie.outcome !== 'failed' || s.section === 'setup')
   const next = steps.slice(here + 1).find(open) ?? steps.slice(0, here).find(open)
+  // Setup ends at the table: after the last setup step, or once none is left, the battle comes next.
+  const lastSetup = steps.filter(s => s.section === 'setup').at(-1)?.id === stepId
+  const toPlay = step.section === 'setup' && (lastSetup || next?.section !== 'setup')
 
   function markDoneAndContinue() {
     setStepDone(id, stepId, true)
-    router.push(next ? `/sortie/${id}/step/${next.id}` : `/sortie/${id}`)
+    router.push(toPlay ? `/sortie/${id}/play` : next ? `/sortie/${id}/step/${next.id}` : `/sortie/${id}`)
   }
 
   return (
@@ -63,7 +66,7 @@ export default function SortieStepPage({ params }: { params: Promise<{ id: strin
           <StepContent stepId={stepId} sortie={sortie} />
           <div className="flex flex-col gap-2 pt-2">
             <DossierButton variant="primary" onClick={markDoneAndContinue}>
-              {next ? `Done · Next: ${next.name}` : 'Done · Back to all steps'}
+              {toPlay ? 'Done · Next: Play the Sortie' : next ? `Done · Next: ${next.name}` : 'Done · Back to all steps'}
             </DossierButton>
             {done && (
               <DossierButton variant="secondary" className="self-start" onClick={() => setStepDone(id, stepId, false)}>

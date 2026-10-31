@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useCampaignStore } from '@/store/campaign'
-import { selectCampaignKeywords, selectFieldedPv, selectRearmingUnits, selectPvLimit, selectTotalExpenses, selectTotalIncome, selectSortieEarnings, selectDifficulty } from '@/store/selectors'
+import { selectCampaignKeywords, selectFieldedPv, selectRearmingUnits, selectPvLimit, selectTotalExpenses, selectTotalIncome, selectSortieEarnings, selectDifficulty, selectWaypointsNet } from '@/store/selectors'
 import { omniReconfigurationCost } from '@/lib/rules'
 import { useUnitList } from '@/lib/unit-list/load'
 import { OpposingForceStep } from './OpposingForceStep'
@@ -64,6 +64,20 @@ function PlayerForce({ sortie }: Props) {
   const fieldedPilots = sortie.fieldedUnits.flatMap(f => (f.pilotId ? [f.pilotId] : []))
   const rearming = selectRearmingUnits(sortie)
   const pilotName = (id: string | null) => campaign.namedPilots.find(p => p.id === id)?.callsign ?? ''
+
+  // A pilot left out can climb into any unit: a fielded one swaps out its crew, an unfielded one joins the sortie.
+  function mountUp(pilotId: string, unitId: string) {
+    if (!unitId) return
+    if (!sortie.fieldedUnits.some(f => f.unitId === unitId)) setFielded(sortie.id, unitId, true)
+    assignFieldedPilot(sortie.id, unitId, pilotId)
+  }
+
+  function mountOptionLabel(unitId: string): string {
+    const unit = campaign.units.find(u => u.id === unitId)!
+    const fielded = sortie.fieldedUnits.find(f => f.unitId === unitId)
+    if (!fielded) return `${unit.nameAndVariant} · not fielded, adds ${unit.pvAtSkill4} PV`
+    return `${unit.nameAndVariant} · ${fielded.pilotId ? `replaces ${pilotName(fielded.pilotId)}` : 'replaces generic crew'}`
+  }
 
   // Where a pilot usually sits, so the picker can say "usually Talon TL-3, not fielded".
   function pilotOptionLabel(pilotId: string): string {
@@ -137,8 +151,21 @@ function PlayerForce({ sortie }: Props) {
       {campaign.namedPilots.length > 0 && (
         <Section title="Named Pilots" aside={`${fieldedPilots.length} of ${campaign.namedPilots.length} fielded`}>
           {healthy.filter(p => !fieldedPilots.includes(p.id)).map(p => (
-            <div key={p.id} className="flex justify-between items-center py-2 border-b border-steel-500 text-[15px]">
-              <span>{p.callsign}</span><StatusTag tone="neutral">Sitting out · half SP</StatusTag>
+            <div key={p.id} className="flex flex-col gap-1.5 py-2 border-b border-steel-500 text-[15px]">
+              <div className="flex justify-between items-center gap-2">
+                <span>{p.callsign}</span><StatusTag tone="neutral">Sitting out · half SP</StatusTag>
+              </div>
+              {campaign.units.length > 0 && (
+                <div className="flex items-center gap-2">
+                  <label htmlFor={`mount-${p.id}`} className="dossier-label text-text-secondary whitespace-nowrap">Mount up</label>
+                  <Select id={`mount-${p.id}`} value="" onChange={unitId => mountUp(p.id, unitId)} className="flex-1">
+                    <option value="">Choose a unit for {p.callsign}</option>
+                    {[...campaign.units]
+                      .sort((a, b) => Number(!sortie.fieldedUnits.some(f => f.unitId === a.id)) - Number(!sortie.fieldedUnits.some(f => f.unitId === b.id)))
+                      .map(u => <option key={u.id} value={u.id}>{mountOptionLabel(u.id)}</option>)}
+                  </Select>
+                </div>
+              )}
             </div>
           ))}
           {wounded.map(p => (
@@ -236,11 +263,21 @@ function OmniReconfiguration({ sortie }: Props) {
 
 function TriggerGameEndWaypoints({ sortie }: Props) {
   const { updateSortie } = useSortie()
+  const net = selectWaypointsNet(sortie)
   return (
     <>
-      <Field id="waypoints-sp" label="Waypoint SP costs" hint="The total SP that waypoint text told you to pay during the sortie.">
-        <NumberInput id="waypoints-sp" value={sortie.waypointsSP} onChange={waypointsSP => updateSortie(sortie.id, { waypointsSP })} />
+      <p className="m-0 text-sm text-text-secondary">Add up every waypoint revealed during the battle and at game end that changed your SP. Some cost SP, some give it.</p>
+      <Field id="waypoints-sp" label="SP paid to waypoints" hint="The total SP that waypoint text told you to pay.">
+        <NumberInput id="waypoints-sp" min={0} value={sortie.waypointsSP} onChange={waypointsSP => updateSortie(sortie.id, { waypointsSP })} />
       </Field>
+      <Field id="waypoints-gained" label="SP gained from waypoints" hint="The total SP that waypoint text gave you.">
+        <NumberInput id="waypoints-gained" min={0} value={sortie.waypointsGainedSP} onChange={waypointsGainedSP => updateSortie(sortie.id, { waypointsGainedSP })} />
+      </Field>
+      <Readout
+        label="Waypoints on the Sortie Log"
+        value={net > 0 ? `−${net} SP` : net < 0 ? `+${-net} SP` : '0 SP'}
+        tone={net > 0 ? 'text-danger' : net < 0 ? 'text-signal-blue' : 'text-text-primary'}
+      />
       <Field id="waypoints-note" label="Which waypoints (optional)">
         <TextInput id="waypoints-note" value={sortie.waypointsNote} placeholder="e.g. Waypoint 4, Waypoint 9" onChange={waypointsNote => updateSortie(sortie.id, { waypointsNote })} />
       </Field>
@@ -308,6 +345,9 @@ function CalculateIncomeAndExpenses({ sortie }: Props) {
         <Readout label="Total Income" value={selectTotalIncome(campaign, sortie)} />
       </Section>
       <Section title="Expenses">
+        {selectWaypointsNet(sortie) !== 0 && (
+          <Readout label="Waypoints (paid less gained)" value={selectWaypointsNet(sortie)} tone="text-signal-blue" />
+        )}
         <Readout label={`Rearming · ${selectRearmingUnits(sortie)} units without ENE × 20`} value={selectRearmingUnits(sortie) * 20} tone="text-signal-blue" />
         <Readout label="Total Expenses" value={selectTotalExpenses(sortie)} tone="text-text-primary" />
       </Section>

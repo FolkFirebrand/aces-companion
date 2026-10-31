@@ -5,7 +5,7 @@ import { ALL_STEP_IDS } from './steps'
 // Version 2 is the clean break (ADR 0001): anything saved before it is discarded or refused.
 // To change the saved shape: bump this, add an UPGRADE_STEPS entry keyed by the version it
 // upgrades FROM, and add a test with a real old-format fixture (see campaignFile.test.ts).
-export const CAMPAIGN_SCHEMA_VERSION = 11
+export const CAMPAIGN_SCHEMA_VERSION = 12
 
 export type SavedData = { campaign: Record<string, unknown> } & Record<string, unknown>
 export type UpgradeSteps = Record<number, (data: SavedData) => SavedData>
@@ -150,6 +150,14 @@ export const UPGRADE_STEPS: UpgradeSteps = {
   // v10 → v11 (#36, v2): Units may link to the unit list. The link is optional, so v1 data is unchanged;
   // the bump marks files saved by v2, which v1 refuses as newer.
   10: data => data,
+  // v11 → v12: waypoints can give SP as well as cost it.
+  11: data => ({
+    ...data,
+    campaign: {
+      ...data.campaign,
+      sorties: (data.campaign.sorties as Record<string, unknown>[]).map(sortie => ({ ...sortie, waypointsGainedSP: 0 })),
+    },
+  }),
 }
 
 export function runUpgrades(data: SavedData, fromVersion: number, toVersion: number, steps: UpgradeSteps): SavedData {

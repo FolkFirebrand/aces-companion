@@ -1,6 +1,6 @@
 import { act } from '@testing-library/react'
 import { useCampaignStore } from '@/store/campaign'
-import { CAMPAIGN_SCHEMA_VERSION, runUpgrades } from '@/lib/campaign-file'
+import { CAMPAIGN_SCHEMA_VERSION, UPGRADE_STEPS, runUpgrades } from '@/lib/campaign-file'
 import type { UpgradeSteps } from '@/lib/campaign-file'
 import { logCompletedSortie } from './helpers'
 
@@ -201,6 +201,14 @@ describe('saved browser data', () => {
 
 // Pattern for future schema changes: add a step keyed by the version it upgrades FROM,
 // bump CAMPAIGN_SCHEMA_VERSION, and add a test like this one with a real old-format fixture.
+describe('v11 → v12', () => {
+  it('gives every sortie a zero waypoint gain', () => {
+    const v11 = { campaign: { sorties: [{ id: 's1', waypointsSP: 30 }] } }
+
+    expect(runUpgrades(v11, 11, 12, UPGRADE_STEPS).campaign.sorties).toEqual([{ id: 's1', waypointsSP: 30, waypointsGainedSP: 0 }])
+  })
+})
+
 describe('upgrade steps', () => {
   const steps: UpgradeSteps = {
     2: data => ({ ...data, campaign: { ...data.campaign, addedInV3: true } }),

@@ -30,7 +30,7 @@ export default function PilotDetailPage({ params }: { params: Promise<{ id: stri
     return (
       <PageBody>
         <p className="m-0 text-text-secondary">This Named Pilot is no longer in your force. They may have been dismissed or killed in action; check the Memorial on the Roster.</p>
-        <Link href="/pilots" className="dossier-label text-signal-blue">&lt; All pilots</Link>
+        <Link href="/roster" className="dossier-label text-signal-blue">&lt; Roster</Link>
       </PageBody>
     )
   }
@@ -64,7 +64,7 @@ export default function PilotDetailPage({ params }: { params: Promise<{ id: stri
       </header>
       <PageBody>
         <div className="max-w-xl w-full flex flex-col gap-5">
-          <Link href="/pilots" className="dossier-label text-signal-blue">&lt; All pilots</Link>
+          <Link href="/roster" className="dossier-label text-signal-blue">&lt; Roster</Link>
 
           <Section title="Personnel details">
             <Field id="pilot-callsign" label="Callsign">

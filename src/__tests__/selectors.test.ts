@@ -30,7 +30,7 @@ const baseSortie: Sortie = {
   id: 's1', sortieNumber: '01', name: 'Test Sortie', datePlayed: '2026-01-01', status: 'completed', stepsDone: [], outcome: 'victory', listedPv: 0,
   reconnaissanceNote: '', appliedEffects: null, waypointsNote: '', nextSortieNote: '',
   primaryObjective: 500, otherObjectives: 200,
-  reconnaissanceCost: 50, waypointsSP: 30,
+  reconnaissanceCost: 50, waypointsSP: 30, waypointsGainedSP: 0,
   legacyUnitsWithoutENE: 2, fieldedUnits: [], forceCommanderPilotId: null, legacyWoundedOrKilledCrew: 1, legacyNewReplacementPilots: 0, hires: [],
   legacyRepairs: [{ id: 'r1', unitId: 'u1', size: 2, tier: 'crippled' }],
   legacyNamedPilotSp: 0, maxSpPerPilot: 0, mvpPilotId: null, pilotAllocations: [], pilotShares: [], purchases: [], keywordsGained: [],
@@ -59,11 +59,16 @@ describe('selectSortieEarnings', () => {
     expect(selectSortieEarnings(standardCampaign, baseSortie)).toBe(360)
   })
 
+  it('takes SP gained from waypoints off the Waypoints line', () => {
+    // waypoints net = 30 paid - 50 gained = -20, so expenses = 340 - 50 = 290
+    expect(selectSortieEarnings(standardCampaign, { ...baseSortie, waypointsGainedSP: 50 })).toBe(410)
+  })
+
   it('applies the SP Earned % to income', () => {
     const simpleSortie = {
       ...baseSortie,
       primaryObjective: 100, otherObjectives: 0,
-      reconnaissanceCost: 0, waypointsSP: 0,
+      reconnaissanceCost: 0, waypointsSP: 0, waypointsGainedSP: 0,
       legacyUnitsWithoutENE: 0, legacyWoundedOrKilledCrew: 0, legacyNewReplacementPilots: 0, hires: [],
       legacyRepairs: [],
     }
@@ -76,7 +81,7 @@ describe('selectWarchestBalance', () => {
   it('adds every sortie\'s earnings to the Starting Warchest Balance', () => {
     const simpleSortie: Sortie = {
       ...baseSortie, id: 's2', primaryObjective: 200, otherObjectives: 0,
-      legacyRepairs: [], reconnaissanceCost: 0, waypointsSP: 0,
+      legacyRepairs: [], reconnaissanceCost: 0, waypointsSP: 0, waypointsGainedSP: 0,
       legacyUnitsWithoutENE: 0, legacyWoundedOrKilledCrew: 0, legacyNewReplacementPilots: 0, hires: [],
     }
     const campaign = {
