@@ -16,10 +16,10 @@ describe('TabBar', () => {
     expect(screen.getByRole('link', { name: 'LOG' })).toHaveAttribute('aria-current', 'page')
   })
 
-  it('keeps PILOTS active on a pilot file', () => {
+  it('keeps ROSTER active on a pilot file', () => {
     render(<TabBar tabs={MAIN_TABS} currentPath="/pilots/p1" />)
 
-    expect(screen.getByRole('link', { name: 'PILOTS' })).toHaveAttribute('aria-current', 'page')
+    expect(screen.getByRole('link', { name: 'ROSTER' })).toHaveAttribute('aria-current', 'page')
   })
 })
 

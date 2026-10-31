@@ -34,7 +34,7 @@ const WORKED_SORTIE: Partial<Sortie> = {
   primaryObjective: 1200,
   otherObjectives: 600,
   reconnaissanceCost: 100,
-  waypointsSP: 0,
+  waypointsSP: 0, waypointsGainedSP: 0,
   legacyNewReplacementPilots: 0, hires: [],
   fieldedUnits: [
     fieldedUnit('mech', { size: 1, damage: 'destroyed', salvageRoll: 9, crewRoll: 5 }),

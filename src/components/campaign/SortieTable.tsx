@@ -7,7 +7,7 @@ import type { CampaignLogRow } from '@/store/selectors'
 import { FileHeader, PageBody } from '@/components/dossier/FileHeader'
 import { LedgerRow } from '@/components/dossier/LedgerRow'
 import { StatusTag } from '@/components/dossier/StatusTag'
-import { DossierButton } from '@/components/dossier/DossierButton'
+import { StartSortieButton } from './StartSortieButton'
 
 const COLUMNS = ['Date', 'Sortie', 'Name', 'Outcome', 'Earnings', 'Named Pilots', 'Purchases', 'Warchest', 'Keywords Gained']
 
@@ -25,19 +25,12 @@ function rowTitle({ sortie }: CampaignLogRow): string {
 
 export function SortieTable() {
   const router = useRouter()
-  const { campaign, addSortie } = useCampaignStore()
+  const campaign = useCampaignStore(s => s.campaign)
   const rows = selectCampaignLog(campaign)
   const completedCount = rows.filter(r => r.status === 'completed').length
   const warchest = selectWarchestBalance(campaign)
-  const nextNumber = String(rows.length + 1).padStart(2, '0')
-  const draft = rows.find(r => r.status === 'draft')
   const nextNote = selectNextSortieNote(campaign)
   const keywords = selectCampaignKeywords(campaign)
-
-  function handleNewSortie() {
-    const id = addSortie()
-    router.push(`/sortie/${id}`)
-  }
 
   return (
     <>
@@ -67,6 +60,8 @@ export function SortieTable() {
           </div>
         )}
 
+        <StartSortieButton className="md:max-w-sm" />
+
         {/* Phones: ledger rows, newest first */}
         <div className="md:hidden flex flex-col">
           {[...rows].reverse().map(row => (
@@ -84,7 +79,7 @@ export function SortieTable() {
               inactive={row.status === 'completed' && !row.counts}
             />
           ))}
-          {rows.length === 0 && <p className="text-text-secondary">No sorties logged yet.</p>}
+          {rows.length === 0 && <p className="text-text-secondary">No sorties played yet.</p>}
         </div>
 
         {/* Tablets and wider: the paper Campaign Log's columns */}
@@ -151,10 +146,6 @@ export function SortieTable() {
             </div>
           </section>
         )}
-
-        <DossierButton variant="primary" onClick={handleNewSortie} className="md:max-w-sm">
-          {draft ? `Continue Sortie ${draft.sortie.sortieNumber}` : `+ Log Sortie ${nextNumber}`}
-        </DossierButton>
       </PageBody>
     </>
   )

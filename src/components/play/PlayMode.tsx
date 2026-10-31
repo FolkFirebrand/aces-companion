@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { useCampaignStore } from '@/store/campaign'
 import { selectEffectivePilot, selectPilotEdgeTokens, selectPilotSkill } from '@/store/selectors'
 import { sideSummary, sortieBattle, unitBattle } from '@/lib/battle'
@@ -65,7 +66,9 @@ function SideColumn({ title, tone, cards, summary, extra, empty, sortieId, readO
 
 /** Play mode: both forces as Alpha Strike cards. Marks stay pending until Apply or End Round. */
 export function PlayMode({ sortie }: { sortie: Sortie }) {
-  const { campaign, endRound, discardAllBattle } = useCampaignStore()
+  const router = useRouter()
+  const { campaign, endRound, discardAllBattle, updateSortie } = useCampaignStore()
+  const [finishing, setFinishing] = useState(false)
   const battle = sortieBattle(sortie.battle)
   const readOnly = sortie.status !== 'draft'
   const tablet = useMediaQuery('(min-width: 768px)')
@@ -89,6 +92,12 @@ export function PlayMode({ sortie }: { sortie: Sortie }) {
   const opposingSummary = sideSummary(opposing)
   const pendingCount = playerSummary.pending + opposingSummary.pending
   const view: View = tablet ? tabletView : phoneSide
+
+  // Ending the Sortie: the Primary Objective decides whether the after-sortie steps happen at all.
+  function finish(outcome: Sortie['outcome']) {
+    updateSortie(sortie.id, { outcome })
+    router.push(outcome === 'victory' ? `/sortie/${sortie.id}/step/after-1` : `/sortie/${sortie.id}`)
+  }
 
   const playerColumn = (
     <SideColumn title="Player Force" tone="text-amber" cards={player} summary={playerSummary} sortieId={sortie.id} readOnly={readOnly} crewLabel="Crew"
@@ -147,6 +156,18 @@ export function PlayMode({ sortie }: { sortie: Sortie }) {
 
       {!readOnly && player.length + opposing.length > 0 && (
         <div className="sticky bottom-[calc(var(--spacing-tabbar)+env(safe-area-inset-bottom,0px))] md:bottom-0 z-30 bg-steel-800 border-t-2 border-amber">
+          {finishing && (
+            <div className="max-w-6xl mx-auto px-gutter pt-3 flex flex-col gap-2">
+              <span className="dossier-label text-text-secondary">Battle over · did you complete the Primary Objective?</span>
+              {pendingCount > 0 && (
+                <p className="m-0 text-[13px] text-danger">{pendingCount} {pendingCount === 1 ? 'card has' : 'cards have'} pending damage. End the round or discard it first so the damage counts.</p>
+              )}
+              <div className="grid grid-cols-2 gap-2">
+                <DossierButton variant="primary" disabled={pendingCount > 0} onClick={() => finish('victory')}>Yes · After-Sortie Steps</DossierButton>
+                <DossierButton variant="danger" className="self-stretch h-auto!" disabled={pendingCount > 0} onClick={() => finish('failed')}>No · Failed</DossierButton>
+              </div>
+            </div>
+          )}
           <div className="max-w-6xl mx-auto px-gutter py-2 flex items-center justify-between gap-3">
             <span className="text-[13px] text-text-secondary">
               <span className="font-condensed font-bold text-[15px] text-amber">ROUND {battle.round}</span>
@@ -156,6 +177,9 @@ export function PlayMode({ sortie }: { sortie: Sortie }) {
               {pendingCount > 0 && (
                 <DossierButton variant="secondary" className="border-steel-500 text-text-secondary" onClick={() => discardAllBattle(sortie.id)}>Discard all</DossierButton>
               )}
+              <DossierButton variant="secondary" className="w-auto h-touch px-4" aria-expanded={finishing} onClick={() => setFinishing(!finishing)}>
+                {finishing ? 'Keep playing' : 'Battle over'}
+              </DossierButton>
               <DossierButton variant="primary" className="w-auto h-touch px-5 text-base" onClick={() => endRound(sortie.id)}>End round</DossierButton>
             </span>
           </div>
