@@ -386,7 +386,6 @@ export function selectSetupForceErrors(draft: SetupDraft): string[] {
   if (pv > FORCE_PV_LIMIT && addedUnits) errors.push(`Your force is ${pv - FORCE_PV_LIMIT} PV over the ${FORCE_PV_LIMIT} PV limit.`)
   if (!existing && draft.units.length < MIN_SETUP_UNITS) errors.push(`Your force needs at least ${MIN_SETUP_UNITS} units (it has ${draft.units.length}).`)
   if (draft.units.some(u => !UNIT_TYPES.includes(u.unitType))) errors.push('Only BattleMechs, battle armor, combat vehicles and infantry are allowed.')
-  if (!existing && !draft.chassisConfirmed) errors.push('Confirm the chassis rule.')
   return errors
 }
 

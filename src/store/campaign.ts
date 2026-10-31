@@ -104,7 +104,7 @@ function addPurchaseTo(set: SetCampaign, sortieId: string, purchase: PurchaseEnt
 function emptySetup(): SetupDraft {
   return {
     step: 1, name: '', forceName: '', commandingOfficer: '', difficultyLevel: 'standard', customPvPercent: 0,
-    customSpPercent: 100, units: [], pilots: [], chassisConfirmed: false,
+    customSpPercent: 100, units: [], pilots: [],
   }
 }
 

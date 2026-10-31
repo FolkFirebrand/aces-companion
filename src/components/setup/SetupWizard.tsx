@@ -14,7 +14,7 @@ import { UNIT_TYPES } from '@/lib/types'
 import type { DifficultyLevel, NamedPilot, SetupDraft, UnitType } from '@/lib/types'
 import { DossierButton } from '@/components/dossier/DossierButton'
 import { TrackSteppers } from '@/components/pilots/PilotTracks'
-import { ForceBuilder, ForceRules } from '@/components/roster/ForceBuilder'
+import { ChassisCheckButton, ForceBuilder, ForceRules } from '@/components/roster/ForceBuilder'
 import { Field, NumberInput, Section, Select, TextInput } from '@/components/sortie/fields'
 import { cn } from '@/lib/utils'
 
@@ -90,7 +90,7 @@ function NameStep({ draft }: { draft: SetupDraft }) {
 }
 
 function ForceStep({ draft }: { draft: SetupDraft }) {
-  const { addSetupUnit, removeSetupUnit, updateSetup } = useCampaignStore()
+  const { addSetupUnit, removeSetupUnit } = useCampaignStore()
   const pv = selectTotalRosterPV(draft.units)
   const existing = draft.existingForce
   const carried = (unitId: string) => !!existing?.unitIds.includes(unitId)
@@ -112,13 +112,7 @@ function ForceStep({ draft }: { draft: SetupDraft }) {
       <ForceBuilder units={draft.units} onAdd={addSetupUnit} onRemove={removeSetupUnit} isCarried={carried} over={over}
         overNote={pv > FORCE_PV_LIMIT ? 'Carried over above the limit' : null} />
       <ForceRules checks={checks}>
-        {!existing && (
-          <label className="flex items-start gap-2.5 pt-1.5 mt-1 border-t border-steel-500 text-sm cursor-pointer">
-            <input type="checkbox" checked={draft.chassisConfirmed} onChange={e => updateSetup({ chassisConfirmed: e.target.checked })}
-              className="w-[22px] h-[22px] mt-0.5 shrink-0 accent-[var(--color-amber)]" />
-            <span>I&apos;ve checked: no more than two &apos;Mechs share a chassis, and those two are different variants.</span>
-          </label>
-        )}
+        {!existing && <ChassisCheckButton units={draft.units} />}
       </ForceRules>
     </>
   )

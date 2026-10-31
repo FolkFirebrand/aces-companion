@@ -6,7 +6,7 @@ import { selectCanEditStartingForce, selectTotalRosterPV } from '@/store/selecto
 import { FORCE_PV_LIMIT, MIN_SETUP_UNITS } from '@/lib/rules'
 import { UNIT_TYPES } from '@/lib/types'
 import { FileHeader } from '@/components/dossier/FileHeader'
-import { ForceBuilder, ForceRules } from '@/components/roster/ForceBuilder'
+import { ChassisCheckButton, ForceBuilder, ForceRules } from '@/components/roster/ForceBuilder'
 
 /** Build the Force again from the Roster, for a unit missed at setup. Only until the first sortie is logged. */
 export default function RosterForcePage() {
@@ -27,7 +27,9 @@ export default function RosterForcePage() {
               { ok: campaign.units.length >= MIN_SETUP_UNITS, text: `At least ${MIN_SETUP_UNITS} units (${campaign.units.length} so far)` },
               { ok: true, text: 'All at Skill 4' },
               { ok: campaign.units.every(u => UNIT_TYPES.includes(u.unitType)), text: 'BattleMechs, battle armor, vehicles and infantry only' },
-            ]} />
+            ]}>
+              {!campaign.existingForceFrom && <ChassisCheckButton units={campaign.units} />}
+            </ForceRules>
             <p className="m-0 text-[13px] text-text-secondary">Unspent PV still converts to SP, so your starting Warchest follows the force&apos;s PV.</p>
           </>
         ) : (

@@ -5,6 +5,9 @@ import { v4 as uuidv4 } from 'uuid'
 import { FORCE_PV_LIMIT } from '@/lib/rules'
 import { selectTotalRosterPV } from '@/store/selectors'
 import { unitFromEntry } from '@/lib/unit-list/convert'
+import { checkChassisRule } from '@/lib/unit-list/chassis'
+import type { ChassisCheck } from '@/lib/unit-list/chassis'
+import { loadUnitList } from '@/lib/unit-list/load'
 import type { Unit } from '@/lib/types'
 import { UnitListPicker } from './UnitListPicker'
 import { UploadForceLink } from './ForceFile'
@@ -92,6 +95,41 @@ export function ForceRules({ checks, children }: { checks: { ok: boolean; text: 
         </div>
       ))}
       {children}
+    </div>
+  )
+}
+
+/** An optional check of the chassis rule against the unit list; the result clears when the force changes. */
+export function ChassisCheckButton({ units }: { units: Unit[] }) {
+  const [checked, setChecked] = useState<{ force: string; result: ChassisCheck | null } | null>(null)
+  const force = units.map(u => u.id).join()
+  const result = checked?.force === force ? checked.result : undefined
+
+  async function check() {
+    try {
+      setChecked({ force, result: checkChassisRule(units, await loadUnitList()) })
+    } catch {
+      setChecked({ force, result: null })
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-1 pt-1.5 mt-1 border-t border-steel-500">
+      <div className="flex flex-wrap items-center justify-between gap-x-3">
+        <span className="text-[13px] text-text-secondary">Optional: no more than two &apos;Mechs share a chassis, as different variants.</span>
+        <button type="button" onClick={check} className="min-h-touch dossier-label text-signal-blue">Check my force ›</button>
+      </div>
+      {result === null && <p role="alert" className="m-0 text-sm text-danger">The unit list could not be loaded, so the force wasn&apos;t checked.</p>}
+      {result && (
+        <div role="status" className="flex flex-col gap-0.5 text-sm">
+          {result.problems.length === 0
+            ? <span className="text-signal-blue">✓ No chassis problems.</span>
+            : result.problems.map(p => <span key={p} className="text-danger">✕ {p}</span>)}
+          {result.unchecked.length > 0 && (
+            <span className="text-text-secondary">Not on the unit list, so not checked: {result.unchecked.join(', ')}.</span>
+          )}
+        </div>
+      )}
     </div>
   )
 }
