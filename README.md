@@ -53,4 +53,4 @@ Questions, bugs or ideas? Join the [Discord](https://discord.gg/FxBBjc8Ez9) or e
 
 The app's code is licensed under the [GNU GPL, version 3 or later](LICENSE). Unit data and unit icons come from [MegaMek Data](https://github.com/MegaMek/mm-data) under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/), which is separate from the code license. See [NOTICE](NOTICE) and [ADR 0005](docs/adr/0005-gpl-code-and-cc-unit-data.md).
 
-This is an unofficial, non-commercial fan tool. It is not affiliated with or endorsed by Catalyst Game Labs, Topps or Microsoft.
+This is an unofficial, non-commercial fan tool. It is not affiliated with or endorsed by Lynnvander Studios, Catalyst Game Labs, Topps or Microsoft. BattleTech: Aces is designed and developed by Lynnvander Studios.

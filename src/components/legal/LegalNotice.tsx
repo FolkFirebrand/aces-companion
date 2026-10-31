@@ -12,8 +12,12 @@ export function LegalNotice() {
     <div className="flex flex-col gap-3 text-sm">
       <p className="m-0">
         Aces Campaign Log is an unofficial, non-commercial, fan-made tool for BattleTech: Aces. It is not affiliated
-        with or endorsed by Catalyst Game Labs, The Topps Company, Inc. or Microsoft Corporation. You need the Aces box
-        set to play.
+        with or endorsed by Lynnvander Studios, Catalyst Game Labs, The Topps Company, Inc. or Microsoft Corporation.
+        You need the Aces box set to play.
+      </p>
+      <p className="m-0">
+        BattleTech: Aces is designed and developed by{' '}
+        <ExternalLink href="https://www.lynnvander.com">Lynnvander Studios</ExternalLink>.
       </p>
       <p className="m-0">
         The app&apos;s source code is free software under the{' '}
