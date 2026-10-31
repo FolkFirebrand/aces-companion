@@ -33,8 +33,6 @@ export function Welcome() {
   return (
     <div className="max-w-xl mx-auto px-gutter py-6 flex flex-col gap-6">
       <div className="flex flex-col items-center gap-1.5 text-center">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/aces-emblem.svg" alt="Company emblem: a mech skull" width={104} height={104} />
         <h1 className="m-0 text-[36px] leading-none text-amber">Aces Campaign Log</h1>
         <span className="dossier-label text-text-secondary">Mercenary company records</span>
         <p className="m-0 mt-1.5 text-[15px] leading-snug">
