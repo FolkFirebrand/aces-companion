@@ -221,7 +221,7 @@ function ReviewStep({ draft }: { draft: SetupDraft }) {
         {rows.map(r => (
           <div key={r.label} className="flex justify-between items-center gap-3 py-2.5 border-b border-steel-500">
             <span className="flex flex-col"><span className="dossier-label text-text-secondary">{r.label}</span><span className="text-[15px]">{r.value}</span></span>
-            <button type="button" onClick={() => updateSetup({ step: r.step })} className="dossier-label text-signal-blue min-h-touch px-1">Edit</button>
+            <button type="button" onClick={() => updateSetup({ step: r.step, fromReview: true })} className="dossier-label text-signal-blue min-h-touch px-1">Edit</button>
           </div>
         ))}
       </div>
@@ -250,6 +250,7 @@ function ReviewStep({ draft }: { draft: SetupDraft }) {
 export function SetupWizard() {
   const router = useRouter()
   const { setupDraft: draft, startSetup, updateSetup, cancelSetup, finishSetup } = useCampaignStore()
+  const [confirmCancel, setConfirmCancel] = useState(false)
 
   // Opening the wizard starts (or resumes) a setup once. Not on every render: after Start or Cancel
   // clears the draft, the wizard must not recreate it while the page is navigating away.
@@ -257,6 +258,7 @@ export function SetupWizard() {
   if (!draft) return null
 
   const step = draft.step
+  const goTo = (to: SetupDraft['step']) => updateSetup(to === 4 ? { step: to, fromReview: false } : { step: to })
   const blockers = step === 2 ? selectSetupForceErrors(draft) : step === 3 ? selectSetupPilotErrors(draft) : []
 
   return (
@@ -280,23 +282,37 @@ export function SetupWizard() {
         {blockers.length > 0 && (
           <ul className="m-0 pl-5 text-[13px] text-danger flex flex-col gap-0.5">{blockers.map(b => <li key={b}>{b}</li>)}</ul>
         )}
-        <div className="flex gap-2 pt-2">
-          {step === 1 ? (
-            <DossierButton variant="secondary" className="h-button-primary" onClick={() => { cancelSetup(); router.push('/') }}>Cancel</DossierButton>
-          ) : (
-            <DossierButton variant="secondary" className="h-button-primary" onClick={() => updateSetup({ step: (step - 1) as SetupDraft['step'] })}>Back</DossierButton>
-          )}
-          {step < 4 ? (
-            <DossierButton variant="primary" className="flex-1" disabled={blockers.length > 0}
-              onClick={() => updateSetup({ step: (step + 1) as SetupDraft['step'] })}>
-              Next: {TITLES[step as 1 | 2 | 3]}
-            </DossierButton>
-          ) : (
-            <DossierButton variant="primary" className="flex-1" onClick={() => { if (finishSetup()) router.push('/roster') }}>
-              Start campaign
-            </DossierButton>
-          )}
-        </div>
+        {confirmCancel ? (
+          <div role="alertdialog" aria-label="Discard this setup?" className="flex flex-col gap-2.5 p-3 bg-steel-800 border border-danger">
+            <p className="m-0 text-[15px]">Discard this setup? Everything entered so far is lost.</p>
+            <div className="flex flex-wrap gap-2">
+              <DossierButton variant="secondary" onClick={() => setConfirmCancel(false)}>Keep setting up</DossierButton>
+              <DossierButton variant="danger" onClick={() => { cancelSetup(); router.push('/') }}>Discard setup</DossierButton>
+            </div>
+          </div>
+        ) : (
+          <div className="flex gap-2 pt-2">
+            {step === 1 ? (
+              <DossierButton variant="secondary" className="h-button-primary" onClick={() => setConfirmCancel(true)}>Cancel</DossierButton>
+            ) : (
+              <DossierButton variant="secondary" className="h-button-primary" onClick={() => goTo((step - 1) as SetupDraft['step'])}>Back</DossierButton>
+            )}
+            {step < 4 && draft.fromReview ? (
+              <DossierButton variant="primary" className="flex-1" disabled={blockers.length > 0} onClick={() => goTo(4)}>
+                Back to Review
+              </DossierButton>
+            ) : step < 4 ? (
+              <DossierButton variant="primary" className="flex-1" disabled={blockers.length > 0}
+                onClick={() => goTo((step + 1) as SetupDraft['step'])}>
+                Next: {TITLES[step as 1 | 2 | 3]}
+              </DossierButton>
+            ) : (
+              <DossierButton variant="primary" className="flex-1" onClick={() => { if (finishSetup()) router.push('/roster') }}>
+                Start campaign
+              </DossierButton>
+            )}
+          </div>
+        )}
       </div>
     </>
   )
