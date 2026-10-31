@@ -10,8 +10,8 @@ export interface Tab {
 
 export const MAIN_TABS: Tab[] = [
   { label: 'LOG', href: '/campaign', alsoActiveOn: ['/sortie'] },
-  { label: 'ROSTER', href: '/roster' },
-  { label: 'PILOTS', href: '/pilots' },
+  // Named Pilots live on the Roster beside the units they crew; a pilot's file still has its own page.
+  { label: 'ROSTER', href: '/roster', alsoActiveOn: ['/pilots'] },
   { label: 'FILE', href: '/export' },
 ]
 

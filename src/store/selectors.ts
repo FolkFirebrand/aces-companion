@@ -57,9 +57,14 @@ export function selectTotalIncome(campaign: Campaign, sortie: Sortie): number {
   return applyPercent(sortie.primaryObjective + sortie.otherObjectives, selectDifficulty(campaign).spPercent)
 }
 
+/** The Sortie Log's Waypoints line: SP paid less SP gained, so a net gain lowers the expenses (p. 34). */
+export function selectWaypointsNet(sortie: Sortie): number {
+  return sortie.waypointsSP - sortie.waypointsGainedSP
+}
+
 export function selectTotalExpenses(sortie: Sortie): number {
   const rearming = selectRearmingUnits(sortie) * 20
-  return sortie.reconnaissanceCost + sortie.waypointsSP + rearming + selectPersonnelCost(sortie) + selectRepairCost(sortie)
+  return sortie.reconnaissanceCost + selectWaypointsNet(sortie) + rearming + selectPersonnelCost(sortie) + selectRepairCost(sortie)
 }
 
 export function selectSortieEarnings(campaign: Campaign, sortie: Sortie): number {

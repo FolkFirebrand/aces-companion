@@ -31,10 +31,10 @@ npm run test:watch  # watch mode
 **Threshold tables** — [src/lib/thresholds.ts](src/lib/thresholds.ts) holds the SP cost lookup tables (`SKILL_THRESHOLDS`, `EDGE_TOKEN_THRESHOLDS`, `EDGE_ABILITY_THRESHOLDS`). `lookupStatFromSP` and `nextTierCost` are the two utility functions everything else depends on. Tables are sorted descending by SP required. All three tables match the printed Named Pilot card (verified 2026-10-29). Only this file needs changing; all derived values update automatically.
 
 **Pages and components:**
-- `/roster` — unit table, named pilot slots (max 6), memorial
-- `/campaign` — sortie history table, running warchest, "Add Sortie" button
-- `/sortie/[id]` — income/expenses/earnings breakdown for one sortie
-- `/pilots` — grid of named pilot cards
+- `/roster` — units, every Named Pilot (max 6; drag onto a unit to assign), memorial, "Start Sortie" button. The old Pilots tab folded in here; `/pilots` redirects to it (`next.config.ts`)
+- `/campaign` — sortie history table, running warchest, "Start Sortie" button
+- `/sortie/[id]` — the sortie checklist: setup steps → Play the Sortie → after-sortie steps
+- `/sortie/[id]/play` — Play Mode; "Battle over" asks for the Primary Objective and opens After-Sortie step 1
 - `/pilots/[id]` — pilot detail: Skill / Edge Tokens / Edge Abilities stat tracks with SP guard, MVP button, callsign, unit type, edge ability picklist
 - `/export` — JSON download and import with confirmation modal
 

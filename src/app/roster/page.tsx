@@ -10,6 +10,7 @@ import { PilotBench } from '@/components/roster/PilotBench'
 import { BenchPilotCard } from '@/components/roster/BenchPilotCard'
 import { Memorial } from '@/components/roster/Memorial'
 import { FileHeader, PageBody } from '@/components/dossier/FileHeader'
+import { StartSortieButton } from '@/components/campaign/StartSortieButton'
 
 export default function RosterPage() {
   const { campaign, assignPilot } = useCampaignStore()
@@ -40,6 +41,7 @@ export default function RosterPage() {
     <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
       <FileHeader label={`${campaign.forceName || 'New force'} · Player force`} title="Player Force Roster" />
       <PageBody>
+        <StartSortieButton className="md:max-w-sm" showNext />
         <PvSummaryBar />
         <PilotBench />
         <UnitGrid />
