@@ -62,17 +62,17 @@ function NameStep({ draft }: { draft: SetupDraft }) {
       <Field id="setup-force" label="Force name"><TextInput id="setup-force" value={draft.forceName} onChange={forceName => updateSetup({ forceName })} /></Field>
       <Field id="setup-co" label="Commanding officer (optional)"><TextInput id="setup-co" value={draft.commandingOfficer} onChange={commandingOfficer => updateSetup({ commandingOfficer })} /></Field>
       <fieldset className="flex flex-col gap-2 border-0 p-0 m-0">
-        <legend className="dossier-label text-text-secondary mb-2">Difficulty Level</legend>
+        <legend className="field-label text-text-secondary mb-2">Difficulty Level</legend>
         {[...Object.entries(DIFFICULTY_LEVELS), ['custom', null] as const].map(([id, level]) => {
           const on = draft.difficultyLevel === id
           return (
-            <label key={id} className={cn('flex items-center gap-2.5 min-h-14 px-3 py-2 border-2 cursor-pointer', on ? 'border-amber' : 'border-steel-500')}>
+            <label key={id} className={cn('flex items-center gap-2.5 min-h-14 px-3 py-2 border-2 cursor-pointer', on ? 'border-active' : 'border-line')}>
               <input type="radio" name="difficulty" checked={on} onChange={() => updateSetup({ difficultyLevel: id as DifficultyLevel })} className="sr-only" />
               <span className="flex-1 flex flex-col">
-                <span className={cn('font-condensed font-bold text-base tracking-[1px] uppercase', on && 'text-amber')}>{level ? level.name : 'Custom'}</span>
+                <span className={cn('font-label font-bold text-base tracking-[1px] uppercase', on && 'text-active')}>{level ? level.name : 'Custom'}</span>
                 <span className="text-[13px] text-text-secondary">{level ? LEVEL_NOTES[id as keyof typeof LEVEL_NOTES] : 'Set your own percentages'}</span>
               </span>
-              <span className="font-condensed font-bold text-[13px] tracking-[1px] text-signal-blue text-right">
+              <span className="font-label font-bold text-[13px] tracking-[1px] text-result text-right">
                 {level ? <>PV {percent(level.pvPercent)}<br />SP {level.spPercent}%</> : <span className="text-text-secondary">Your choice</span>}
               </span>
             </label>
@@ -137,12 +137,12 @@ function PilotsStep({ draft }: { draft: SetupDraft }) {
         const left = p.totalSpEarned - p.spSpentOnSkill - p.spSpentOnEdgeTokens - p.spSpentOnEdgeAbilities
         if (isCarried(draft, p)) {
           return (
-            <div key={p.id} className="flex justify-between items-center gap-3 min-h-13 px-3 py-2 bg-steel-800 border border-steel-500">
+            <div key={p.id} className="flex justify-between items-center gap-3 min-h-13 px-3 py-2 bg-surface border border-line">
               <span className="flex flex-col">
-                <span className="font-condensed font-bold text-base tracking-[1px] uppercase">{p.callsign}</span>
+                <span className="font-label font-bold text-base tracking-[1px] uppercase">{p.callsign}</span>
                 <span className="text-[13px] text-text-secondary">{pilotSummary(p)}</span>
               </span>
-              <span className="font-condensed font-bold text-xs tracking-[1px] whitespace-nowrap text-signal-blue text-right">
+              <span className="font-label font-bold text-xs tracking-[1px] whitespace-nowrap text-result text-right">
                 Carried over<br />{p.totalSpEarned} SP
               </span>
             </div>
@@ -151,20 +151,20 @@ function PilotsStep({ draft }: { draft: SetupDraft }) {
         if (editing !== p.id) {
           return (
             <button key={p.id} type="button" onClick={() => setEditing(p.id)}
-              className="flex justify-between items-center gap-3 min-h-13 px-3 py-2 bg-steel-800 border border-steel-500 text-left">
+              className="flex justify-between items-center gap-3 min-h-13 px-3 py-2 bg-surface border border-line text-left">
               <span className="flex flex-col">
-                <span className="font-condensed font-bold text-base tracking-[1px] uppercase">{p.callsign || `Pilot ${i + 1}`}</span>
+                <span className="font-label font-bold text-base tracking-[1px] uppercase">{p.callsign || `Pilot ${i + 1}`}</span>
                 <span className="text-[13px] text-text-secondary">{pilotSummary(p)}</span>
               </span>
-              <span className={cn('font-condensed font-bold text-xs tracking-[1px] whitespace-nowrap', left === 0 ? 'text-signal-blue' : 'text-danger')}>
+              <span className={cn('font-label font-bold text-xs tracking-[1px] whitespace-nowrap', left === 0 ? 'text-result' : 'text-danger')}>
                 {p.totalSpEarned - left} / {p.totalSpEarned}
               </span>
             </button>
           )
         }
         return (
-          <div key={p.id} className="bg-steel-800 border border-steel-500">
-            <div className="flex justify-between px-3 py-2 bg-amber text-on-amber font-condensed font-bold text-sm tracking-[1px] uppercase">
+          <div key={p.id} className="bg-surface border border-line">
+            <div className="flex justify-between px-3 py-2 bg-active text-on-active font-label font-bold text-sm tracking-[1px] uppercase">
               <span>{p.callsign || `Pilot ${i + 1}`}</span>
               <span>{left === 0 ? 'All allocated' : left > 0 ? `${left} left` : `${-left} too many`}</span>
             </div>
@@ -219,9 +219,9 @@ function ReviewStep({ draft }: { draft: SetupDraft }) {
     <>
       <div className="flex flex-col">
         {rows.map(r => (
-          <div key={r.label} className="flex justify-between items-center gap-3 py-2.5 border-b border-steel-500">
-            <span className="flex flex-col"><span className="dossier-label text-text-secondary">{r.label}</span><span className="text-[15px]">{r.value}</span></span>
-            <button type="button" onClick={() => updateSetup({ step: r.step, fromReview: true })} className="dossier-label text-signal-blue min-h-touch px-1">Edit</button>
+          <div key={r.label} className="flex justify-between items-center gap-3 py-2.5 border-b border-line">
+            <span className="flex flex-col"><span className="field-label text-text-secondary">{r.label}</span><span className="text-[15px]">{r.value}</span></span>
+            <button type="button" onClick={() => updateSetup({ step: r.step, fromReview: true })} className="field-label text-result min-h-touch px-1">Edit</button>
           </div>
         ))}
       </div>
@@ -237,9 +237,9 @@ function ReviewStep({ draft }: { draft: SetupDraft }) {
           <div className="flex justify-between text-[15px]"><span className="text-text-secondary">Starting SP</span><span>{STARTING_SP}</span></div>
         )}
         <div className="flex justify-between text-[15px]"><span className="text-text-secondary">{unspent} unspent PV × {SP_PER_UNSPENT_PV}</span><span>+{unspent * SP_PER_UNSPENT_PV}</span></div>
-        <div className="flex justify-between items-baseline pt-1.5 border-t border-steel-500">
-          <span className="dossier-label text-text-secondary">Warchest</span>
-          <span className="font-stencil text-[32px] text-amber">{existing ? existingForceStartingWarchest(existing.warchest, pv) : setupStartingWarchest(pv)} SP</span>
+        <div className="flex justify-between items-baseline pt-1.5 border-t border-line">
+          <span className="field-label text-text-secondary">Warchest</span>
+          <span className="font-display font-bold text-[32px] text-active">{existing ? existingForceStartingWarchest(existing.warchest, pv) : setupStartingWarchest(pv)} SP</span>
         </div>
       </Section>
       <p className="m-0 text-[13px] text-text-secondary">Next: assign pilots to units on the Roster, then log your first sortie from the Campaign Log.</p>
@@ -263,13 +263,13 @@ export function SetupWizard() {
 
   return (
     <>
-      <header className="bg-steel-800 border-b-2 border-amber">
+      <header className="bg-surface border-b-2 border-active">
         <div className="max-w-6xl mx-auto px-gutter pt-4 pb-3 flex flex-col gap-2">
-          <div className="dossier-label flex justify-between text-text-secondary"><span>{draft.existingForce ? 'Existing Force' : 'New campaign'} · Setup</span><span>{step} of 4</span></div>
+          <div className="field-label flex justify-between text-text-secondary"><span>{draft.existingForce ? 'Existing Force' : 'New campaign'} · Setup</span><span>{step} of 4</span></div>
           <div className="flex gap-1" aria-hidden="true">
-            {[1, 2, 3, 4].map(n => <span key={n} className={cn('flex-1 h-1', n <= step ? 'bg-amber' : 'bg-steel-500')} />)}
+            {[1, 2, 3, 4].map(n => <span key={n} className={cn('flex-1 h-1', n <= step ? 'bg-active' : 'bg-line')} />)}
           </div>
-          <h1 className="m-0 text-[28px] sm:text-[34px] leading-[1.05] text-amber">{TITLES[step - 1]}</h1>
+          <h1 className="m-0 text-[28px] sm:text-[34px] leading-[1.05] text-active">{TITLES[step - 1]}</h1>
           <p className="m-0 text-sm text-text-secondary">{(draft.existingForce ? EXISTING_SUMMARIES : SUMMARIES)[step - 1]}</p>
         </div>
       </header>
@@ -283,7 +283,7 @@ export function SetupWizard() {
           <ul className="m-0 pl-5 text-[13px] text-danger flex flex-col gap-0.5">{blockers.map(b => <li key={b}>{b}</li>)}</ul>
         )}
         {confirmCancel ? (
-          <div role="alertdialog" aria-label="Discard this setup?" className="flex flex-col gap-2.5 p-3 bg-steel-800 border border-danger">
+          <div role="alertdialog" aria-label="Discard this setup?" className="flex flex-col gap-2.5 p-3 bg-surface border border-danger">
             <p className="m-0 text-[15px]">Discard this setup? Everything entered so far is lost.</p>
             <div className="flex flex-wrap gap-2">
               <DossierButton variant="secondary" onClick={() => setConfirmCancel(false)}>Keep setting up</DossierButton>

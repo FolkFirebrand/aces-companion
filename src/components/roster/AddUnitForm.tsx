@@ -52,8 +52,8 @@ export function AddUnitForm({ onAdd, onCancel, unitList = false, submitLabel = '
 
   if (picking) {
     return (
-      <div className="flex flex-col gap-3.5 p-3.5 bg-steel-800 border border-steel-500">
-        <div className="font-condensed font-bold text-sm tracking-[1px] text-amber">ADD A UNIT</div>
+      <div className="flex flex-col gap-3.5 p-3.5 bg-surface border border-line">
+        <div className="font-label font-bold text-sm tracking-[1px] text-active">ADD A UNIT</div>
         <UnitListPicker onPick={pick} pvLeft={pvLeft} />
         <div className="flex flex-wrap gap-2">
           <DossierButton variant="secondary" onClick={() => setPicking(false)}>+ Custom unit</DossierButton>
@@ -65,7 +65,7 @@ export function AddUnitForm({ onAdd, onCancel, unitList = false, submitLabel = '
 
   return (
     <form
-      className="flex flex-col gap-3.5 p-3.5 bg-steel-800 border border-steel-500"
+      className="flex flex-col gap-3.5 p-3.5 bg-surface border border-line"
       onSubmit={e => {
         e.preventDefault()
         if (!ready) return
@@ -75,11 +75,11 @@ export function AddUnitForm({ onAdd, onCancel, unitList = false, submitLabel = '
           : { id: uuidv4(), ...fields, pilotId: null, totalSpEarned: 0 })
       }}
     >
-      <div className="font-condensed font-bold text-sm tracking-[1px] text-amber">ADD A UNIT</div>
+      <div className="font-label font-bold text-sm tracking-[1px] text-active">ADD A UNIT</div>
       {unitList && (
         <div className="flex flex-wrap justify-between items-center gap-2 text-[13px] text-text-secondary">
           <span>{picked ? `From the unit list: ${unitListName(picked)}. Check PV and Size against your card.` : 'Custom unit.'}</span>
-          <button type="button" onClick={() => setPicking(true)} className="dossier-label text-signal-blue min-h-touch px-1">
+          <button type="button" onClick={() => setPicking(true)} className="field-label text-result min-h-touch px-1">
             {picked ? 'Pick another' : 'Pick from unit list'}
           </button>
         </div>
@@ -88,12 +88,12 @@ export function AddUnitForm({ onAdd, onCancel, unitList = false, submitLabel = '
         <TextInput id="new-unit-name" value={name} onChange={setName} />
       </Field>
       <fieldset className="flex flex-col gap-1.5 border-0 p-0 m-0">
-        <legend className="dossier-label text-text-secondary mb-1">Type</legend>
+        <legend className="field-label text-text-secondary mb-1">Type</legend>
         <div className="grid grid-cols-2 gap-2">
           {UNIT_TYPES.map(t => (
             <label key={t} className={cn(
-              'h-touch flex items-center justify-center border-2 font-condensed font-bold text-[13px] tracking-[1px] uppercase cursor-pointer',
-              unitType === t ? 'border-amber text-amber' : 'border-steel-500 text-text-secondary'
+              'h-touch flex items-center justify-center border-2 font-label font-bold text-[13px] tracking-[1px] uppercase cursor-pointer',
+              unitType === t ? 'border-active text-active' : 'border-line text-text-secondary'
             )}>
               <input type="radio" name="new-unit-type" value={t} checked={unitType === t} onChange={() => setUnitType(t)} className="sr-only" />
               {TYPE_LABELS[t]}
@@ -109,10 +109,10 @@ export function AddUnitForm({ onAdd, onCancel, unitList = false, submitLabel = '
           <NumberInput id="new-unit-size" value={size} onChange={setSize} min={1} />
         </Field>
       </div>
-      <label className="flex items-center gap-3 min-h-touch py-1.5 border-y border-steel-500 cursor-pointer">
-        <input type="checkbox" checked={ene} onChange={e => setEne(e.target.checked)} className="w-6 h-6 accent-[var(--color-amber)]" />
+      <label className="flex items-center gap-3 min-h-touch py-1.5 border-y border-line cursor-pointer">
+        <input type="checkbox" checked={ene} onChange={e => setEne(e.target.checked)} className="w-6 h-6 accent-[var(--color-active)]" />
         <span className="flex flex-col">
-          <span className="font-condensed font-bold text-[15px] tracking-[1px]">HAS ENE</span>
+          <span className="font-label font-bold text-[15px] tracking-[1px]">HAS ENE</span>
           <span className="text-[13px] text-text-secondary">Units with the ENE special skip the 20 SP rearming cost.</span>
         </span>
       </label>

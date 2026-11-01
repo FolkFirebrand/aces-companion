@@ -42,22 +42,22 @@ function DestroyedPanel({ sortie, unit, pilotName }: { sortie: Sortie; unit: Fie
   const who = pilotName ?? 'Crew'
 
   return (
-    <div className="bg-steel-800 border border-steel-500 mb-2.5">
-      <div className={cn('flex justify-between px-3 py-2 font-condensed font-bold text-sm tracking-[1px] uppercase',
-        truly ? 'bg-danger text-steel-900' : 'bg-amber text-on-amber')}>
+    <div className="bg-surface border border-line mb-2.5">
+      <div className={cn('flex justify-between px-3 py-2 font-label font-bold text-sm tracking-[1px] uppercase',
+        truly ? 'bg-danger text-ink' : 'bg-active text-on-active')}>
         <span>{unit.nameAndVariant} · Destroyed</span>
         <span>{truly === null ? 'Roll salvage' : truly ? 'Truly destroyed' : 'Salvaged'}</span>
       </div>
       <div className="p-3 flex flex-col gap-3">
         <fieldset className="flex flex-col border-0 p-0 m-0">
-          <legend className="dossier-label text-text-secondary mb-1">Truly destroyed automatically</legend>
+          <legend className="field-label text-text-secondary mb-1">Truly destroyed automatically</legend>
           {AUTO_CAUSES.map(({ cause, label }) => (
             <label key={cause} className="flex items-center gap-2.5 min-h-touch text-sm cursor-pointer">
               <input
                 type="checkbox"
                 checked={unit.autoTrulyDestroyed === cause}
                 onChange={e => update({ autoTrulyDestroyed: e.target.checked ? cause : null, setByHand: true })}
-                className="w-[22px] h-[22px] accent-[var(--color-amber)]"
+                className="w-[22px] h-[22px] accent-[var(--color-active)]"
               />
               {label}
             </label>
@@ -81,12 +81,12 @@ function DestroyedPanel({ sortie, unit, pilotName }: { sortie: Sortie; unit: Fie
         )}
 
         <fieldset className="flex flex-col gap-1.5 border-0 p-0 m-0">
-          <legend className="dossier-label text-text-secondary mb-1">Crew · {pilotName ? `${pilotName} (Named Pilot)` : 'generic crew'}</legend>
+          <legend className="field-label text-text-secondary mb-1">Crew · {pilotName ? `${pilotName} (Named Pilot)` : 'generic crew'}</legend>
           <div className="grid grid-cols-3 gap-1.5">
             {CREW_MODES.map(({ mode, label }) => (
               <label key={mode} className={cn(
-                'min-h-touch px-1 flex items-center justify-center text-center border-2 font-condensed font-bold text-[12px] leading-tight tracking-[1px] uppercase cursor-pointer',
-                unit.crewMode === mode ? 'border-signal-blue text-signal-blue' : 'border-steel-500 text-text-secondary'
+                'min-h-touch px-1 flex items-center justify-center text-center border font-label font-bold text-[12px] leading-tight tracking-[1px] uppercase cursor-pointer',
+                unit.crewMode === mode ? 'bg-active border-active text-on-active' : 'border-line text-text-secondary hover:border-active'
               )}>
                 <input type="radio" name={`crew-${unit.unitId}`} checked={unit.crewMode === mode} onChange={() => update({ crewMode: mode })} className="sr-only" />
                 {label}
@@ -104,7 +104,7 @@ function DestroyedPanel({ sortie, unit, pilotName }: { sortie: Sortie; unit: Fie
           />
         )}
         {crew && (
-          <p className={cn('m-0 text-[13px]', crew === 'unscathed' ? 'text-signal-blue' : 'text-danger')}>
+          <p className={cn('m-0 text-[13px]', crew === 'unscathed' ? 'text-result' : 'text-danger')}>
             {crew === 'unscathed' && `${who} unscathed.`}
             {crew === 'wounded' && (pilotName ? `${pilotName} wounded: sits out the next sortie · 100 SP.` : 'Crew wounded · replace for 100 SP.')}
             {crew === 'killed' && (pilotName ? `${pilotName} killed in action: goes to the Memorial.` : 'Crew killed · replace for 100 SP.')}
@@ -148,7 +148,7 @@ export function CasualtiesStep({ sortie }: { sortie: Sortie }) {
     <>
       {fromBattle.length > 0 && (
         <p className="m-0 text-[13px] text-text-secondary">
-          Damage States come from <Link href={`/sortie/${sortie.id}/play`} className="text-signal-blue underline">play mode</Link>&apos;s applied marks.
+          Damage States come from <Link href={`/sortie/${sortie.id}/play`} className="text-result underline">play mode</Link>&apos;s applied marks.
           Change any by hand and it stays your choice.
         </p>
       )}
@@ -165,10 +165,10 @@ export function CasualtiesStep({ sortie }: { sortie: Sortie }) {
           const truly = selectTrulyDestroyed(unit)
           return (
             <div key={unit.unitId}>
-              <div className="flex items-center gap-2.5 py-2.5 border-b border-steel-500">
+              <div className="flex items-center gap-2.5 py-2.5 border-b border-line">
                 <span className="flex-1 flex flex-col gap-0.5">
                   <span className="text-[15px]">{unit.nameAndVariant} <span className="text-text-secondary">· {name ?? 'crew'}</span></span>
-                  <span className="font-condensed font-semibold text-xs tracking-[1px] uppercase text-text-secondary">{meta}</span>
+                  <span className="font-label font-semibold text-xs tracking-[1px] uppercase text-text-secondary">{meta}</span>
                 </span>
                 <label htmlFor={`damage-${unit.unitId}`} className="sr-only">{unit.nameAndVariant} damage</label>
                 <Select
@@ -179,7 +179,7 @@ export function CasualtiesStep({ sortie }: { sortie: Sortie }) {
                 >
                   {DAMAGE.map(d => <option key={d.state} value={d.state}>{d.label}</option>)}
                 </Select>
-                <span className={cn('font-stencil text-base w-12 text-right tabular-nums', truly ? 'text-text-disabled' : 'text-signal-blue')}>
+                <span className={cn('font-display font-bold text-base w-12 text-right tabular-nums', truly ? 'text-text-disabled' : 'text-result')}>
                   {truly ? '—' : selectUnitRepairCost(unit)}
                 </span>
               </div>
@@ -187,7 +187,7 @@ export function CasualtiesStep({ sortie }: { sortie: Sortie }) {
                 const result = battleResult(unit)
                 if (!unit.setByHand || !result || (result.damage === unit.damage && (result.cause ?? null) === (unit.autoTrulyDestroyed === 'ammo' ? 'ammo' : null))) return null
                 return (
-                  <button type="button" className="dossier-label text-signal-blue min-h-touch"
+                  <button type="button" className="field-label text-result min-h-touch"
                     onClick={() => updateFieldedUnit(sortie.id, unit.unitId, {
                       damage: result.damage, autoTrulyDestroyed: result.cause ?? (unit.autoTrulyDestroyed === 'ammo' ? null : unit.autoTrulyDestroyed), setByHand: false,
                     })}>
@@ -201,9 +201,9 @@ export function CasualtiesStep({ sortie }: { sortie: Sortie }) {
         })}
       </Section>
 
-      <div className="bg-steel-800 border border-steel-500">
-        <Readout label="Repairs · Size × 100 / 60 / 40 / 20" value={`${selectRepairCost(sortie)} SP`} tone="text-signal-blue" />
-        <Readout label={`Personnel · ${crewCount} × 100`} value={`${selectPersonnelCost(sortie) - selectNewPilotCount(sortie) * 150} SP`} tone="text-signal-blue" />
+      <div className="bg-surface border border-line">
+        <Readout label="Repairs · Size × 100 / 60 / 40 / 20" value={`${selectRepairCost(sortie)} SP`} tone="text-result" />
+        <Readout label={`Personnel · ${crewCount} × 100`} value={`${selectPersonnelCost(sortie) - selectNewPilotCount(sortie) * 150} SP`} tone="text-result" />
       </div>
 
       {consequences.length > 0 && (

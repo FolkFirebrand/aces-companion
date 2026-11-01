@@ -10,15 +10,15 @@ export function UnitGrid() {
 
   return (
     <section className="flex flex-col gap-3">
-      <div className="flex flex-col gap-0.5 pb-1 border-b-2 border-steel-500">
-        <h2 className="m-0 text-lg text-amber">Units</h2>
+      <div className="flex flex-col gap-0.5 pb-1 border-b-2 border-line">
+        <h2 className="m-0 text-lg text-active">Units</h2>
         <span className="text-sm text-text-secondary">Drag a Named Pilot onto a unit to assign them.</span>
       </div>
 
       {selectCanEditStartingForce(campaign) && (
-        <div className="flex flex-wrap justify-between items-center gap-x-3 px-3 bg-steel-800 border border-steel-500">
+        <div className="flex flex-wrap justify-between items-center gap-x-3 px-3 bg-surface border border-line">
           <span className="text-sm text-text-secondary">Missing a unit?</span>
-          <Link href="/roster/force" className="min-h-touch flex items-center dossier-label text-signal-blue">Return to Build the Force ›</Link>
+          <Link href="/roster/force" className="min-h-touch flex items-center field-label text-result">Return to Build the Force ›</Link>
         </div>
       )}
 

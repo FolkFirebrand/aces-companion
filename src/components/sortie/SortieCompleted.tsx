@@ -12,9 +12,9 @@ import { Section } from './fields'
 
 function Line({ label, value, tone }: { label: React.ReactNode; value: string; tone: string }) {
   return (
-    <div className="flex justify-between items-baseline gap-3 py-2 border-b border-steel-500 text-[15px]">
+    <div className="flex justify-between items-baseline gap-3 py-2 border-b border-line text-[15px]">
       <span>{label}</span>
-      <span className={`font-stencil text-[17px] whitespace-nowrap tabular-nums ${tone}`}>{value}</span>
+      <span className={`font-display font-bold text-[17px] whitespace-nowrap tabular-nums ${tone}`}>{value}</span>
     </div>
   )
 }
@@ -38,8 +38,8 @@ export function SortieCompleted({ sortie }: { sortie: Sortie }) {
         summary={failed ? 'Recorded as a Failed Sortie. Nothing changed; replay it.' : 'These results are applied to your force.'} />
       <PageBody>
         {isLatest && (
-          <div className="bg-steel-800 border border-steel-500">
-            <div className="px-3 py-2 bg-amber text-on-amber font-condensed font-bold text-sm tracking-[1px]">BACK UP YOUR CAMPAIGN</div>
+          <div className="bg-surface border border-line">
+            <div className="px-3 py-2 bg-active text-on-active font-label font-bold text-sm tracking-[1px]">BACK UP YOUR CAMPAIGN</div>
             <div className="p-3 flex flex-col gap-2.5">
               <p className="m-0 text-sm">Save a Campaign File so this sortie isn&apos;t lost if this browser&apos;s data is cleared. Put it in Dropbox to carry on from another device.</p>
               <DossierButton variant="primary" onClick={() => { const f = exportCampaignFile(); downloadTextFile(f.fileName, f.contents) }}>
@@ -52,8 +52,8 @@ export function SortieCompleted({ sortie }: { sortie: Sortie }) {
 
         {!failed && row && (
           <Section title="Applied to your force">
-            <Line label="Victory · Earnings" value={`${row.earnings >= 0 ? '+' : '−'}${Math.abs(row.earnings)}`} tone="text-signal-blue" />
-            <Line label="SP to Named Pilots" value={row.namedPilotSp > 0 ? `−${row.namedPilotSp}` : '0'} tone="text-amber" />
+            <Line label="Victory · Earnings" value={`${row.earnings >= 0 ? '+' : '−'}${Math.abs(row.earnings)}`} tone="text-result" />
+            <Line label="SP to Named Pilots" value={row.namedPilotSp > 0 ? `−${row.namedPilotSp}` : '0'} tone="text-active" />
             {sortie.purchases.map(p => (
               <Line
                 key={p.id}
@@ -63,12 +63,12 @@ export function SortieCompleted({ sortie }: { sortie: Sortie }) {
                     ? <>Sold {p.unitName} <span className="text-text-secondary">· left the roster</span></>
                     : <>{p.fromName} reconfigured to {p.toName}</>}
                 value={p.spCost < 0 ? `+${-p.spCost}` : `−${p.spCost}`}
-                tone={p.spCost < 0 ? 'text-signal-blue' : 'text-amber'}
+                tone={p.spCost < 0 ? 'text-result' : 'text-active'}
               />
             ))}
-            <div className="flex justify-between items-baseline py-2 border-b-2 border-steel-500">
-              <span className="font-condensed font-bold tracking-[1px]">WARCHEST</span>
-              <span className="font-stencil text-[22px] text-amber tabular-nums">{before} → {row.warchest}</span>
+            <div className="flex justify-between items-baseline py-2 border-b-2 border-line">
+              <span className="font-label font-bold tracking-[1px]">WARCHEST</span>
+              <span className="font-display font-bold text-[22px] text-active tabular-nums">{before} → {row.warchest}</span>
             </div>
           </Section>
         )}
@@ -90,7 +90,7 @@ export function SortieCompleted({ sortie }: { sortie: Sortie }) {
           <p className="m-0 text-[13px] text-text-secondary">This sortie is locked because later sorties were set up after it. Correct any mistakes in your next sortie, as you would on paper.</p>
         )}
 
-        <Link href="/campaign" className="dossier-label text-signal-blue min-h-touch flex items-center">&lt; Campaign Log</Link>
+        <Link href="/campaign" className="field-label text-result min-h-touch flex items-center">&lt; Campaign Log</Link>
       </PageBody>
     </>
   )

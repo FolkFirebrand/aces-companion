@@ -30,9 +30,9 @@ export function HireSection({ sortie }: { sortie: Sortie }) {
   return (
     <Section title="Hire Named Pilots" aside="150 SP each">
       {sortie.hires.map(p => (
-        <div key={p.id} className="flex items-center gap-2.5 py-2 border-b border-steel-500 min-h-touch">
+        <div key={p.id} className="flex items-center gap-2.5 py-2 border-b border-line min-h-touch">
           <span className="flex-1">{p.callsign} <span className="text-text-secondary">· {p.pilotType} · joins when completed</span></span>
-          <span className="font-stencil text-lg text-amber">−150</span>
+          <span className="font-display font-bold text-lg text-active">−150</span>
           <button type="button" aria-label={`Don't hire ${p.callsign}`} onClick={() => removeHire(sortie.id, p.id)} className="h-touch w-touch text-text-secondary">✕</button>
         </div>
       ))}
@@ -40,7 +40,7 @@ export function HireSection({ sortie }: { sortie: Sortie }) {
         <p className="m-0 text-sm text-text-secondary">{blocker}</p>
       ) : open ? (
         <form
-          className="flex flex-col gap-3 p-3 bg-steel-800 border border-steel-500"
+          className="flex flex-col gap-3 p-3 bg-surface border border-line"
           onSubmit={e => {
             e.preventDefault()
             if (!ready) return
@@ -57,19 +57,19 @@ export function HireSection({ sortie }: { sortie: Sortie }) {
             </Select>
           </Field>
           <div className="flex flex-col gap-1">
-            <span className="dossier-label text-text-secondary">Starting SP · {STARTING_SP} to allocate</span>
+            <span className="field-label text-text-secondary">Starting SP · {STARTING_SP} to allocate</span>
             <div className="grid grid-cols-3 gap-2">
               <Field id="hire-skill" label="Skill"><NumberInput id="hire-skill" value={skill} onChange={setSkill} min={0} /></Field>
               <Field id="hire-tokens" label="Edge Tokens"><NumberInput id="hire-tokens" value={edgeTokens} onChange={setEdgeTokens} min={0} /></Field>
               <Field id="hire-abilities" label="Edge Abilities"><NumberInput id="hire-abilities" value={edgeAbilities} onChange={setEdgeAbilities} min={0} /></Field>
             </div>
-            <p className={`m-0 text-[13px] ${left === 0 ? 'text-signal-blue' : 'text-danger'}`}>
+            <p className={`m-0 text-[13px] ${left === 0 ? 'text-result' : 'text-danger'}`}>
               {left === 0 ? 'All 150 SP allocated.' : left > 0 ? `${left} SP left to allocate.` : `${-left} SP too many.`}
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
             <DossierButton variant="secondary" type="submit" disabled={!ready}>Hire for 150 SP</DossierButton>
-            <DossierButton variant="secondary" onClick={reset} className="border-steel-500 text-text-secondary">Cancel</DossierButton>
+            <DossierButton variant="secondary" onClick={reset} className="border-line text-text-secondary">Cancel</DossierButton>
           </div>
         </form>
       ) : (

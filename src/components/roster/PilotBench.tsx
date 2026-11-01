@@ -29,8 +29,8 @@ export function PilotBench() {
 
   return (
     <section className="flex flex-col gap-3">
-      <div className="flex flex-col gap-0.5 pb-1 border-b-2 border-steel-500">
-        <h2 className="m-0 text-lg text-amber">Named Pilots · {total} of {MAX_NAMED_PILOTS}</h2>
+      <div className="flex flex-col gap-0.5 pb-1 border-b-2 border-line">
+        <h2 className="m-0 text-lg text-active">Named Pilots · {total} of {MAX_NAMED_PILOTS}</h2>
         <span className="text-sm text-text-secondary">
           {total === 0
             ? 'No Named Pilots yet.'

@@ -16,15 +16,15 @@ export function BuyUnitPanel({ onBuy, onCancel }: { onBuy: (unit: Unit) => void;
 
   if (picked) {
     return (
-      <div className="bg-steel-800 border border-steel-500">
-        <div className="flex justify-between gap-3 px-3 py-2 bg-steel-600 border-b border-amber font-condensed font-bold text-[15px] tracking-[1px] uppercase text-amber">
+      <div className="bg-surface border border-line">
+        <div className="flex justify-between gap-3 px-3 py-2 bg-surface-raised border-b border-active font-label font-bold text-[15px] tracking-[1px] uppercase text-active">
           <span>{unitListName(picked)}</span><span>Buy?</span>
         </div>
         <div className="p-3 flex flex-col gap-1.5 text-[15px]">
           <span className="text-[13px] text-text-secondary">Size {picked.size} · A{picked.armor} S{picked.structure} · {picked.damage.join('/')}</span>
           <div className="flex justify-between pt-1.5">
             <span className="text-text-secondary">{picked.pv} PV × 40</span>
-            <span className="text-signal-blue tabular-nums">{cost.toLocaleString()} SP</span>
+            <span className="text-result tabular-nums">{cost.toLocaleString()} SP</span>
           </div>
           <div className="flex flex-wrap gap-2 pt-2">
             <DossierButton variant="primary" className="flex-1" onClick={() => onBuy({ id: uuidv4(), ...unitFromEntry(picked) })}>
@@ -38,7 +38,7 @@ export function BuyUnitPanel({ onBuy, onCancel }: { onBuy: (unit: Unit) => void;
   }
 
   return (
-    <div className="flex flex-col gap-3 p-3.5 bg-steel-800 border border-steel-500">
+    <div className="flex flex-col gap-3 p-3.5 bg-surface border border-line">
       <UnitListPicker label="Buy a unit" onPick={setPicked} />
       <DossierButton variant="secondary" className="self-start" onClick={onCancel}>Cancel</DossierButton>
     </div>

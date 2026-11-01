@@ -34,19 +34,19 @@ export function ForceBuilder({ units, onAdd, onRemove, isCarried = () => false, 
 
   return (
     <>
-      <div className="sticky top-0 z-20 -mx-gutter px-gutter py-3 bg-steel-800 border-y border-steel-500 flex flex-col gap-1.5">
+      <div className="sticky top-0 z-20 -mx-gutter px-gutter py-3 bg-surface border-y border-line flex flex-col gap-1.5">
         <div className="flex justify-between items-baseline">
-          <span className="dossier-label text-text-secondary">Force</span>
-          <span className={cn('font-stencil text-2xl tabular-nums', over ? 'text-danger' : 'text-amber')}>
+          <span className="field-label text-text-secondary">Force</span>
+          <span className={cn('font-display font-bold text-2xl tabular-nums', over ? 'text-danger' : 'text-active')}>
             {pv} <span className="text-base text-text-secondary">/ {FORCE_PV_LIMIT} PV</span>
           </span>
         </div>
-        <div className="h-2 bg-steel-900 border border-steel-500" aria-hidden="true">
-          <div className={cn('h-full', over ? 'bg-danger' : 'bg-amber')} style={{ width: `${Math.min(100, (pv / FORCE_PV_LIMIT) * 100)}%` }} />
+        <div className="h-2 bg-surface-deep border border-line" aria-hidden="true">
+          <div className={cn('h-full', over ? 'bg-danger' : 'bg-active')} style={{ width: `${Math.min(100, (pv / FORCE_PV_LIMIT) * 100)}%` }} />
         </div>
         <div className="flex justify-between text-[13px]">
           <span className="text-text-secondary">{units.length} unit{units.length === 1 ? '' : 's'}</span>
-          <span className={over ? 'text-danger' : 'text-signal-blue'}>
+          <span className={over ? 'text-danger' : 'text-result'}>
             {over ? `${pv - FORCE_PV_LIMIT} PV over the limit` : overNote}
           </span>
         </div>
@@ -61,17 +61,17 @@ export function ForceBuilder({ units, onAdd, onRemove, isCarried = () => false, 
       />
       {note && <p role={note.ok ? 'status' : 'alert'} className={cn('m-0 text-sm', note.ok ? 'text-text-secondary' : 'text-danger')}>{note.text}</p>}
 
-      <div className="flex flex-col border-t border-steel-500">
-        <span className="dossier-label text-text-secondary pt-2.5 pb-1">Your force</span>
+      <div className="flex flex-col border-t border-line">
+        <span className="field-label text-text-secondary pt-2.5 pb-1">Your force</span>
         {[...units].sort((a, b) => b.pvAtSkill4 - a.pvAtSkill4).map(u => (
-          <div key={u.id} className="flex items-center gap-2 min-h-touch border-b border-steel-500 text-[15px]">
+          <div key={u.id} className="flex items-center gap-2 min-h-touch border-b border-line text-[15px]">
             <span className="flex-1">
               {u.nameAndVariant}{' '}
-              <span className="font-condensed font-semibold text-[11px] tracking-[1px] text-text-secondary uppercase">
+              <span className="font-label font-semibold text-[11px] tracking-[1px] text-text-secondary uppercase">
                 · {u.unitType} · Size {u.size}{u.ene ? ' · ENE' : ''}{isCarried(u.id) ? ' · Carried over' : ''}
               </span>
             </span>
-            <span className="font-stencil text-base text-amber w-8 text-right">{u.pvAtSkill4}</span>
+            <span className="font-display font-bold text-base text-active w-8 text-right">{u.pvAtSkill4}</span>
             {isCarried(u.id)
               ? <span className="w-touch" aria-hidden="true" />
               : <button type="button" aria-label={`Remove ${u.nameAndVariant}`} onClick={() => onRemove(u.id)} className="w-touch h-touch text-text-secondary">✕</button>}
@@ -86,11 +86,11 @@ export function ForceBuilder({ units, onAdd, onRemove, isCarried = () => false, 
 /** The setup rules for a force, ticked or crossed; `children` adds a confirmation under them. */
 export function ForceRules({ checks, children }: { checks: { ok: boolean; text: string }[]; children?: React.ReactNode }) {
   return (
-    <div className="bg-steel-800 border border-steel-500 px-3 py-2.5 flex flex-col gap-0.5">
-      <span className="dossier-label text-text-secondary pb-1">Force rules</span>
+    <div className="bg-surface border border-line px-3 py-2.5 flex flex-col gap-0.5">
+      <span className="field-label text-text-secondary pb-1">Force rules</span>
       {checks.map(c => (
         <div key={c.text} className="flex items-center gap-2.5 min-h-8 text-sm">
-          <span className={cn('font-condensed font-bold text-xs tracking-[1px] w-7', c.ok ? 'text-signal-blue' : 'text-danger')}>{c.ok ? '✓' : '✕'}</span>
+          <span className={cn('font-label font-bold text-xs tracking-[1px] w-7', c.ok ? 'text-result' : 'text-danger')}>{c.ok ? '✓' : '✕'}</span>
           {c.text}
         </div>
       ))}
@@ -114,16 +114,16 @@ export function ChassisCheckButton({ units }: { units: Unit[] }) {
   }
 
   return (
-    <div className="flex flex-col gap-1 pt-1.5 mt-1 border-t border-steel-500">
+    <div className="flex flex-col gap-1 pt-1.5 mt-1 border-t border-line">
       <div className="flex flex-wrap items-center justify-between gap-x-3">
         <span className="text-[13px] text-text-secondary">Optional: no more than two &apos;Mechs share a chassis, as different variants.</span>
-        <button type="button" onClick={check} className="min-h-touch dossier-label text-signal-blue">Check my force ›</button>
+        <button type="button" onClick={check} className="min-h-touch field-label text-result">Check my force ›</button>
       </div>
       {result === null && <p role="alert" className="m-0 text-sm text-danger">The unit list could not be loaded, so the force wasn&apos;t checked.</p>}
       {result && (
         <div role="status" className="flex flex-col gap-0.5 text-sm">
           {result.problems.length === 0
-            ? <span className="text-signal-blue">✓ No chassis problems.</span>
+            ? <span className="text-result">✓ No chassis problems.</span>
             : result.problems.map(p => <span key={p} className="text-danger">✕ {p}</span>)}
           {result.unchecked.length > 0 && (
             <span className="text-text-secondary">Not on the unit list, so not checked: {result.unchecked.join(', ')}.</span>

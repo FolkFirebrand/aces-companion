@@ -52,20 +52,20 @@ export function SortieChecklist({ sortie }: { sortie: Sortie }) {
       const value = stepValue(step.id, sortie, pvLimit, earnings)
       const number = (
         <span className={cn(
-          'w-[30px] h-[30px] shrink-0 flex items-center justify-center font-stencil text-[17px] border',
-          step.done ? 'bg-steel-600 border-steel-600 text-text-primary'
-            : current ? 'bg-amber border-amber text-on-amber' : 'border-steel-500 text-text-secondary'
+          'w-[30px] h-[30px] shrink-0 flex items-center justify-center font-display font-bold text-[17px] border',
+          step.done ? 'bg-surface-raised border-surface-raised text-text-primary'
+            : current ? 'bg-active border-active text-on-active' : 'border-line text-text-secondary'
         )}>{step.number}</span>
       )
       const text = (
         <span className="flex-1 flex flex-col gap-0.5">
-          <span className={cn('font-condensed font-bold text-[15px] tracking-[1px] uppercase', current && 'text-amber')}>{step.name}</span>
+          <span className={cn('font-label font-bold text-[15px] tracking-[1px] uppercase', current && 'text-active')}>{step.name}</span>
           <span className="text-[13px] leading-snug text-text-secondary">{step.summary}</span>
         </span>
       )
       const rowClass = cn(
-        'flex gap-3 items-start py-2.5 border-b border-steel-500 min-h-touch text-text-primary',
-        current && 'bg-steel-800 -mx-gutter px-gutter border-amber'
+        'flex gap-3 items-start py-2.5 border-b border-line min-h-touch text-text-primary',
+        current && 'bg-surface -mx-gutter px-gutter border-active'
       )
 
       if (step.tickOff) {
@@ -77,7 +77,7 @@ export function SortieChecklist({ sortie }: { sortie: Sortie }) {
               checked={step.done}
               onChange={e => setStepDone(sortie.id, step.id, e.target.checked)}
               aria-label={`${step.name} done`}
-              className="w-[22px] h-[22px] mt-1 accent-[var(--color-amber)]"
+              className="w-[22px] h-[22px] mt-1 accent-[var(--color-active)]"
             />
           </label>
         )
@@ -86,8 +86,8 @@ export function SortieChecklist({ sortie }: { sortie: Sortie }) {
         <Link key={step.id} href={`/sortie/${sortie.id}/step/${step.id}`} className={rowClass}>
           {number}{text}
           <span className={cn(
-            'font-condensed font-semibold text-[13px] tracking-[1px] whitespace-nowrap',
-            current ? 'text-amber' : step.done ? 'text-signal-blue' : 'text-text-disabled'
+            'font-label font-semibold text-[13px] tracking-[1px] whitespace-nowrap',
+            current ? 'text-active' : step.done ? 'text-result' : 'text-text-disabled'
           )}>
             {current ? 'NEXT >' : step.done ? value ?? 'DONE' : 'TO DO'}
           </span>
@@ -102,35 +102,35 @@ export function SortieChecklist({ sortie }: { sortie: Sortie }) {
     <>
       <FileHeader label={`File ${sortie.sortieNumber} · Sortie log`} position="Draft" title={sortie.name || `Sortie ${sortie.sortieNumber}`}
         summary="Work through the book's steps in order. Nothing changes your force until you complete the sortie.">
-        <Link href="/campaign" className="dossier-label text-signal-blue self-start min-h-6">&lt; Campaign Log</Link>
+        <Link href="/campaign" className="field-label text-result self-start min-h-6">&lt; Campaign Log</Link>
       </FileHeader>
       <PageBody>
         <section className="flex flex-col">
-          <div className="dossier-label flex justify-between text-text-secondary pb-1 border-b-2 border-steel-500"><span>Sortie Setup Steps</span></div>
+          <div className="field-label flex justify-between text-text-secondary pb-1 border-b-2 border-line"><span>Sortie Setup Steps</span></div>
           {renderSteps('setup')}
         </section>
 
-        <Link href={`/sortie/${sortie.id}/play`} className="flex justify-between items-center gap-3 px-3 py-2.5 min-h-touch bg-steel-800 border-2 border-amber hover:bg-steel-700">
+        <Link href={`/sortie/${sortie.id}/play`} className="flex justify-between items-center gap-3 px-3 py-2.5 min-h-touch bg-surface border-2 border-active hover:bg-ground">
           <span className="flex flex-col">
-            <span className="font-condensed font-bold text-[15px] tracking-[1px] text-amber">PLAY THE SORTIE</span>
+            <span className="font-label font-bold text-[15px] tracking-[1px] text-active">PLAY THE SORTIE</span>
             <span className="text-[13px] text-text-secondary">
               {sortie.battle
                 ? `Round ${sortie.battle.round}${pendingCards > 0 ? ` · ${pendingCards} pending` : ''}`
                 : 'Track the battle on Alpha Strike cards'}
             </span>
           </span>
-          <span className="dossier-label text-signal-blue">Open &gt;</span>
+          <span className="field-label text-result">Open &gt;</span>
         </Link>
 
         <fieldset className="flex flex-col gap-2 border-0 p-0 m-0">
-          <legend className="dossier-label text-text-secondary mb-2">Did you complete the Primary Objective?</legend>
+          <legend className="field-label text-text-secondary mb-2">Did you complete the Primary Objective?</legend>
           <div className="grid grid-cols-2 gap-2">
             {(['victory', 'failed'] as SortieOutcome[]).map(outcome => (
               <label key={outcome} className={cn(
-                'h-touch flex items-center justify-center gap-2 border-2 font-condensed font-bold tracking-[1px] cursor-pointer',
+                'h-touch flex items-center justify-center gap-2 border-2 font-label font-bold tracking-[1px] cursor-pointer',
                 sortie.outcome === outcome
-                  ? outcome === 'victory' ? 'border-signal-blue text-signal-blue' : 'border-danger text-danger'
-                  : 'border-steel-500 text-text-secondary'
+                  ? outcome === 'victory' ? 'border-result text-result' : 'border-danger text-danger'
+                  : 'border-line text-text-secondary'
               )}>
                 <input type="radio" name="outcome" value={outcome} checked={sortie.outcome === outcome}
                   onChange={() => updateSortie(sortie.id, { outcome })} className="sr-only" />
@@ -143,7 +143,7 @@ export function SortieChecklist({ sortie }: { sortie: Sortie }) {
 
         {!failed && (
           <section className="flex flex-col">
-            <div className="dossier-label flex justify-between text-text-secondary pb-1 border-b-2 border-steel-500"><span>After-Sortie Steps</span></div>
+            <div className="field-label flex justify-between text-text-secondary pb-1 border-b-2 border-line"><span>After-Sortie Steps</span></div>
             {renderSteps('after')}
           </section>
         )}

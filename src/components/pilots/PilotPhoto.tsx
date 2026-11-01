@@ -31,13 +31,13 @@ export function PilotPhoto({ pilot, size, editable = false }: { pilot: NamedPilo
         <circle cx="12" cy="13" r="4" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     )
-  const box = 'shrink-0 overflow-hidden bg-steel-600 border border-steel-500 flex items-center justify-center'
+  const box = 'shrink-0 overflow-hidden bg-surface-raised border border-line flex items-center justify-center'
 
   if (!editable) return <div className={box} style={{ width: size, height: size }}>{face}</div>
   return (
     <>
       <button type="button" onClick={() => fileRef.current?.click()} aria-label={`Upload a photo of ${pilot.callsign || 'this pilot'}`}
-        className={cn(box, 'hover:border-amber')} style={{ width: size, height: size }}>
+        className={cn(box, 'hover:border-active')} style={{ width: size, height: size }}>
         {face}
       </button>
       <input ref={fileRef} type="file" accept="image/*" onChange={handleFile} className="hidden" aria-hidden="true" tabIndex={-1} />

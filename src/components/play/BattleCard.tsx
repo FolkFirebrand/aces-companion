@@ -28,9 +28,9 @@ function pipState(index: number, committed: number, shown: number): PipState {
 
 const PIP_STYLES: Record<PipState, string> = {
   empty: 'bg-transparent',
-  hit: 'bg-amber border-amber',
-  pendingHit: 'border-dashed border-danger bg-[repeating-linear-gradient(45deg,rgba(240,122,74,.45)_0_4px,transparent_4px_8px)]',
-  pendingHeal: 'border-dashed border-signal-blue',
+  hit: 'bg-active border-active',
+  pendingHit: 'border-dashed border-danger bg-[repeating-linear-gradient(45deg,rgba(239,122,95,.45)_0_4px,transparent_4px_8px)]',
+  pendingHeal: 'border-dashed border-result',
 }
 
 const PIP_LABELS: Record<PipState, string> = { empty: '', hit: ', hit', pendingHit: ', hit (pending)', pendingHeal: ', repaired (pending)' }
@@ -48,19 +48,19 @@ function PipTrack({ label, short, total, field, committed, shown, structure, dis
 }) {
   return (
     <div className="flex items-start" role="group" aria-label={`${label} · ${Math.max(0, total - shown[field])} of ${total} left`}>
-      <span className="dossier-label text-[11px] tracking-[1.5px] text-text-secondary w-5 shrink-0 leading-8">{short}</span>
+      <span className="field-label text-[11px] tracking-[1.5px] text-text-secondary w-5 shrink-0 leading-8">{short}</span>
       <div className="flex-1 flex flex-wrap">
         {Array.from({ length: total }, (_, i) => {
           const state = pipState(i, committed[field], shown[field])
           return (
             <button key={i} type="button" aria-label={`${label} ${i + 1}${PIP_LABELS[state]}`} disabled={disabled} onClick={() => onTap(tapPip(shown[field], i))}
               className="w-7 h-8 flex items-center justify-center shrink-0">
-              <span className={cn('block w-[22px] h-[22px] rounded-full border-2', structure ? 'border-text-secondary bg-steel-600' : 'border-text-primary', PIP_STYLES[state])} />
+              <span className={cn('block w-[22px] h-[22px] rounded-full border-2', structure ? 'border-text-secondary bg-surface-raised' : 'border-text-primary', PIP_STYLES[state])} />
             </button>
           )
         })}
       </div>
-      <span className="font-condensed font-bold text-sm leading-8 shrink-0 pl-1">
+      <span className="font-label font-bold text-sm leading-8 shrink-0 pl-1">
         {Math.max(0, total - shown[field])}<span className="text-text-secondary">/{total}</span>
       </span>
     </div>
@@ -79,9 +79,9 @@ function CritPip({ label, state, disabled, onClick }: { label: string; state: Pi
 /** One box of the critical-hit grid: name and pips on top, the effect underneath, as on the printed card. */
 function CritBox({ label, effect, pending, children }: { label: string; effect: string; pending: boolean; children: React.ReactNode }) {
   return (
-    <div className={cn('bg-steel-900 border px-1.5 pt-0.5 pb-1 flex flex-col min-w-0', pending ? 'border-dashed border-danger' : 'border-steel-600')}>
+    <div className={cn('bg-surface-deep border px-1.5 pt-0.5 pb-1 flex flex-col min-w-0', pending ? 'border-dashed border-danger' : 'border-surface-raised')}>
       <div className="flex items-center gap-0.5">
-        <span className="flex-1 min-w-0 font-condensed font-bold text-xs tracking-[0.5px] uppercase truncate">{label}</span>
+        <span className="flex-1 min-w-0 font-label font-bold text-xs tracking-[0.5px] uppercase truncate">{label}</span>
         {children}
       </div>
       <span className="text-[11px] leading-tight text-text-secondary">{effect}</span>
@@ -93,9 +93,9 @@ function CritBox({ label, effect, pending, children }: { label: string; effect: 
 function MiniTrack({ short, total, hits }: { short: string; total: number; hits: number }) {
   return (
     <span className="flex items-center gap-0.5" aria-hidden="true">
-      <span className="dossier-label text-[10px] tracking-[1px] text-text-secondary mr-0.5">{short}</span>
+      <span className="field-label text-[10px] tracking-[1px] text-text-secondary mr-0.5">{short}</span>
       {Array.from({ length: total }, (_, i) => (
-        <span key={i} className={cn('w-1.5 h-3 border', i < hits ? 'bg-amber border-amber' : 'border-text-secondary')} />
+        <span key={i} className={cn('w-1.5 h-3 border', i < hits ? 'bg-active border-active' : 'border-text-secondary')} />
       ))}
     </span>
   )
@@ -152,15 +152,15 @@ export function BattleCard({ sortieId, unit, record, pilotName, skill, open, onT
   // Structure gone destroys the unit by itself; the button is for crit results like a 12.
   const structureGone = !!unit.structure && shown.structure >= unit.structure
 
-  // On the open card's amber header bar the tags turn dark so they stay readable.
+  // On the open card's teal header bar the tags turn dark so they stay readable.
   const headerBar = open && !committedDestroyed
-  const onBar = headerBar ? 'bg-steel-900 border-0' : ''
+  const onBar = headerBar ? 'bg-surface-deep border-0' : ''
   const [notesOpen, setNotesOpen] = useState(record.notes !== '')
   const heatShown = mech && shown.heat > 0
 
   const edge = edgeTokens !== undefined && edgeTokens > 0 && (
     <>
-      <span className="dossier-label text-[11px] tracking-[1.5px] text-text-secondary">Edge</span>
+      <span className="field-label text-[11px] tracking-[1.5px] text-text-secondary">Edge</span>
       <div className="flex flex-wrap" role="group" aria-label={`Edge tokens · ${edgeTokensLeft(edgeTokens, shown.edgeSpent)} of ${edgeTokens} left`}>
         {Array.from({ length: edgeTokens }, (_, i) => {
           const state = pipState(i, record.committed.edgeSpent, shown.edgeSpent)
@@ -169,7 +169,7 @@ export function BattleCard({ sortieId, unit, record, pilotName, skill, open, onT
               disabled={readOnly}
               onClick={() => markBattle(sortieId, unit.id, { edgeSpent: Math.min(edgeTokens, tapPip(shown.edgeSpent, i)) })}
               className="w-[30px] h-[30px] flex items-center justify-center">
-              <span className={cn('block w-4 h-4 rotate-45 border-2 border-amber', state === 'hit' ? 'bg-amber' : PIP_STYLES[state])} />
+              <span className={cn('block w-4 h-4 rotate-45 border-2 border-active', state === 'hit' ? 'bg-active' : PIP_STYLES[state])} />
             </button>
           )
         })}
@@ -183,19 +183,19 @@ export function BattleCard({ sortieId, unit, record, pilotName, skill, open, onT
     <>
       <UnitPhoto unit={unit} size={open ? 32 : 28} />
       <span className="flex-1 min-w-0 flex flex-col">
-        <span className={cn('font-condensed font-bold text-[15px] leading-tight tracking-[0.5px] uppercase truncate', committedDestroyed && 'line-through decoration-danger')}>
+        <span className={cn('font-label font-bold text-[15px] leading-tight tracking-[0.5px] uppercase truncate', committedDestroyed && 'line-through decoration-danger')}>
           {unit.nameAndVariant}
         </span>
-        <span className={cn('flex flex-wrap items-center gap-1.5 text-xs', headerBar ? 'text-on-amber' : 'text-text-secondary')}>
+        <span className={cn('flex flex-wrap items-center gap-1.5 text-xs', headerBar ? 'text-on-active' : 'text-text-secondary')}>
           <span>{pilotName ?? crewLabel} · Sk {skill} · {TYPE_CODES[unit.unitType]} · SZ {unit.size}</span>
           {committedDestroyed && <StatusTag tone="hurt">Destroyed{record.destroyedRound ? ` · round ${record.destroyedRound}` : ''}</StatusTag>}
-          {committedReadout.crippled && <StatusTag tone="amber" className={cn(onBar, headerBar && 'text-amber')}>Crippled</StatusTag>}
+          {committedReadout.crippled && <StatusTag tone="active" className={cn(onBar, headerBar && 'text-active')}>Crippled</StatusTag>}
           {committedReadout.shutdown && !committedDestroyed && <StatusTag tone="hurt" className={cn(onBar, headerBar && 'text-danger')}>Shutdown</StatusTag>}
-          {pending && <StatusTag tone="neutral" className={cn('border-dashed', headerBar ? 'border-on-amber text-on-amber' : 'border-danger text-danger')}>Pending</StatusTag>}
+          {pending && <StatusTag tone="neutral" className={cn('border-dashed', headerBar ? 'border-on-active text-on-active' : 'border-danger text-danger')}>Pending</StatusTag>}
         </span>
       </span>
       {open ? (
-        <span className={cn('font-stencil text-[22px]', headerBar ? 'text-on-amber' : 'text-amber')}>{unit.pvAtSkill4}</span>
+        <span className={cn('font-display font-bold text-[22px]', headerBar ? 'text-on-active' : 'text-active')}>{unit.pvAtSkill4}</span>
       ) : !readout.missingStats && !committedDestroyed && (
         <>
           <span className="flex flex-col items-end gap-[3px]">
@@ -209,20 +209,20 @@ export function BattleCard({ sortieId, unit, record, pilotName, skill, open, onT
     </>
   )
 
-  const chip = 'h-8 px-2 border font-condensed font-bold text-xs tracking-[1px] uppercase inline-flex items-center gap-1.5'
+  const chip = 'h-8 px-2 border font-label font-bold text-xs tracking-[1px] uppercase inline-flex items-center gap-1.5'
 
   return (
-    <div className={cn('bg-steel-800 border border-steel-500', pending && 'outline-2 outline-dashed outline-danger -outline-offset-1')}>
+    <div className={cn('bg-surface border border-line', pending && 'outline-2 outline-dashed outline-danger -outline-offset-1')}>
       <button type="button" onClick={onToggle} aria-expanded={open}
-        className={cn('w-full flex items-center gap-2 px-2.5 py-1.5 text-left min-h-touch', headerBar && 'bg-amber text-on-amber')}>
+        className={cn('w-full flex items-center gap-2 px-2.5 py-1.5 text-left min-h-touch', headerBar && 'bg-active text-on-active')}>
         {header}
       </button>
 
       {open && (
         <>
           {readout.missingStats ? (
-            <div className="px-2.5 py-2 border-t border-steel-500 text-[13px] text-text-secondary">
-              This unit has no armor or structure yet. <Link href="/roster" className="text-signal-blue underline">Link it to the unit list or fill its stats in on the Roster</Link> to track it.
+            <div className="px-2.5 py-2 border-t border-line text-[13px] text-text-secondary">
+              This unit has no armor or structure yet. <Link href="/roster" className="text-result underline">Link it to the unit list or fill its stats in on the Roster</Link> to track it.
             </div>
           ) : (
             <div className="px-2 pt-1.5 pb-2 flex flex-col gap-1.5">
@@ -234,18 +234,18 @@ export function BattleCard({ sortieId, unit, record, pilotName, skill, open, onT
                   ['TMM', readout.tmm ?? '–', committedReadout.tmm ?? '–', null],
                   ['OV', unit.overheat ?? 0, unit.overheat ?? 0, null],
                 ].map(([label, value, committedValue, base]) => (
-                  <div key={String(label)} className={cn('bg-steel-900 border py-0.5 min-w-0', value !== committedValue ? 'border-dashed border-danger' : 'border-steel-600')}>
-                    <div className="dossier-label text-[10px] tracking-[1px] text-text-secondary">{label}</div>
-                    <div className="font-condensed font-bold text-[15px] leading-tight">{value}</div>
+                  <div key={String(label)} className={cn('bg-surface-deep border py-0.5 min-w-0', value !== committedValue ? 'border-dashed border-danger' : 'border-surface-raised')}>
+                    <div className="field-label text-[10px] tracking-[1px] text-text-secondary">{label}</div>
+                    <div className="font-label font-bold text-[15px] leading-tight">{value}</div>
                     {base !== null && <div className="text-[10px] leading-tight text-text-secondary">({base})</div>}
                   </div>
                 ))}
                 {readout.damage.map((d, i) => (
-                  <div key={d.range} className={cn('bg-steel-900 border py-0.5 min-w-0',
-                    d.text !== committedReadout.damage[i].text || d.toHit !== committedReadout.damage[i].toHit ? 'border-dashed border-danger' : 'border-steel-600')}>
-                    <div className="dossier-label text-[10px] tracking-[1px] text-text-secondary">{d.range}</div>
-                    <div className="font-condensed font-bold text-[15px] leading-tight whitespace-nowrap">
-                      {d.text}<span className="sr-only">, to-hit</span><span className="text-xs text-signal-blue ml-0.5">{d.toHit}+</span>
+                  <div key={d.range} className={cn('bg-surface-deep border py-0.5 min-w-0',
+                    d.text !== committedReadout.damage[i].text || d.toHit !== committedReadout.damage[i].toHit ? 'border-dashed border-danger' : 'border-surface-raised')}>
+                    <div className="field-label text-[10px] tracking-[1px] text-text-secondary">{d.range}</div>
+                    <div className="font-label font-bold text-[15px] leading-tight whitespace-nowrap">
+                      {d.text}<span className="sr-only">, to-hit</span><span className="text-xs text-result ml-0.5">{d.toHit}+</span>
                     </div>
                   </div>
                 ))}
@@ -253,7 +253,7 @@ export function BattleCard({ sortieId, unit, record, pilotName, skill, open, onT
 
               {mech && (
                 <div className="flex items-center gap-1">
-                  <span className="dossier-label text-[11px] tracking-[1.5px] text-text-secondary w-9">Heat</span>
+                  <span className="field-label text-[11px] tracking-[1.5px] text-text-secondary w-9">Heat</span>
                   <div className="flex gap-[3px]" role="group" aria-label="Heat">
                     {[0, 1, 2, 3, SHUTDOWN].map(level => {
                       const now = record.committed.heat === level
@@ -261,8 +261,8 @@ export function BattleCard({ sortieId, unit, record, pilotName, skill, open, onT
                       return (
                         <button key={level} type="button" aria-pressed={shown.heat === level} disabled={readOnly}
                           onClick={() => markBattle(sortieId, unit.id, { heat: level })}
-                          className={cn('w-8 h-[30px] border font-stencil text-[15px]',
-                            next ? 'border-2 border-dashed border-danger text-danger' : now ? 'bg-amber border-amber text-on-amber' : 'border-steel-500 bg-steel-900 text-text-secondary')}>
+                          className={cn('w-8 h-[30px] border font-display font-bold text-[15px]',
+                            next ? 'border-2 border-dashed border-danger text-danger' : now ? 'bg-active border-active text-on-active' : 'border-line bg-surface-deep text-text-secondary')}>
                           {level === SHUTDOWN ? 'S' : level}
                         </button>
                       )
@@ -286,7 +286,7 @@ export function BattleCard({ sortieId, unit, record, pilotName, skill, open, onT
                   <span className="text-[11px] text-danger">Structure hit: roll for a critical hit{mech || vehicle ? ' and mark it below' : ''}.</span>
                 )}
                 {vehicle && (shown.armor > record.committed.armor || shown.structure > record.committed.structure) && (
-                  <span className="text-[11px] text-signal-blue">Hit to a vehicle: roll for motive damage ({motiveRollModifier(unit)}).</span>
+                  <span className="text-[11px] text-result">Hit to a vehicle: roll for motive damage ({motiveRollModifier(unit)}).</span>
                 )}
               </div>
 
@@ -324,27 +324,27 @@ export function BattleCard({ sortieId, unit, record, pilotName, skill, open, onT
               <div className="flex flex-wrap items-center gap-1">
                 {(unit.abilities ?? []).map(a => {
                   const counter = specialCounter(a)
-                  if (!counter) return <span key={a} className={cn(chip, 'border-steel-500 bg-steel-900 text-text-primary')}>{a}</span>
+                  if (!counter) return <span key={a} className={cn(chip, 'border-line bg-surface-deep text-text-primary')}>{a}</span>
                   const used = shown.specialsUsed[a] ?? 0
                   const pendingUse = used !== (record.committed.specialsUsed[a] ?? 0)
                   const step = (change: 1 | -1) => markBattle(sortieId, unit.id, { specialsUsed: withSpecialUse(shown.specialsUsed, a, change) })
-                  const frame = cn('h-8 flex border bg-steel-900', pendingUse ? 'border-dashed border-danger' : 'border-signal-blue')
+                  const frame = cn('h-8 flex border bg-surface-deep', pendingUse ? 'border-dashed border-danger' : 'border-result')
                   if (counter.kind === 'uses') {
                     return (
                       <span key={a} className={cn(frame, 'items-stretch')}>
-                        <span className="px-2 flex items-center gap-1 font-condensed font-bold text-xs tracking-[0.5px] text-amber">
+                        <span className="px-2 flex items-center gap-1 font-label font-bold text-xs tracking-[0.5px] text-active">
                           {a}<span className="text-text-secondary font-normal">· {counter.max - used} left</span>
                         </span>
                         <button type="button" aria-label={`Undo a use of ${a}`} disabled={readOnly || used === 0} onClick={() => step(-1)}
-                          className="w-8 border-l border-steel-500 text-signal-blue font-bold disabled:text-text-disabled">−</button>
+                          className="w-8 border-l border-line text-result font-bold disabled:text-text-disabled">−</button>
                         <button type="button" aria-label={`Use ${a}`} disabled={readOnly || used >= counter.max} onClick={() => step(1)}
-                          className="px-2 border-l border-steel-500 text-signal-blue font-condensed font-bold text-xs tracking-[1px] uppercase disabled:text-text-disabled">Use</button>
+                          className="px-2 border-l border-line text-result font-label font-bold text-xs tracking-[1px] uppercase disabled:text-text-disabled">Use</button>
                       </span>
                     )
                   }
                   return (
                     <button key={a} type="button" disabled={readOnly} aria-pressed={used > 0} onClick={() => step(used ? -1 : 1)}
-                      className={cn(frame, 'px-2 items-center gap-1 font-condensed font-bold text-xs tracking-[0.5px] text-amber')}>
+                      className={cn(frame, 'px-2 items-center gap-1 font-label font-bold text-xs tracking-[0.5px] text-active')}>
                       {a}<span className="text-text-secondary font-normal">· {used ? 'Exhausted' : 'Ready'}</span>
                     </button>
                   )
@@ -352,18 +352,18 @@ export function BattleCard({ sortieId, unit, record, pilotName, skill, open, onT
                 {crits.length > 0 && (
                   <button type="button" disabled={readOnly} aria-pressed={shown.ammoHit} onClick={() => markBattle(sortieId, unit.id, { ammoHit: !shown.ammoHit })}
                     className={cn(chip, shown.ammoHit !== record.committed.ammoHit ? 'border-2 border-dashed border-danger text-danger'
-                      : shown.ammoHit ? 'bg-text-primary text-steel-900 border-text-primary' : 'border-steel-500 bg-steel-900 text-text-secondary')}>
+                      : shown.ammoHit ? 'bg-text-primary text-ink border-text-primary' : 'border-line bg-surface-deep text-text-secondary')}>
                     Ammo hit
                   </button>
                 )}
                 <button type="button" aria-expanded={notesOpen} onClick={() => setNotesOpen(!notesOpen)}
-                  className={cn(chip, 'border-steel-500 bg-steel-900', record.notes ? 'text-text-primary' : 'text-text-secondary')}>
+                  className={cn(chip, 'border-line bg-surface-deep', record.notes ? 'text-text-primary' : 'text-text-secondary')}>
                   Notes {notesOpen ? '−' : '+'}
                 </button>
                 <span className="flex-1" />
                 {!readOnly && !structureGone && (
                   <button type="button" onClick={() => markBattle(sortieId, unit.id, { destroyed: !shown.destroyed })}
-                    className={cn(chip, shown.destroyed ? 'border-signal-blue text-signal-blue' : 'border-danger text-danger')}>
+                    className={cn(chip, shown.destroyed ? 'border-result text-result' : 'border-danger text-danger')}>
                     {shown.destroyed ? 'Not destroyed' : 'Mark destroyed'}
                   </button>
                 )}

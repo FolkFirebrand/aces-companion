@@ -33,8 +33,8 @@ export function Welcome() {
   return (
     <div className="max-w-xl mx-auto px-gutter py-6 flex flex-col gap-6">
       <div className="flex flex-col items-center gap-1.5 text-center">
-        <h1 className="m-0 text-[36px] leading-none text-amber">Aces Campaign Log</h1>
-        <span className="dossier-label text-text-secondary">Mercenary company records</span>
+        <h1 className="m-0 text-[36px] leading-none text-active">Aces Campaign Log</h1>
+        <span className="field-label text-text-secondary">Mercenary company records</span>
         <p className="m-0 mt-1.5 text-[15px] leading-snug">
           Keep your force roster, sortie logs and pilot records for an Aces campaign, step by step alongside your rulebook.
         </p>
@@ -46,19 +46,19 @@ export function Welcome() {
       ) : (
         <div className="flex flex-col gap-2.5">
           {hasCampaign && (
-            <div className="bg-steel-800 border border-steel-500">
-              <div className="flex justify-between px-3 py-2 bg-amber text-on-amber font-condensed font-bold text-sm tracking-[1px] uppercase">
+            <div className="bg-surface border border-line">
+              <div className="flex justify-between px-3 py-2 bg-active text-on-active font-label font-bold text-sm tracking-[1px] uppercase">
                 <span>Active file</span>
                 <span>{latest ? `After Sortie ${latest.sortieNumber}` : 'At setup'}</span>
               </div>
               <Link href="/campaign" className="flex justify-between items-center gap-3 p-3 min-h-touch">
                 <span className="flex flex-col gap-0.5">
-                  <span className="font-stencil text-[22px] uppercase">{campaign.forceName || campaign.name || 'Your campaign'}</span>
+                  <span className="font-display font-bold text-[22px] uppercase">{campaign.forceName || campaign.name || 'Your campaign'}</span>
                   <span className="text-sm text-text-secondary">
                     Warchest {selectWarchestBalance(campaign)} SP · {campaign.namedPilots.length} Named Pilots
                   </span>
                 </span>
-                <span className="font-condensed font-bold text-[15px] tracking-[1px] text-amber">CONTINUE &gt;</span>
+                <span className="font-label font-bold text-[15px] tracking-[1px] text-active">CONTINUE &gt;</span>
               </Link>
             </div>
           )}
@@ -80,11 +80,11 @@ export function Welcome() {
       )}
 
       <section className="flex flex-col gap-2">
-        <div className="dossier-label text-text-secondary pb-1 border-b border-steel-500">How it works</div>
+        <div className="field-label text-text-secondary pb-1 border-b border-line">How it works</div>
         <ol className="m-0 p-0 list-none flex flex-col gap-2">
           {STEPS.map((text, i) => (
             <li key={text} className="flex gap-2.5 text-sm">
-              <span className="font-stencil text-amber w-4">{i + 1}</span>
+              <span className="font-display font-bold text-active w-4">{i + 1}</span>
               <span>{text}</span>
             </li>
           ))}
@@ -92,12 +92,12 @@ export function Welcome() {
         <div className="grid grid-cols-2 gap-3 pt-2">
           <figure className="m-0 flex flex-col gap-1">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/welcome/sortie-steps.png" alt="A sortie's checklist: the book's setup and after-sortie steps in order" className="w-full border border-steel-500" />
+            <img src="/welcome/sortie-steps.png" alt="A sortie's checklist: the book's setup and after-sortie steps in order" className="w-full border border-line" />
             <figcaption className="text-xs text-text-secondary">Every sortie follows the book&apos;s steps.</figcaption>
           </figure>
           <figure className="m-0 flex flex-col gap-1">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/welcome/campaign-log.png" alt="The Campaign Log: the Warchest and each sortie's earnings" className="w-full border border-steel-500" />
+            <img src="/welcome/campaign-log.png" alt="The Campaign Log: the Warchest and each sortie's earnings" className="w-full border border-line" />
             <figcaption className="text-xs text-text-secondary">The Campaign Log keeps the books for you.</figcaption>
           </figure>
         </div>

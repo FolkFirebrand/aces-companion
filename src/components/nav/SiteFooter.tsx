@@ -19,7 +19,7 @@ function BrandIcon({ path }: { path: string }) {
 /** Every page's footer: the fan-tool disclaimer, contact links and the license and legal notice. */
 export function SiteFooter() {
   return (
-    <footer className="max-w-6xl w-full mx-auto px-gutter pt-2 pb-[calc(var(--spacing-tabbar)+16px)] md:pb-3 text-xs leading-snug text-text-muted border-t border-steel-500 flex flex-wrap items-center gap-x-4 gap-y-1">
+    <footer className="max-w-6xl w-full mx-auto px-gutter pt-2 pb-[calc(var(--spacing-tabbar)+16px)] md:pb-3 text-xs leading-snug text-text-muted border-t border-line flex flex-wrap items-center gap-x-4 gap-y-1">
       <p className="m-0 flex-1 min-w-60">
         Unofficial fan-made tool. Not affiliated with or endorsed by the game&apos;s publishers. Requires the Aces box set.
       </p>
@@ -32,18 +32,18 @@ export function SiteFooter() {
         </a>
         <a href={`mailto:${CONTACT_EMAIL}`} className={ICON_LINK}>
           <Mail aria-hidden="true" className="size-5" />
-          <span className="font-condensed font-semibold text-sm tracking-[1px] uppercase">Email me</span>
+          <span className="font-label font-semibold text-sm tracking-[1px] uppercase">Email me</span>
         </a>
         <Dialog>
-          <DialogTrigger className={`${ICON_LINK} font-condensed font-semibold text-sm tracking-[1px] uppercase`}>
+          <DialogTrigger className={`${ICON_LINK} font-label font-semibold text-sm tracking-[1px] uppercase`}>
             License &amp; legal
           </DialogTrigger>
-          <DialogContent className="bg-steel-800 border-steel-500 text-text-primary sm:max-w-lg max-h-[calc(100dvh-2rem)] overflow-y-auto">
+          <DialogContent className="bg-surface border-line text-text-primary sm:max-w-lg max-h-[calc(100dvh-2rem)] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="font-stencil text-2xl font-normal uppercase text-amber">License &amp; legal notice</DialogTitle>
+              <DialogTitle className="font-display font-bold text-2xl uppercase text-active">License &amp; legal notice</DialogTitle>
             </DialogHeader>
             <LegalNotice />
-            <DialogFooter className="bg-transparent border-steel-500">
+            <DialogFooter className="bg-transparent border-line">
               <DialogClose render={<DossierButton variant="secondary" />}>Dismiss</DialogClose>
             </DialogFooter>
           </DialogContent>

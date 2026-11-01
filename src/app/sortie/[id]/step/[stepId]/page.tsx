@@ -31,7 +31,7 @@ export default function SortieStepPage({ params }: { params: Promise<{ id: strin
     return (
       <PageBody>
         <p className="text-text-secondary">This sortie is completed. Reopen it to change its steps.</p>
-        <Link href={`/sortie/${sortie.id}`} className="dossier-label text-signal-blue">&lt; Back to the sortie</Link>
+        <Link href={`/sortie/${sortie.id}`} className="field-label text-result">&lt; Back to the sortie</Link>
       </PageBody>
     )
   }
@@ -59,7 +59,7 @@ export default function SortieStepPage({ params }: { params: Promise<{ id: strin
         title={step.name}
         summary={step.summary}
       >
-        <Link href={`/sortie/${id}`} className="dossier-label text-signal-blue self-start min-h-6">&lt; All steps</Link>
+        <Link href={`/sortie/${id}`} className="field-label text-result self-start min-h-6">&lt; All steps</Link>
       </FileHeader>
       <PageBody>
         <div className="flex flex-col gap-4 max-w-xl">

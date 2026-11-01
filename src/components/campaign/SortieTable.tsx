@@ -42,8 +42,8 @@ export function SortieTable() {
       <PageBody>
         <div className="flex justify-between items-end gap-4">
           <div className="flex flex-col">
-            <span className="dossier-label text-text-secondary">Warchest</span>
-            <span className="font-stencil text-[44px] leading-none text-amber tabular-nums">
+            <span className="field-label text-text-secondary">Warchest</span>
+            <span className="font-display font-bold text-[44px] leading-none text-active tabular-nums">
               {warchest} <span className="text-xl">SP</span>
             </span>
           </div>
@@ -54,8 +54,8 @@ export function SortieTable() {
         </div>
 
         {nextNote && (
-          <div className="flex items-center gap-2 px-3 py-2.5 bg-steel-800 border border-signal-blue text-sm">
-            <span className="font-condensed font-bold tracking-[1px] text-signal-blue">NEXT</span>
+          <div className="flex items-center gap-2 px-3 py-2.5 bg-surface border border-result text-sm">
+            <span className="font-label font-bold tracking-[1px] text-result">NEXT</span>
             <span>{nextNote}</span>
           </div>
         )}
@@ -83,26 +83,26 @@ export function SortieTable() {
         </div>
 
         {/* Tablets and wider: the paper Campaign Log's columns */}
-        <div className="hidden md:block overflow-x-auto border border-steel-500">
+        <div className="hidden md:block overflow-x-auto border border-line">
           <table className="w-full text-sm tabular-nums">
-            <thead className="bg-steel-800">
+            <thead className="bg-surface">
               <tr>
                 {COLUMNS.map(h => (
-                  <th key={h} className="px-3 py-2 text-left dossier-label text-text-secondary whitespace-nowrap">{h}</th>
+                  <th key={h} className="px-3 py-2 text-left field-label text-text-secondary whitespace-nowrap">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              <tr className="border-t border-steel-500">
+              <tr className="border-t border-line">
                 <td colSpan={7} className="px-3 py-2">Starting Warchest Balance</td>
-                <td className="px-3 py-2 font-stencil text-lg text-amber">{campaign.startingWarchest}</td>
+                <td className="px-3 py-2 font-display font-bold text-lg text-active">{campaign.startingWarchest}</td>
                 <td />
               </tr>
               {rows.map(({ sortie, counts, earnings, namedPilotSp, purchases, warchest: balance }) => (
                 <tr
                   key={sortie.id}
                   onClick={() => router.push(`/sortie/${sortie.id}`)}
-                  className={`cursor-pointer border-t border-steel-500 hover:bg-steel-600 ${counts || sortie.status === 'draft' ? '' : 'text-text-disabled'}`}
+                  className={`cursor-pointer border-t border-line hover:bg-surface-raised ${counts || sortie.status === 'draft' ? '' : 'text-text-disabled'}`}
                 >
                   <td className="px-3 py-2 whitespace-nowrap">{sortie.datePlayed}</td>
                   <td className="px-3 py-2">{sortie.sortieNumber}</td>
@@ -111,8 +111,8 @@ export function SortieTable() {
                       {sortie.name || `Sortie ${sortie.sortieNumber}`}
                     </a>
                   </td>
-                  <td className={`px-3 py-2 font-condensed font-semibold tracking-[1px] ${
-                    sortie.status === 'draft' ? 'text-text-secondary' : counts ? 'text-signal-blue' : 'text-danger'}`}>
+                  <td className={`px-3 py-2 font-label font-semibold tracking-[1px] ${
+                    sortie.status === 'draft' ? 'text-text-secondary' : counts ? 'text-result' : 'text-danger'}`}>
                     {sortie.status === 'draft' ? 'DRAFT' : counts ? 'VICTORY' : 'FAILED'}
                   </td>
                   {counts ? (
@@ -126,7 +126,7 @@ export function SortieTable() {
                       {sortie.status === 'draft' ? 'In progress · counts once completed' : 'No effect on the Warchest'}
                     </td>
                   )}
-                  <td className={`px-3 py-2 font-stencil text-lg ${counts ? 'text-amber' : ''}`}>{balance}</td>
+                  <td className={`px-3 py-2 font-display font-bold text-lg ${counts ? 'text-active' : ''}`}>{balance}</td>
                   <td className="px-3 py-2">
                     <span className="flex flex-wrap gap-1.5">
                       {sortie.keywordsGained.map(k => <StatusTag key={k} tone="keyword">{k.toUpperCase()}</StatusTag>)}
@@ -140,7 +140,7 @@ export function SortieTable() {
 
         {keywords.length > 0 && (
           <section className="flex flex-col gap-2">
-            <div className="dossier-label text-text-secondary pb-1 border-b-2 border-steel-500">Campaign keywords</div>
+            <div className="field-label text-text-secondary pb-1 border-b-2 border-line">Campaign keywords</div>
             <div className="flex flex-wrap gap-2">
               {keywords.map(k => <StatusTag key={k} tone="keyword">{k.toUpperCase()}</StatusTag>)}
             </div>

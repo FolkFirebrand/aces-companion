@@ -72,4 +72,4 @@ Single-context: one `GLOSSARY.md` + `docs/adr/` at the repo root. See `docs/agen
 
 ### Design system
 
-All UI follows the **Company Dossier** design system: https://claude.ai/artifact/KDNaW45CRMQcSp77vkQ188 (read its `project/README.md` and `project/tokens.json` before UI work). Approved screen mockups: https://claude.ai/artifact/JcENCFL5KR9edy1XLvunNC. The current app styling is a throwaway first draft and is being replaced.
+All UI follows the **Tactical Map** look (mockups: https://claude.ai/artifact/VPtXhQT2mcAgTni7oj3p2Y): dark olive ground with faint contour lines, teal for the active item and the main action, pale yellow for computed results, coral for damage; Chakra Petch for titles and labels, Barlow Semi Condensed body, JetBrains Mono for numbers. Colours and fonts are role-named tokens in [src/app/globals.css](src/app/globals.css) (`surface-*`, `ground`, `line`, `active`, `result`, `danger`; `font-display`/`label`/`body`/`mono`): use those, never raw hex, so a reskin stays a one-file change. Do not drift back to orange, hazard stripes or stencil type.
