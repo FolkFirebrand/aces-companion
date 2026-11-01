@@ -94,17 +94,17 @@ function PlayerForce({ sortie }: Props) {
         <NumberInput id="listed-pv" value={sortie.listedPv} onChange={listedPv => updateSortie(sortie.id, { listedPv })} />
       </Field>
 
-      <div className="sticky top-0 z-20 -mx-gutter px-gutter py-3 bg-steel-800 border-y border-steel-500 flex flex-col gap-1.5">
+      <div className="sticky top-0 z-20 -mx-gutter px-gutter py-3 bg-surface border-y border-line flex flex-col gap-1.5">
         <div className="flex justify-between items-baseline">
-          <span className="dossier-label text-text-secondary">Fielded</span>
-          <span className={`font-stencil text-2xl tabular-nums ${over ? 'text-danger' : 'text-amber'}`}>
+          <span className="field-label text-text-secondary">Fielded</span>
+          <span className={`font-display font-bold text-2xl tabular-nums ${over ? 'text-danger' : 'text-active'}`}>
             {fieldedPv} <span className="text-base text-text-secondary">/ {limit} PV</span>
           </span>
         </div>
-        <div className="h-2 bg-steel-900 border border-steel-500" aria-hidden="true">
-          <div className={`h-full ${over ? 'bg-danger' : 'bg-amber'}`} style={{ width: `${limit > 0 ? Math.min(100, (fieldedPv / limit) * 100) : 0}%` }} />
+        <div className="h-2 bg-surface-deep border border-line" aria-hidden="true">
+          <div className={`h-full ${over ? 'bg-danger' : 'bg-active'}`} style={{ width: `${limit > 0 ? Math.min(100, (fieldedPv / limit) * 100) : 0}%` }} />
         </div>
-        <p className={`m-0 text-[13px] ${over ? 'text-danger' : 'text-signal-blue'}`}>
+        <p className={`m-0 text-[13px] ${over ? 'text-danger' : 'text-result'}`}>
           {sortie.listedPv === 0 ? 'Enter the Listed PV to see your PV Limit.'
             : over ? `${-left} PV over your PV Limit. You can still play it this way.` : `${left} PV left`}
         </p>
@@ -117,30 +117,30 @@ function PlayerForce({ sortie }: Props) {
           const wouldOver = !fielded && sortie.listedPv > 0 && fieldedPv + unit.pvAtSkill4 > limit
           const meta = [unit.unitType, `Size ${unit.size}`, unit.ene ? 'ENE' : null].filter(Boolean).join(' · ')
           return (
-            <div key={unit.id} className="flex flex-col gap-1.5 py-2.5 border-b border-steel-500">
+            <div key={unit.id} className="flex flex-col gap-1.5 py-2.5 border-b border-line">
               <label className="flex items-center gap-2.5 min-h-touch cursor-pointer">
                 <input
                   type="checkbox"
                   checked={!!fielded}
                   onChange={e => setFielded(sortie.id, unit.id, e.target.checked)}
-                  className="w-6 h-6 shrink-0 accent-[var(--color-amber)]"
+                  className="w-6 h-6 shrink-0 accent-[var(--color-active)]"
                 />
                 <span className="flex-1 flex flex-col gap-0.5">
                   <span className={fielded ? '' : 'text-text-secondary'}>{unit.nameAndVariant || 'Unnamed unit'}</span>
-                  <span className="font-condensed font-semibold text-xs tracking-[1px] uppercase text-text-secondary">
+                  <span className="font-label font-semibold text-xs tracking-[1px] uppercase text-text-secondary">
                     {meta}{wouldOver ? ` · would go ${fieldedPv + unit.pvAtSkill4 - limit} PV over` : ''}
                   </span>
                 </span>
-                <span className={`font-stencil text-lg tabular-nums ${fielded ? 'text-amber' : 'text-text-disabled'}`}>{unit.pvAtSkill4}</span>
+                <span className={`font-display font-bold text-lg tabular-nums ${fielded ? 'text-active' : 'text-text-disabled'}`}>{unit.pvAtSkill4}</span>
               </label>
               {fielded && (
                 <div className="flex items-center gap-2 pl-[34px]">
-                  <label htmlFor={`pilot-${unit.id}`} className="dossier-label text-text-secondary w-12">Pilot</label>
+                  <label htmlFor={`pilot-${unit.id}`} className="field-label text-text-secondary w-12">Pilot</label>
                   <Select id={`pilot-${unit.id}`} value={fielded.pilotId ?? ''} onChange={v => assignFieldedPilot(sortie.id, unit.id, v || null)} className="flex-1">
                     <option value="">Generic Skill 4 crew</option>
                     {healthy.map(p => <option key={p.id} value={p.id}>{pilotOptionLabel(p.id)}</option>)}
                   </Select>
-                  {fielded.pilotId && fielded.pilotId === sortie.forceCommanderPilotId && <StatusTag tone="amber">Commander</StatusTag>}
+                  {fielded.pilotId && fielded.pilotId === sortie.forceCommanderPilotId && <StatusTag tone="active">Commander</StatusTag>}
                 </div>
               )}
             </div>
@@ -151,13 +151,13 @@ function PlayerForce({ sortie }: Props) {
       {campaign.namedPilots.length > 0 && (
         <Section title="Named Pilots" aside={`${fieldedPilots.length} of ${campaign.namedPilots.length} fielded`}>
           {healthy.filter(p => !fieldedPilots.includes(p.id)).map(p => (
-            <div key={p.id} className="flex flex-col gap-1.5 py-2 border-b border-steel-500 text-[15px]">
+            <div key={p.id} className="flex flex-col gap-1.5 py-2 border-b border-line text-[15px]">
               <div className="flex justify-between items-center gap-2">
                 <span>{p.callsign}</span><StatusTag tone="neutral">Sitting out · half SP</StatusTag>
               </div>
               {campaign.units.length > 0 && (
                 <div className="flex items-center gap-2">
-                  <label htmlFor={`mount-${p.id}`} className="dossier-label text-text-secondary whitespace-nowrap">Mount up</label>
+                  <label htmlFor={`mount-${p.id}`} className="field-label text-text-secondary whitespace-nowrap">Mount up</label>
                   <Select id={`mount-${p.id}`} value="" onChange={unitId => mountUp(p.id, unitId)} className="flex-1">
                     <option value="">Choose a unit for {p.callsign}</option>
                     {[...campaign.units]
@@ -169,7 +169,7 @@ function PlayerForce({ sortie }: Props) {
             </div>
           ))}
           {wounded.map(p => (
-            <div key={p.id} className="flex justify-between items-center py-2 border-b border-steel-500 text-[15px]">
+            <div key={p.id} className="flex justify-between items-center py-2 border-b border-line text-[15px]">
               <span>{p.callsign}</span><StatusTag tone="hurt">Wounded · sits out</StatusTag>
             </div>
           ))}
@@ -189,7 +189,7 @@ function PlayerForce({ sortie }: Props) {
         </Field>
       </Section>
 
-      <Readout label={`Rearming · ${rearming} × 20 SP`} value={`${rearming * 20} SP`} tone="text-signal-blue" />
+      <Readout label={`Rearming · ${rearming} × 20 SP`} value={`${rearming * 20} SP`} tone="text-result" />
 
       <OmniReconfiguration sortie={sortie} />
     </>
@@ -276,7 +276,7 @@ function TriggerGameEndWaypoints({ sortie }: Props) {
       <Readout
         label="Waypoints on the Sortie Log"
         value={net > 0 ? `−${net} SP` : net < 0 ? `+${-net} SP` : '0 SP'}
-        tone={net > 0 ? 'text-danger' : net < 0 ? 'text-signal-blue' : 'text-text-primary'}
+        tone={net > 0 ? 'text-danger' : net < 0 ? 'text-result' : 'text-text-primary'}
       />
       <Field id="waypoints-note" label="Which waypoints (optional)">
         <TextInput id="waypoints-note" value={sortie.waypointsNote} placeholder="e.g. Waypoint 4, Waypoint 9" onChange={waypointsNote => updateSortie(sortie.id, { waypointsNote })} />
@@ -304,7 +304,7 @@ function ReadSortieOutcome({ sortie }: Props) {
       <Section title="Keywords gained">
         {keywords.length === 0 && <p className="m-0 text-sm text-text-secondary">None yet.</p>}
         {keywords.map(k => (
-          <div key={k} className="flex items-center gap-2.5 py-1 border-b border-steel-500 min-h-touch">
+          <div key={k} className="flex items-center gap-2.5 py-1 border-b border-line min-h-touch">
             <span className="flex-1"><StatusTag tone="keyword">{k.toUpperCase()}</StatusTag></span>
             <button type="button" aria-label={`Remove ${k}`} onClick={() => updateSortie(sortie.id, { keywordsGained: keywords.filter(x => x !== k) })} className="h-touch w-touch text-text-secondary">✕</button>
           </div>
@@ -346,13 +346,13 @@ function CalculateIncomeAndExpenses({ sortie }: Props) {
       </Section>
       <Section title="Expenses">
         {selectWaypointsNet(sortie) !== 0 && (
-          <Readout label="Waypoints (paid less gained)" value={selectWaypointsNet(sortie)} tone="text-signal-blue" />
+          <Readout label="Waypoints (paid less gained)" value={selectWaypointsNet(sortie)} tone="text-result" />
         )}
-        <Readout label={`Rearming · ${selectRearmingUnits(sortie)} units without ENE × 20`} value={selectRearmingUnits(sortie) * 20} tone="text-signal-blue" />
+        <Readout label={`Rearming · ${selectRearmingUnits(sortie)} units without ENE × 20`} value={selectRearmingUnits(sortie) * 20} tone="text-result" />
         <Readout label="Total Expenses" value={selectTotalExpenses(sortie)} tone="text-text-primary" />
       </Section>
       <HireSection sortie={sortie} />
-      <Readout label="Earnings" value={`${earnings >= 0 ? '+' : '−'}${Math.abs(earnings)} SP`} tone={earnings >= 0 ? 'text-amber' : 'text-danger'} />
+      <Readout label="Earnings" value={`${earnings >= 0 ? '+' : '−'}${Math.abs(earnings)} SP`} tone={earnings >= 0 ? 'text-active' : 'text-danger'} />
     </>
   )
 }
@@ -365,9 +365,9 @@ function PurchaseLine({ purchase, onRemove }: { purchase: PurchaseEntry; onRemov
       : <>{purchase.fromName} → {purchase.toName}</>
   const credit = purchase.spCost < 0
   return (
-    <div className="flex items-center gap-2.5 py-2 border-b border-steel-500 min-h-touch">
+    <div className="flex items-center gap-2.5 py-2 border-b border-line min-h-touch">
       <span className="flex-1">{label}</span>
-      <span className={`font-stencil text-lg tabular-nums ${credit ? 'text-signal-blue' : 'text-amber'}`}>
+      <span className={`font-display font-bold text-lg tabular-nums ${credit ? 'text-result' : 'text-active'}`}>
         {credit ? `+${-purchase.spCost}` : `−${purchase.spCost}`}
       </span>
       <button type="button" aria-label="Remove" onClick={onRemove} className="h-touch w-touch text-text-secondary">✕</button>
@@ -415,8 +415,8 @@ function PurchaseAdditionalUnits({ sortie }: Props) {
         </Section>
       )}
 
-      <div className="bg-steel-800 border border-steel-500">
-        <div className="flex justify-between px-3 py-2 bg-amber text-on-amber font-condensed font-bold text-sm tracking-[1px]">
+      <div className="bg-surface border border-line">
+        <div className="flex justify-between px-3 py-2 bg-active text-on-active font-label font-bold text-sm tracking-[1px]">
           <span>PURCHASES (NET)</span><span>{net} SP</span>
         </div>
         <p className="m-0 px-3 py-2.5 text-sm text-text-secondary">Bought units join and sold units leave your force when you complete the sortie.</p>

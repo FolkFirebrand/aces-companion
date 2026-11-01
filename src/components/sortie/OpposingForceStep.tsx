@@ -28,11 +28,11 @@ function EnemyRow({ sortieId, unit }: { sortieId: string; unit: OpposingUnit }) 
   const { updateOpposingUnit, removeOpposingUnit } = useCampaignStore()
   const [editing, setEditing] = useState(false)
   return (
-    <div className="flex flex-col border-b border-steel-500 py-2 gap-2">
+    <div className="flex flex-col border-b border-line py-2 gap-2">
       <div className="flex items-center gap-2.5">
         <UnitPhoto unit={unit} size={40} />
         <button type="button" onClick={() => setEditing(e => !e)} aria-expanded={editing} className="flex-1 min-w-0 flex flex-col text-left min-h-touch justify-center">
-          <span className="font-condensed font-bold text-base tracking-[0.5px] truncate">{unit.nameAndVariant}</span>
+          <span className="font-label font-bold text-base tracking-[0.5px] truncate">{unit.nameAndVariant}</span>
           <span className="text-[13px] text-text-secondary">{statLine(unit)}</span>
         </button>
         <button type="button" onClick={() => removeOpposingUnit(sortieId, unit.id)} aria-label={`Remove ${unit.nameAndVariant}`}
@@ -41,11 +41,11 @@ function EnemyRow({ sortieId, unit }: { sortieId: string; unit: OpposingUnit }) 
       {editing && (
         <div className="grid grid-cols-[1fr_auto] gap-2 items-end pl-[50px]">
           <label className="flex flex-col gap-1">
-            <span className="dossier-label text-text-secondary">Name</span>
+            <span className="field-label text-text-secondary">Name</span>
             <TextInput id={`enemy-name-${unit.id}`} value={unit.nameAndVariant} onChange={nameAndVariant => updateOpposingUnit(sortieId, unit.id, { nameAndVariant })} />
           </label>
           <label className="flex flex-col gap-1">
-            <span className="dossier-label text-text-secondary">Skill</span>
+            <span className="field-label text-text-secondary">Skill</span>
             <Select id={`enemy-skill-${unit.id}`} value={String(unit.skill)} onChange={v => updateOpposingUnit(sortieId, unit.id, { skill: Number(v) })}>
               {SKILLS.map(s => <option key={s} value={s}>{s}</option>)}
             </Select>
@@ -115,9 +115,9 @@ export function OpposingForceStep({ sortie }: { sortie: Sortie }) {
       {note && <p role={note.ok ? 'status' : 'alert'} className={note.ok ? 'm-0 text-sm text-text-secondary' : 'm-0 text-sm text-danger'}>{note.text}</p>}
 
       <section className="flex flex-col">
-        <div className="flex justify-between items-baseline pb-1 border-b-2 border-steel-500">
-          <span className="dossier-label text-text-secondary">Enemy units · {force.length}</span>
-          <span className="font-stencil text-xl text-amber">{opposingForcePv(force)} <span className="text-xs text-text-secondary">PV</span></span>
+        <div className="flex justify-between items-baseline pb-1 border-b-2 border-line">
+          <span className="field-label text-text-secondary">Enemy units · {force.length}</span>
+          <span className="font-display font-bold text-xl text-active">{opposingForcePv(force)} <span className="text-xs text-text-secondary">PV</span></span>
         </div>
         {force.length === 0
           ? <p className="m-0 py-2 text-sm text-text-secondary">No enemy units yet.</p>
@@ -130,25 +130,25 @@ export function OpposingForceStep({ sortie }: { sortie: Sortie }) {
       )}
 
       {mode === 'pick' && (
-        <div className="flex flex-col gap-3 p-3.5 bg-steel-800 border border-steel-500">
-          <span className="font-condensed font-bold text-sm tracking-[1px] text-amber">ADD ENEMY UNITS</span>
+        <div className="flex flex-col gap-3 p-3.5 bg-surface border border-line">
+          <span className="font-label font-bold text-sm tracking-[1px] text-active">ADD ENEMY UNITS</span>
           {picked ? (
             <>
-              <div className="flex items-center gap-2.5 pb-2 border-b border-steel-500">
+              <div className="flex items-center gap-2.5 pb-2 border-b border-line">
                 <span className="flex-1 flex flex-col">
-                  <span className="font-condensed font-bold text-[15px]">{unitListName(picked)}</span>
+                  <span className="font-label font-bold text-[15px]">{unitListName(picked)}</span>
                   <span className="text-[13px] text-text-secondary">Size {picked.size} · A{picked.armor} S{picked.structure} · {picked.damage.join('/')} · {picked.pv} PV</span>
                 </span>
-                <button type="button" onClick={() => setPicked(null)} className="dossier-label text-signal-blue min-h-touch px-1">Change</button>
+                <button type="button" onClick={() => setPicked(null)} className="field-label text-result min-h-touch px-1">Change</button>
               </div>
               <div className="flex justify-between items-center">
-                <span className="dossier-label text-text-secondary">Copies</span>
+                <span className="field-label text-text-secondary">Copies</span>
                 <span className="flex items-center gap-2.5">
                   <button type="button" aria-label="Fewer copies" disabled={copies <= 1} onClick={() => setCopies(c => c - 1)}
-                    className="w-touch h-touch border-2 border-signal-blue text-signal-blue font-condensed font-bold text-lg disabled:border-steel-500 disabled:text-text-disabled">−</button>
-                  <span className="font-stencil text-2xl w-7 text-center">{copies}</span>
+                    className="w-touch h-touch border border-active text-active font-label font-bold text-lg disabled:border-line disabled:text-text-disabled">−</button>
+                  <span className="font-display font-bold text-2xl w-7 text-center">{copies}</span>
                   <button type="button" aria-label="More copies" disabled={copies >= 12} onClick={() => setCopies(c => c + 1)}
-                    className="w-touch h-touch border-2 border-signal-blue text-signal-blue font-condensed font-bold text-lg disabled:border-steel-500 disabled:text-text-disabled">+</button>
+                    className="w-touch h-touch border border-active text-active font-label font-bold text-lg disabled:border-line disabled:text-text-disabled">+</button>
                 </span>
               </div>
               <DossierButton variant="primary" className="h-touch text-base" onClick={addPicked}>
@@ -159,7 +159,7 @@ export function OpposingForceStep({ sortie }: { sortie: Sortie }) {
             <UnitListPicker onPick={entry => { setPicked(entry); setCopies(1) }} />
           )}
           {force.length > 0 && (
-            <DossierButton variant="secondary" className="self-start border-steel-500 text-text-secondary" onClick={() => { setPicked(null); setMode(null) }}>Cancel</DossierButton>
+            <DossierButton variant="secondary" className="self-start border-line text-text-secondary" onClick={() => { setPicked(null); setMode(null) }}>Cancel</DossierButton>
           )}
         </div>
       )}

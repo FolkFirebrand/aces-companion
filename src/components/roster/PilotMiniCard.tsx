@@ -22,7 +22,7 @@ export function PilotMiniCard({ pilot: stored, onUnassign }: Props) {
     <div className="flex items-center gap-2.5">
       <PilotPhoto pilot={pilot} size={40} />
       <div className="flex-1 min-w-0 flex flex-col gap-0.5">
-        <Link href={`/pilots/${pilot.id}`} className="font-condensed font-bold text-base tracking-[1px] uppercase text-amber truncate hover:underline">
+        <Link href={`/pilots/${pilot.id}`} className="font-label font-bold text-base tracking-[1px] uppercase text-active truncate hover:underline">
           {pilot.callsign || 'Unnamed pilot'}
         </Link>
         <span className="text-[13px] text-text-secondary">Skill {selectPilotSkill(pilot)} · {tokens} token{tokens === 1 ? '' : 's'}</span>

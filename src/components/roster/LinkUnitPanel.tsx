@@ -11,11 +11,11 @@ import { UnitListPicker } from './UnitListPicker'
 function Change({ label, from, to }: { label: string; from: React.ReactNode; to: React.ReactNode }) {
   const changed = String(from) !== String(to)
   return (
-    <div className="grid grid-cols-[1fr_auto_auto_auto] gap-2 items-baseline py-1.5 border-b border-steel-500 text-[15px]">
+    <div className="grid grid-cols-[1fr_auto_auto_auto] gap-2 items-baseline py-1.5 border-b border-line text-[15px]">
       <span className="text-[13px] text-text-secondary">{label}</span>
       <span>{from}</span>
       <span className="text-text-secondary">→</span>
-      <span className={changed ? 'text-signal-blue font-medium' : ''}>{to}</span>
+      <span className={changed ? 'text-result font-medium' : ''}>{to}</span>
     </div>
   )
 }
@@ -29,7 +29,7 @@ export function LinkUnitPanel({ unit, onDone }: { unit: Unit; onDone: () => void
     return (
       <div className="flex flex-col gap-2.5">
         <UnitListPicker onPick={setPicked} initialText={unit.nameAndVariant} />
-        <DossierButton variant="secondary" className="self-start border-steel-500 text-text-secondary" onClick={onDone}>Cancel</DossierButton>
+        <DossierButton variant="secondary" className="self-start border-line text-text-secondary" onClick={onDone}>Cancel</DossierButton>
       </div>
     )
   }
@@ -41,8 +41,8 @@ export function LinkUnitPanel({ unit, onDone }: { unit: Unit; onDone: () => void
 
   return (
     <div className="flex flex-col gap-2.5">
-      <div className="bg-steel-700 border border-steel-500 px-3 py-2 flex flex-col gap-0.5">
-        <span className="dossier-label text-amber">Linking to {unitListName(picked)}</span>
+      <div className="bg-ground border border-line px-3 py-2 flex flex-col gap-0.5">
+        <span className="field-label text-active">Linking to {unitListName(picked)}</span>
         <Change label="PV" from={unit.pvAtSkill4} to={picked.pv} />
         <Change label="Size" from={unit.size} to={picked.size} />
         <Change label="Stats, icon" from={unit.armor !== undefined ? 'some' : '—'} to="from the list" />
@@ -51,7 +51,7 @@ export function LinkUnitPanel({ unit, onDone }: { unit: Unit; onDone: () => void
       <DossierButton variant="primary" className="h-touch text-base" onClick={() => link(false)}>Link, use list PV ({picked.pv})</DossierButton>
       <div className="flex flex-wrap gap-2">
         {picked.pv !== unit.pvAtSkill4 && <DossierButton variant="secondary" onClick={() => link(true)}>Link, keep my PV ({unit.pvAtSkill4})</DossierButton>}
-        <DossierButton variant="secondary" className="border-steel-500 text-text-secondary" onClick={() => setPicked(null)}>Pick another</DossierButton>
+        <DossierButton variant="secondary" className="border-line text-text-secondary" onClick={() => setPicked(null)}>Pick another</DossierButton>
       </div>
     </div>
   )

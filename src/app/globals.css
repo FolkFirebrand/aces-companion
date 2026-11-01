@@ -4,35 +4,38 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* Company Dossier design system tokens: https://claude.ai/artifact/KDNaW45CRMQcSp77vkQ188 (tokens.json) */
+/*
+ * Tactical Map design tokens (mockups: https://claude.ai/artifact/VPtXhQT2mcAgTni7oj3p2Y).
+ * Named by role, so a reskin only changes the values here.
+ */
 @theme {
-  --color-steel-900: #17191b;
-  --color-steel-800: #1c1e20;
-  --color-steel-700: #26292c;
-  --color-steel-600: #33373b;
-  --color-steel-500: #44484c;
-  --color-text-primary: #ece7dc;
-  --color-text-secondary: #b3ac9f;
-  --color-text-muted: #a39c8f;
-  --color-text-disabled: #8f897e;
-  --color-amber: #e89a2c;
-  --color-on-amber: #17191b;
-  --color-signal-blue: #5ab8f0;
-  --color-danger: #f07a4a;
+  --color-surface-deep: #0f1613;   /* top bar, tab bar, insets */
+  --color-ground: #1a2420;         /* the page */
+  --color-surface: #222e29;        /* panels and cards */
+  --color-surface-raised: #2c3a34; /* hover, done steps, disabled fills */
+  --color-line: #3b4b43;           /* borders and rules */
+  --color-text-primary: #e6e2d3;
+  --color-text-secondary: #c3c8bb;
+  --color-text-muted: #a9b2a6;
+  --color-text-disabled: #86917f;
+  --color-active: #5fcfc2;         /* the active item and the main action */
+  --color-on-active: #0f1a17;
+  --color-ink: #0f1a17;            /* dark text on light fills */
+  --color-result: #e9d66b;         /* computed results */
+  --color-danger: #ef7a5f;         /* damage, wounds, destructive actions */
 
   --spacing-gutter: 18px;
   --spacing-touch: 44px;
   --spacing-button-primary: 52px;
   --spacing-tabbar: 56px;
-  --spacing-hazard: 10px;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-plex-condensed), "Roboto Condensed", "Arial Narrow", sans-serif;
-  --font-mono: ui-monospace, monospace;
-  --font-heading: var(--font-saira-condensed), "Arial Narrow", sans-serif;
+  --font-sans: var(--font-barlow), "Arial Narrow", "Segoe UI", sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, monospace;
+  --font-heading: var(--font-chakra), "Segoe UI", sans-serif;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -70,54 +73,54 @@
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
 
-  /* Draft colour names, mapped onto Company Dossier until the remaining screens convert */
-  --color-bt-background: var(--color-steel-700);
-  --color-bt-surface: var(--color-steel-800);
-  --color-bt-accent: var(--color-amber);
+  /* Draft colour names, mapped onto the current tokens until the remaining screens convert */
+  --color-bt-background: var(--color-ground);
+  --color-bt-surface: var(--color-surface);
+  --color-bt-accent: var(--color-active);
   --color-bt-danger: var(--color-danger);
   --color-bt-text-primary: var(--color-text-primary);
-  --color-bt-border: var(--color-steel-500);
+  --color-bt-border: var(--color-line);
 
-  /* Company Dossier fonts (loaded by next/font in the root layout) */
-  --font-stencil: var(--font-saira-stencil), "Saira Condensed", Impact, sans-serif;
-  --font-condensed: var(--font-saira-condensed), "Arial Narrow", sans-serif;
-  --font-body: var(--font-plex-condensed), "Roboto Condensed", "Arial Narrow", sans-serif;
+  /* Fonts (loaded by next/font in the root layout) */
+  --font-display: var(--font-chakra), "Segoe UI", sans-serif;
+  --font-label: var(--font-chakra), "Segoe UI", sans-serif;
+  --font-body: var(--font-barlow), "Arial Narrow", "Segoe UI", sans-serif;
 }
 
 :root {
   color-scheme: dark;
-  --background: #26292c;
-  --foreground: #ece7dc;
-  --card: #1c1e20;
-  --card-foreground: #ece7dc;
-  --popover: #1c1e20;
-  --popover-foreground: #ece7dc;
-  --primary: #e89a2c;
-  --primary-foreground: #17191b;
-  --secondary: #33373b;
-  --secondary-foreground: #ece7dc;
-  --muted: #33373b;
-  --muted-foreground: #b3ac9f;
-  --accent: #33373b;
-  --accent-foreground: #ece7dc;
-  --destructive: #f07a4a;
-  --border: #44484c;
-  --input: #44484c;
-  --ring: #5ab8f0;
-  --chart-1: #e89a2c;
-  --chart-2: #5ab8f0;
-  --chart-3: #f07a4a;
-  --chart-4: #b3ac9f;
-  --chart-5: #44484c;
+  --background: #1a2420;
+  --foreground: #e6e2d3;
+  --card: #222e29;
+  --card-foreground: #e6e2d3;
+  --popover: #222e29;
+  --popover-foreground: #e6e2d3;
+  --primary: #5fcfc2;
+  --primary-foreground: #0f1a17;
+  --secondary: #2c3a34;
+  --secondary-foreground: #e6e2d3;
+  --muted: #2c3a34;
+  --muted-foreground: #c3c8bb;
+  --accent: #2c3a34;
+  --accent-foreground: #e6e2d3;
+  --destructive: #ef7a5f;
+  --border: #3b4b43;
+  --input: #3b4b43;
+  --ring: #e9d66b;
+  --chart-1: #5fcfc2;
+  --chart-2: #e9d66b;
+  --chart-3: #ef7a5f;
+  --chart-4: #c3c8bb;
+  --chart-5: #3b4b43;
   --radius: 0px;
-  --sidebar: #1c1e20;
-  --sidebar-foreground: #ece7dc;
-  --sidebar-primary: #e89a2c;
-  --sidebar-primary-foreground: #17191b;
-  --sidebar-accent: #33373b;
-  --sidebar-accent-foreground: #ece7dc;
-  --sidebar-border: #44484c;
-  --sidebar-ring: #5ab8f0;
+  --sidebar: #222e29;
+  --sidebar-foreground: #e6e2d3;
+  --sidebar-primary: #5fcfc2;
+  --sidebar-primary-foreground: #0f1a17;
+  --sidebar-accent: #2c3a34;
+  --sidebar-accent-foreground: #e6e2d3;
+  --sidebar-border: #3b4b43;
+  --sidebar-ring: #e9d66b;
 }
 
 @layer base {
@@ -125,14 +128,14 @@
     @apply border-border outline-ring/50;
   }
   html {
-    background-color: var(--color-steel-700);
-    /* Thin gunmetal scroll bars instead of the browser's wide grey ones (Windows especially). */
+    background-color: var(--color-ground);
+    /* Thin scroll bars instead of the browser's wide grey ones (Windows especially). */
     scrollbar-width: thin;
-    scrollbar-color: var(--color-steel-500) var(--color-steel-800);
+    scrollbar-color: var(--color-line) var(--color-surface-deep);
   }
   * {
     scrollbar-width: thin;
-    scrollbar-color: var(--color-steel-500) transparent;
+    scrollbar-color: var(--color-line) transparent;
   }
   /* Older WebKit/Blink without scrollbar-color support. */
   ::-webkit-scrollbar {
@@ -140,49 +143,58 @@
     height: 8px;
   }
   ::-webkit-scrollbar-track {
-    background: var(--color-steel-800);
+    background: var(--color-surface-deep);
   }
   ::-webkit-scrollbar-thumb {
-    background: var(--color-steel-500);
+    background: var(--color-line);
     border-radius: 0;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: var(--color-amber);
+    background: var(--color-active);
   }
   body {
     color: var(--color-text-primary);
     font-family: var(--font-body);
-    background-color: var(--color-steel-700);
-    background-image: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.018) 0 2px, transparent 2px 5px);
+    background-color: var(--color-ground);
+    /* Faint contour lines, like a topographic map sheet. */
+    background-image:
+      repeating-radial-gradient(ellipse 560px 380px at calc(100% + 80px) -60px, transparent 0 23px, rgb(150 190 165 / 0.07) 23px 24px),
+      repeating-radial-gradient(ellipse 460px 640px at -160px 720px, transparent 0 27px, rgb(150 190 165 / 0.05) 27px 28px);
   }
   h1 {
-    font-family: var(--font-stencil);
-    font-weight: 400;
+    font-family: var(--font-display);
+    font-weight: 700;
+    letter-spacing: 0.02em;
     text-transform: uppercase;
     text-wrap: balance;
   }
   h2, h3, h4, h5 {
-    font-family: var(--font-condensed);
-    font-weight: 700;
+    font-family: var(--font-label);
+    font-weight: 600;
     letter-spacing: 0.06em;
     text-transform: uppercase;
   }
   :focus-visible {
-    outline: 2px solid var(--color-signal-blue);
+    outline: 2px solid var(--color-result);
     outline-offset: 2px;
   }
 }
 
 @layer components {
-  .hazard-band {
-    height: var(--spacing-hazard);
-    background-image: repeating-linear-gradient(-45deg, var(--color-amber) 0 10px, var(--color-steel-900) 10px 20px);
-  }
-  .dossier-label {
-    font-family: var(--font-condensed);
+  .field-label {
+    font-family: var(--font-label);
     font-weight: 600;
-    font-size: 13px;
-    letter-spacing: 2px;
+    font-size: 12px;
+    letter-spacing: 1.5px;
     text-transform: uppercase;
+  }
+}
+
+/* Clipped corners for the main action. The clip hides an outline, so focus shows as an inset ring. */
+@utility chamfer {
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+  &:focus-visible {
+    outline: none;
+    box-shadow: inset 0 0 0 3px var(--color-ink), inset 0 0 0 5px var(--color-result);
   }
 }

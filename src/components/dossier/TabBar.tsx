@@ -25,7 +25,7 @@ export function TabBar({ tabs, currentPath, className }: { tabs: Tab[]; currentP
   return (
     <nav
       aria-label="Main"
-      className={cn('grid bg-steel-800 border-t-2 border-steel-500', className)}
+      className={cn('grid bg-surface-deep border-t border-line', className)}
       style={{ gridTemplateColumns: `repeat(${tabs.length}, minmax(0, 1fr))` }}
     >
       {tabs.map(tab => {
@@ -36,10 +36,10 @@ export function TabBar({ tabs, currentPath, className }: { tabs: Tab[]; currentP
             href={tab.href}
             aria-current={active ? 'page' : undefined}
             className={cn(
-              'h-tabbar flex items-center justify-center font-condensed text-sm tracking-[1px]',
+              'h-tabbar flex items-center justify-center font-label text-sm tracking-[1.5px]',
               active
-                ? 'font-bold text-amber border-t-[3px] border-amber -mt-[2px]'
-                : 'font-semibold text-text-secondary hover:text-text-primary'
+                ? 'font-bold text-active border-t-[3px] border-active -mt-px'
+                : 'font-semibold text-text-muted hover:text-text-primary'
             )}
           >
             {tab.label}

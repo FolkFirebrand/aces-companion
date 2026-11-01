@@ -31,15 +31,15 @@ export function StartSortieButton({ className, showNext = false }: { className?:
 
   if (warning) {
     return (
-      <div role="alertdialog" aria-label="No Named Pilots assigned" className={cn('flex flex-col gap-2.5 p-3 bg-steel-800 border border-danger', className)}>
-        <span className="font-condensed font-bold text-[15px] tracking-[1px] uppercase text-danger">No Named Pilots assigned</span>
+      <div role="alertdialog" aria-label="No Named Pilots assigned" className={cn('flex flex-col gap-2.5 p-3 bg-surface border border-danger', className)}>
+        <span className="font-label font-bold text-[15px] tracking-[1px] uppercase text-danger">No Named Pilots assigned</span>
         <p className="m-0 text-sm">
           None of your units has a Named Pilot. A sortie fields pilots from the Roster, so every unit would go out with a generic crew.
         </p>
         <div className="flex flex-wrap gap-2">
           {pathname === '/roster'
             ? <DossierButton variant="secondary" onClick={() => setWarning(false)}>Assign pilots first</DossierButton>
-            : <Link href="/roster" className="h-touch px-3.5 flex items-center border-2 border-signal-blue text-signal-blue font-condensed font-semibold text-[15px] tracking-[1px] uppercase hover:bg-signal-blue/10">Assign pilots on the Roster</Link>}
+            : <Link href="/roster" className="h-touch px-3.5 flex items-center border border-active text-active font-label font-semibold text-[15px] tracking-[1px] uppercase hover:bg-active/10">Assign pilots on the Roster</Link>}
           <DossierButton variant="danger" onClick={start}>Start anyway</DossierButton>
         </div>
       </div>

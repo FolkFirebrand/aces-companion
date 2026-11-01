@@ -14,7 +14,7 @@ const TRACKS: { track: StatTrack; label: string; field: TrackField; table: Thres
   { track: 'edgeAbilities', label: 'Edge Abilities', field: 'spSpentOnEdgeAbilities', table: EDGE_ABILITY_THRESHOLDS, stat: v => `${v} abilit${v === 1 ? 'y' : 'ies'}` },
 ]
 
-const STEP_BUTTON = 'w-touch h-touch border-2 border-signal-blue text-signal-blue font-condensed font-bold text-lg disabled:border-steel-500 disabled:text-text-disabled disabled:cursor-not-allowed'
+const STEP_BUTTON = 'w-touch h-touch border border-active text-active font-label font-bold text-lg disabled:border-line disabled:text-text-disabled disabled:cursor-not-allowed'
 
 /**
  * The three improvement tracks on a Named Pilot's card, the one control used wherever SP is split. "+" moves a
@@ -36,25 +36,25 @@ export function TrackSteppers({ pilot, available, onChange }: {
         return (
           <div key={t.track} className="flex flex-col gap-1.5">
             <div className="flex justify-between items-center gap-2">
-              <span className="font-condensed font-bold text-base tracking-[1px] uppercase">{t.label}</span>
+              <span className="font-label font-bold text-base tracking-[1px] uppercase">{t.label}</span>
               <span className="flex items-center gap-2">
                 {onChange && (
                   <button type="button" aria-label={`Lower ${t.label}`} disabled={down === 0}
                     onClick={() => onChange(t.track, t.field, -down)} className={STEP_BUTTON}>−</button>
                 )}
-                <span className="font-stencil text-[28px] leading-none w-9 text-center">{progress.value}</span>
+                <span className="font-display font-bold text-[28px] leading-none w-9 text-center">{progress.value}</span>
                 {onChange && (
                   <button type="button" aria-label={`Raise ${t.label}`} disabled={up === 0}
                     onClick={() => onChange(t.track, t.field, up)} className={STEP_BUTTON}>+</button>
                 )}
               </span>
             </div>
-            <div className="h-2 bg-steel-800 border border-steel-500" aria-hidden="true">
-              <div className="h-full bg-amber" style={{ width: `${Math.round(progress.fraction * 100)}%` }} />
+            <div className="h-2 bg-surface border border-line" aria-hidden="true">
+              <div className="h-full bg-active" style={{ width: `${Math.round(progress.fraction * 100)}%` }} />
             </div>
             <div className="flex justify-between gap-2 text-[13px] text-text-secondary">
               <span>{spent} SP in track</span>
-              <span className="text-signal-blue text-right">
+              <span className="text-result text-right">
                 {progress.next ? `${t.stat(progress.next.value)} at ${progress.next.at} · ${progress.toGo} to go` : 'Top of the track'}
               </span>
             </div>

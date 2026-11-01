@@ -30,7 +30,7 @@ export default function PilotDetailPage({ params }: { params: Promise<{ id: stri
     return (
       <PageBody>
         <p className="m-0 text-text-secondary">This Named Pilot is no longer in your force. They may have been dismissed or killed in action; check the Memorial on the Roster.</p>
-        <Link href="/roster" className="dossier-label text-signal-blue">&lt; Roster</Link>
+        <Link href="/roster" className="field-label text-result">&lt; Roster</Link>
       </PageBody>
     )
   }
@@ -49,12 +49,12 @@ export default function PilotDetailPage({ params }: { params: Promise<{ id: stri
 
   return (
     <>
-      <header className="bg-steel-800 border-b-2 border-amber">
+      <header className="bg-surface border-b-2 border-active">
         <div className="max-w-6xl mx-auto px-gutter pt-4 pb-3 flex gap-3.5">
           <PilotPhoto pilot={pilot} size={84} editable />
           <div className="flex flex-col gap-1 min-w-0">
-            <span className="dossier-label text-text-secondary">Personnel file · {pilot.pilotType}</span>
-            <h1 className="m-0 text-[28px] sm:text-[34px] leading-[1.05] text-amber break-words">{pilot.callsign || 'Named Pilot'}</h1>
+            <span className="field-label text-text-secondary">Personnel file · {pilot.pilotType}</span>
+            <h1 className="m-0 text-[28px] sm:text-[34px] leading-[1.05] text-active break-words">{pilot.callsign || 'Named Pilot'}</h1>
             <span className="flex flex-wrap gap-1.5">
               {pilot.wounded && <StatusTag tone="hurt">{WOUNDED_LABEL}</StatusTag>}
               <StatusTag tone="neutral">{unit ? unit.nameAndVariant || 'Unnamed unit' : 'No unit assigned'}</StatusTag>
@@ -64,7 +64,7 @@ export default function PilotDetailPage({ params }: { params: Promise<{ id: stri
       </header>
       <PageBody>
         <div className="max-w-xl w-full flex flex-col gap-5">
-          <Link href="/roster" className="dossier-label text-signal-blue">&lt; Roster</Link>
+          <Link href="/roster" className="field-label text-result">&lt; Roster</Link>
 
           <Section title="Personnel details">
             <Field id="pilot-callsign" label="Callsign">
@@ -75,15 +75,15 @@ export default function PilotDetailPage({ params }: { params: Promise<{ id: stri
                 {UNIT_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
               </Select>
             </Field>
-            <Link href="/roster" className="dossier-label text-signal-blue min-h-touch flex items-center">
+            <Link href="/roster" className="field-label text-result min-h-touch flex items-center">
               {unit ? 'View on Roster' : 'Assign to a unit on the Roster'}&nbsp;&gt;
             </Link>
           </Section>
 
-          <div className="flex justify-between items-end gap-3 pb-2.5 border-b border-steel-500">
+          <div className="flex justify-between items-end gap-3 pb-2.5 border-b border-line">
             <span className="flex flex-col">
-              <span className="dossier-label text-text-secondary whitespace-nowrap">Total SP Earned</span>
-              <span className="font-stencil text-[38px] leading-none text-amber">{sp.total}</span>
+              <span className="field-label text-text-secondary whitespace-nowrap">Total SP Earned</span>
+              <span className="font-display font-bold text-[38px] leading-none text-active">{sp.total}</span>
             </span>
             <span className="text-[13px] text-text-secondary text-right">
               {spParts.join(' + ')}
@@ -98,7 +98,7 @@ export default function PilotDetailPage({ params }: { params: Promise<{ id: stri
             <datalist id="known-edge-abilities">{knownAbilities.map(a => <option key={a} value={a} />)}</datalist>
             {ABILITY_UNLOCKS.map((unlockAt, i) => (
               <div key={unlockAt} className="flex items-center gap-2.5">
-                <span className="font-stencil text-amber w-4">{i + 1}</span>
+                <span className="font-display font-bold text-active w-4">{i + 1}</span>
                 <TextInput
                   id={`edge-ability-${i}`}
                   aria-label={`Edge Ability ${i + 1}`}

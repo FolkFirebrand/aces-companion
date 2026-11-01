@@ -8,7 +8,7 @@ export interface LedgerState {
 }
 
 const STATE_COLOURS: Record<LedgerState['tone'], string> = {
-  computed: 'text-signal-blue',
+  computed: 'text-result',
   danger: 'text-danger',
   neutral: 'text-text-secondary',
 }
@@ -31,19 +31,19 @@ export function LedgerRow({ href, title, state, detail, balance, keywords = [], 
       href={href}
       data-inactive={inactive ? 'true' : undefined}
       className={cn(
-        'flex flex-col gap-1 py-2.5 border-b border-steel-500 min-h-touch',
+        'flex flex-col gap-1 py-2.5 border-b border-line min-h-touch',
         inactive ? 'text-text-disabled' : 'text-text-primary'
       )}
     >
       <span className="flex justify-between items-baseline gap-3">
-        <span className="font-condensed font-bold text-[17px] tracking-[1px] uppercase">{title}</span>
-        <span className={cn('font-condensed font-semibold text-[13px] tracking-[1px] whitespace-nowrap', STATE_COLOURS[state.tone])}>
+        <span className="font-label font-bold text-[17px] tracking-[1px] uppercase">{title}</span>
+        <span className={cn('font-label font-semibold text-[13px] tracking-[1px] whitespace-nowrap', STATE_COLOURS[state.tone])}>
           {state.label}
         </span>
       </span>
       <span className={cn('flex justify-between items-baseline gap-3 text-sm', inactive ? '' : 'text-text-secondary')}>
         <span>{detail}</span>
-        <span className={cn('font-stencil text-lg tabular-nums', inactive ? '' : 'text-amber')}>{balance}</span>
+        <span className={cn('font-mono font-bold text-lg tabular-nums', inactive ? '' : 'text-result')}>{balance}</span>
       </span>
       {keywords.length > 0 && (
         <span className="flex flex-wrap gap-2">

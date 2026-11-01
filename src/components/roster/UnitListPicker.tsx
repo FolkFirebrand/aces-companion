@@ -18,7 +18,7 @@ type Filters = Pick<UnitListQuery, 'pvMin' | 'pvMax' | 'role' | 'minMove' | 'min
 const NO_FILTERS: Filters = { types: [], sizes: [], damageRanges: [], factions: [] }
 
 function chip(on: boolean) {
-  return cn('h-touch border-2 font-condensed font-bold text-[13px] tracking-[1px] uppercase', on ? 'border-amber text-amber' : 'border-steel-500 text-text-secondary')
+  return cn('h-touch border-2 font-label font-bold text-[13px] tracking-[1px] uppercase', on ? 'border-active text-active' : 'border-line text-text-secondary')
 }
 
 /**
@@ -59,7 +59,7 @@ export function UnitListPicker({ onPick, initialText = '', pvLeft, label = 'Sear
 
   return (
     <div className="flex flex-col gap-2.5">
-      <label htmlFor="unit-list-search" className={cn('dossier-label', tapToAdd ? 'text-amber' : 'text-text-secondary')}>{label}</label>
+      <label htmlFor="unit-list-search" className={cn('field-label', tapToAdd ? 'text-active' : 'text-text-secondary')}>{label}</label>
       <div className="relative">
         <TextInput id="unit-list-search" type="search" value={text} onChange={setText} placeholder="Search the unit list, e.g. Atlas AS7-D"
           autoComplete="off" className="max-w-none pr-12 [&::-webkit-search-cancel-button]:hidden" />
@@ -70,26 +70,26 @@ export function UnitListPicker({ onPick, initialText = '', pvLeft, label = 'Sear
       </div>
       <div className="flex flex-wrap items-center gap-2">
         <button type="button" aria-expanded={showFilters} aria-controls="unit-list-filters" onClick={() => setShowFilters(o => !o)}
-          className={cn('h-touch px-3 flex items-center gap-2 border-2 border-signal-blue text-signal-blue font-condensed font-bold text-[13px] tracking-[1px] uppercase',
-            showFilters && 'bg-steel-600')}>
+          className={cn('h-touch px-3 flex items-center gap-2 border border-active text-active font-label font-bold text-[13px] tracking-[1px] uppercase',
+            showFilters && 'bg-surface-raised')}>
           Filters
           {filtersOn > 0 && (
-            <span className="min-w-5 h-5 px-1 flex items-center justify-center bg-amber text-on-amber text-xs" aria-label={`${filtersOn} on`}>{filtersOn}</span>
+            <span className="min-w-5 h-5 px-1 flex items-center justify-center bg-active text-on-active text-xs" aria-label={`${filtersOn} on`}>{filtersOn}</span>
           )}
           <span aria-hidden="true">{showFilters ? '▴' : '▾'}</span>
         </button>
         {filtersOn > 0 && (
           <button type="button" onClick={() => setFilters(NO_FILTERS)}
-            className="h-touch px-3 border-2 border-danger text-danger font-condensed font-bold text-[13px] tracking-[1px] uppercase">
+            className="h-touch px-3 border-2 border-danger text-danger font-label font-bold text-[13px] tracking-[1px] uppercase">
             Clear filters ✕
           </button>
         )}
         {aside && <div className="ml-auto min-h-touch flex items-center">{aside}</div>}
       </div>
       {showFilters && (
-        <div id="unit-list-filters" className="flex flex-col gap-3 p-3 bg-steel-800 border border-steel-500">
+        <div id="unit-list-filters" className="flex flex-col gap-3 p-3 bg-surface border border-line">
           <div className="flex flex-col gap-1">
-            <span className="dossier-label text-text-secondary">Type</span>
+            <span className="field-label text-text-secondary">Type</span>
             <div className="grid grid-cols-4 gap-1.5" role="group" aria-label="Unit types">
               {(Object.keys(ACES_UNIT_TYPES) as AcesTypeCode[]).map(t => {
                 const on = filters.types.includes(t)
@@ -106,7 +106,7 @@ export function UnitListPicker({ onPick, initialText = '', pvLeft, label = 'Sear
             <>
               <FactionPicker factions={factions} selected={filters.factions} onChange={selected => set({ factions: selected })} />
               <label className="flex flex-col gap-1">
-                <span className="dossier-label text-text-secondary">Era</span>
+                <span className="field-label text-text-secondary">Era</span>
                 <Select id="unit-list-era" value={String(filters.era ?? '')} onChange={v => set({ era: v ? Number(v) : undefined })}>
                   <option value="">Any era</option>
                   {ERAS.map((era, i) => <option key={era.name} value={i}>{era.name} ({era.from}–{era.to ?? ''})</option>)}
@@ -116,16 +116,16 @@ export function UnitListPicker({ onPick, initialText = '', pvLeft, label = 'Sear
           )}
           <div className="grid grid-cols-2 gap-2.5">
             <label className="flex flex-col gap-1">
-              <span className="dossier-label text-text-secondary">PV from</span>
+              <span className="field-label text-text-secondary">PV from</span>
               <NumberInput id="unit-list-pv-min" value={filters.pvMin ?? 0} min={0} onChange={v => set({ pvMin: v > 0 ? v : undefined })} className="max-w-none" />
             </label>
             <label className="flex flex-col gap-1">
-              <span className="dossier-label text-text-secondary">PV to</span>
+              <span className="field-label text-text-secondary">PV to</span>
               <NumberInput id="unit-list-pv-max" value={filters.pvMax ?? 0} min={0} onChange={v => set({ pvMax: v > 0 ? v : undefined })} className="max-w-none" />
             </label>
           </div>
           <div className="flex flex-col gap-1">
-            <span className="dossier-label text-text-secondary">Size</span>
+            <span className="field-label text-text-secondary">Size</span>
             <div className="grid grid-cols-4 gap-1.5" role="group" aria-label="Size">
               {SIZES.map(size => {
                 const on = filters.sizes.includes(size)
@@ -140,14 +140,14 @@ export function UnitListPicker({ onPick, initialText = '', pvLeft, label = 'Sear
           </div>
           <div className="grid grid-cols-2 gap-2.5">
             <label className="flex flex-col gap-1">
-              <span className="dossier-label text-text-secondary">Role</span>
+              <span className="field-label text-text-secondary">Role</span>
               <Select id="unit-list-role" value={filters.role ?? ''} onChange={v => set({ role: v || undefined })}>
                 <option value="">Any role</option>
                 {roles.map(r => <option key={r} value={r}>{r}</option>)}
               </Select>
             </label>
             <label className="flex flex-col gap-1">
-              <span className="dossier-label text-text-secondary">Move at least</span>
+              <span className="field-label text-text-secondary">Move at least</span>
               <Select id="unit-list-move" value={String(filters.minMove ?? '')} onChange={v => set({ minMove: v ? Number(v) : undefined })}>
                 <option value="">Any</option>
                 {MOVES.map(m => <option key={m} value={m}>{m}&quot;</option>)}
@@ -155,7 +155,7 @@ export function UnitListPicker({ onPick, initialText = '', pvLeft, label = 'Sear
             </label>
           </div>
           <div className="flex flex-col gap-1">
-            <label htmlFor="unit-list-damage" className="dossier-label text-text-secondary">Damage at least</label>
+            <label htmlFor="unit-list-damage" className="field-label text-text-secondary">Damage at least</label>
             <div className="grid grid-cols-4 gap-1.5">
               <NumberInput id="unit-list-damage" value={filters.minDamage ?? 0} min={0} onChange={v => set({ minDamage: v > 0 ? v : undefined })} className="max-w-none" />
               <div className="col-span-3 grid grid-cols-3 gap-1.5" role="group" aria-label="Damage ranges">
@@ -184,25 +184,25 @@ export function UnitListPicker({ onPick, initialText = '', pvLeft, label = 'Sear
       )}
 
       {results.length > 0 && (
-        <ul className="m-0 p-0 list-none flex flex-col border-t border-steel-500">
+        <ul className="m-0 p-0 list-none flex flex-col border-t border-line">
           {results.map(e => (
             <li key={e.id}>
-              <button type="button" onClick={() => onPick(e)} className="w-full min-h-touch flex items-center gap-3 py-2 border-b border-steel-500 text-left hover:bg-steel-700">
-                <span className="w-10 h-10 shrink-0 bg-steel-900 border border-steel-500 flex items-center justify-center overflow-hidden" aria-hidden="true">
+              <button type="button" onClick={() => onPick(e)} className="w-full min-h-touch flex items-center gap-3 py-2 border-b border-line text-left hover:bg-ground">
+                <span className="w-10 h-10 shrink-0 bg-surface-deep border border-line flex items-center justify-center overflow-hidden" aria-hidden="true">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   {e.icon && <img src={unitIconUrl(e.icon)} alt="" loading="lazy" className="w-full h-full object-contain" />}
                 </span>
                 <span className="flex-1 flex flex-col min-w-0">
-                  <span className="font-condensed font-bold text-[15px] tracking-[0.5px] truncate">{unitListName(e)}</span>
+                  <span className="font-label font-bold text-[15px] tracking-[0.5px] truncate">{unitListName(e)}</span>
                   <span className="text-[13px] text-text-secondary">
                     {TYPE_LABELS[e.type]} · Size {e.size} · A{e.armor} S{e.structure} · {e.damage.join('/')}{e.role ? ` · ${e.role}` : ''}
                   </span>
                 </span>
-                <span className={cn('font-stencil text-lg whitespace-nowrap', pvLeft !== undefined && e.pv > pvLeft ? 'text-danger' : 'text-amber')}>
+                <span className={cn('font-display font-bold text-lg whitespace-nowrap', pvLeft !== undefined && e.pv > pvLeft ? 'text-danger' : 'text-active')}>
                   {e.pv} <span className="text-xs text-text-secondary">PV</span>
                 </span>
                 {tapToAdd && (
-                  <span aria-hidden="true" className="w-8 h-8 shrink-0 flex items-center justify-center border-2 border-signal-blue text-signal-blue font-condensed font-bold text-lg">+</span>
+                  <span aria-hidden="true" className="w-8 h-8 shrink-0 flex items-center justify-center border border-active text-active font-label font-bold text-lg">+</span>
                 )}
               </button>
             </li>
@@ -224,18 +224,18 @@ function FactionPicker({ factions, selected, onChange }: { factions: UnitListFac
   const toggle = (i: number) => onChange(selected.includes(i) ? selected.filter(x => x !== i) : [...selected, i])
   return (
     <div className="flex flex-col gap-1">
-      <span className="dossier-label text-text-secondary">Faction</span>
+      <span className="field-label text-text-secondary">Faction</span>
       {selected.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
           {selected.map(i => (
             <button key={i} type="button" onClick={() => toggle(i)} aria-label={`Remove ${factions[i].name}`}
-              className="min-h-8 px-2 border-2 border-amber text-amber font-condensed font-bold text-[12px] tracking-[0.5px] uppercase">
+              className="min-h-8 px-2 border-2 border-active text-active font-label font-bold text-[12px] tracking-[0.5px] uppercase">
               {factions[i].name} ✕
             </button>
           ))}
         </div>
       )}
-      <details className="border border-steel-500">
+      <details className="border border-line">
         <summary className="min-h-touch px-3 flex items-center cursor-pointer list-none text-[15px] text-text-secondary">
           {selected.length ? `${selected.length} selected · change` : 'Any faction · choose'}
         </summary>
@@ -246,11 +246,11 @@ function FactionPicker({ factions, selected, onChange }: { factions: UnitListFac
           {groups.length === 0 && <p className="m-0 pt-2 text-sm text-text-secondary">No factions match.</p>}
           {groups.map(group => (
             <div key={group} role="group" aria-label={group} className="pt-2">
-              <div className="dossier-label text-text-secondary pb-1">{group}</div>
+              <div className="field-label text-text-secondary pb-1">{group}</div>
               {factions.map((f, i) => f.group === group && shown(f) && (
                 <label key={f.name} className="flex items-center gap-2.5 min-h-8 text-sm cursor-pointer">
                   <input type="checkbox" checked={selected.includes(i)} onChange={() => toggle(i)}
-                    className="w-[18px] h-[18px] shrink-0 accent-[var(--color-amber)]" />
+                    className="w-[18px] h-[18px] shrink-0 accent-[var(--color-active)]" />
                   {f.name}
                 </label>
               ))}

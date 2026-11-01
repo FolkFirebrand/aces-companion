@@ -38,18 +38,18 @@ export function UnitPhoto({ unit, size, onPhotoChange }: {
         <path d="M12 3 4 7v10l8 4 8-4V7z M4 7l8 4 8-4 M12 11v10" strokeLinejoin="round" />
       </svg>
     )
-  const box = 'shrink-0 overflow-hidden bg-steel-900 border border-steel-500 flex items-center justify-center'
+  const box = 'shrink-0 overflow-hidden bg-surface-deep border border-line flex items-center justify-center'
 
   if (!onPhotoChange) return <div className={box} style={{ width: size, height: size }}>{face}</div>
   return (
     <div className="flex flex-col items-center gap-0.5 shrink-0">
       <button type="button" onClick={() => fileRef.current?.click()} aria-label={`Add a photo of ${unit.nameAndVariant || 'this unit'}`}
-        className={cn(box, 'hover:border-amber')} style={{ width: size, height: size }}>
+        className={cn(box, 'hover:border-active')} style={{ width: size, height: size }}>
         {face}
       </button>
       <input ref={fileRef} type="file" accept="image/*" onChange={handleFile} className="hidden" aria-hidden="true" tabIndex={-1} />
       {unit.photoUrl && (
-        <button type="button" onClick={() => onPhotoChange(undefined)} className="dossier-label text-[11px] text-signal-blue min-h-6 px-1">Use icon</button>
+        <button type="button" onClick={() => onPhotoChange(undefined)} className="field-label text-[11px] text-result min-h-6 px-1">Use icon</button>
       )}
     </div>
   )

@@ -37,7 +37,7 @@ export default function RosterForcePage() {
             Your first sortie is logged, so the starting force is set. New units join through Purchase Additional Units after a sortie.
           </p>
         )}
-        <Link href="/roster" className="self-start min-h-touch flex items-center dossier-label text-signal-blue">‹ Back to the Roster</Link>
+        <Link href="/roster" className="self-start min-h-touch flex items-center field-label text-result">‹ Back to the Roster</Link>
       </div>
     </>
   )

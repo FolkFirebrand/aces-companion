@@ -23,9 +23,9 @@ export function TopBar() {
   const forceName = inCampaign ? campaign.forceName : draft?.forceName
 
   return (
-    <div className="bg-steel-900 border-b border-steel-500">
+    <div className="bg-surface-deep border-b border-line">
       <div className="max-w-6xl mx-auto px-gutter min-h-12 flex items-center gap-6">
-        <span className="dossier-label text-amber truncate">{forceName || 'NEW FORCE'}</span>
+        <span className="field-label text-active truncate">{forceName || 'NEW FORCE'}</span>
         {inCampaign && (
           <nav aria-label="Main" className="hidden md:flex">
             {MAIN_TABS.map(tab => {
@@ -36,8 +36,8 @@ export function TopBar() {
                   href={tab.href}
                   aria-current={active ? 'page' : undefined}
                   className={cn(
-                    'h-touch px-4 flex items-center font-condensed text-sm tracking-[1px] border-b-[3px]',
-                    active ? 'font-bold text-amber border-amber' : 'font-semibold text-text-secondary border-transparent hover:text-text-primary'
+                    'h-touch px-4 flex items-center font-label text-sm tracking-[1px] border-b-[3px]',
+                    active ? 'font-bold text-active border-active' : 'font-semibold text-text-secondary border-transparent hover:text-text-primary'
                   )}
                 >
                   {tab.label}
@@ -48,8 +48,8 @@ export function TopBar() {
         )}
         <div className="ml-auto flex items-center gap-6">
           {inCampaign && (
-            <span className="hidden md:inline dossier-label text-text-secondary">
-              WARCHEST <span className="text-amber">{selectWarchestBalance(campaign)} SP</span> · {selectDifficultyName(campaign).toUpperCase()}
+            <span className="hidden md:inline field-label text-text-secondary">
+              WARCHEST <span className="text-active">{selectWarchestBalance(campaign)} SP</span> · {selectDifficultyName(campaign).toUpperCase()}
             </span>
           )}
           <SaveMenu />
@@ -68,7 +68,7 @@ export function PhoneTabBar() {
   const sortieId = pathname.match(/^\/sortie\/([^/]+)/)?.[1]
   if (sortieId && sorties.find(s => s.id === sortieId)?.status === 'draft') return null
   return (
-    <div className="md:hidden fixed inset-x-0 bottom-0 z-40 pb-[env(safe-area-inset-bottom,0px)] bg-steel-800">
+    <div className="md:hidden fixed inset-x-0 bottom-0 z-40 pb-[env(safe-area-inset-bottom,0px)] bg-surface">
       <TabBar tabs={MAIN_TABS} currentPath={pathname} />
     </div>
   )

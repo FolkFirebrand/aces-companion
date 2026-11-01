@@ -34,16 +34,16 @@ export function ReplaceCampaignDialog({ open, title, warning, confirmLabel, onCo
 
   return (
     <Dialog open={open} onOpenChange={o => { if (!o) onCancel() }}>
-      <DialogContent className="bg-steel-800 border-steel-500 text-text-primary">
+      <DialogContent className="bg-surface border-line text-text-primary">
         <DialogHeader>
-          <DialogTitle className="font-stencil text-2xl font-normal uppercase text-amber">{title}</DialogTitle>
+          <DialogTitle className="font-display font-bold text-2xl uppercase text-active">{title}</DialogTitle>
         </DialogHeader>
         {warning && <p className="m-0 text-sm text-danger">{warning}</p>}
         <p className="m-0 text-sm text-text-secondary">
           This replaces the campaign in this browser.{worthSaving && ' Download a backup first if you might want it back.'}
         </p>
         <DialogFooter className="gap-2 flex-wrap">
-          <DossierButton variant="secondary" onClick={onCancel} className="border-steel-500 text-text-secondary">Cancel</DossierButton>
+          <DossierButton variant="secondary" onClick={onCancel} className="border-line text-text-secondary">Cancel</DossierButton>
           {worthSaving && <DossierButton variant="secondary" onClick={downloadBackup}>Download backup</DossierButton>}
           <DossierButton variant="danger" onClick={onConfirm}>{confirmLabel}</DossierButton>
         </DialogFooter>

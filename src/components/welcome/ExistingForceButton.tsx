@@ -49,9 +49,9 @@ export function ExistingForceButton() {
       {error && <p role="alert" className="m-0 text-sm text-danger">{error}</p>}
 
       <Dialog open={choosing} onOpenChange={o => { if (!o) setChoosing(false) }}>
-        <DialogContent className="bg-steel-800 border-steel-500 text-text-primary">
+        <DialogContent className="bg-surface border-line text-text-primary">
           <DialogHeader>
-            <DialogTitle className="font-stencil text-2xl font-normal uppercase text-amber">Carry over a force?</DialogTitle>
+            <DialogTitle className="font-display font-bold text-2xl uppercase text-active">Carry over a force?</DialogTitle>
           </DialogHeader>
           <p className="m-0 text-sm text-text-secondary">
             Start a new campaign with the force and Named Pilots from a finished campaign. The new campaign replaces
@@ -64,7 +64,7 @@ export function ExistingForceButton() {
             <DossierButton variant="secondary" onClick={() => fileRef.current?.click()}>Use a Campaign File</DossierButton>
           </div>
           <DialogFooter className="gap-2 flex-wrap">
-            <DossierButton variant="secondary" onClick={() => setChoosing(false)} className="border-steel-500 text-text-secondary">Cancel</DossierButton>
+            <DossierButton variant="secondary" onClick={() => setChoosing(false)} className="border-line text-text-secondary">Cancel</DossierButton>
             <DossierButton variant="secondary" onClick={downloadBackup}>Download backup</DossierButton>
           </DialogFooter>
         </DialogContent>

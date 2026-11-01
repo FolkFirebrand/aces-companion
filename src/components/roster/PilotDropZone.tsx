@@ -16,7 +16,7 @@ export function PilotDropZone({ unitId, assignedPilot, onUnassign }: Props) {
 
   if (assignedPilot) {
     return (
-      <div ref={setNodeRef} className={cn(isOver && 'outline-2 outline-dashed outline-amber')}>
+      <div ref={setNodeRef} className={cn(isOver && 'outline-2 outline-dashed outline-active')}>
         <PilotMiniCard pilot={assignedPilot} onUnassign={onUnassign} />
       </div>
     )
@@ -26,8 +26,8 @@ export function PilotDropZone({ unitId, assignedPilot, onUnassign }: Props) {
     <div
       ref={setNodeRef}
       className={cn(
-        'min-h-touch flex items-center justify-center border-2 border-dashed dossier-label',
-        isOver ? 'border-amber text-amber bg-amber/10' : 'border-steel-500 text-text-secondary',
+        'min-h-touch flex items-center justify-center border-2 border-dashed field-label',
+        isOver ? 'border-active text-active bg-active/10' : 'border-line text-text-secondary',
       )}
     >
       No pilot · drop a Named Pilot here

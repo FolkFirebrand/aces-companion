@@ -24,7 +24,7 @@ export function DiceRoll({ id, label, target, value, onChange, onRoll, outcome }
     <div className="flex flex-col gap-1.5">
       <div className="flex items-center gap-2.5">
         <label htmlFor={id} className="flex-1 text-[15px]">
-          {label}{target && <> <span className="font-condensed font-bold text-amber">{target}</span></>}
+          {label}{target && <> <span className="font-label font-bold text-active">{target}</span></>}
         </label>
         <input
           id={id}
@@ -34,14 +34,14 @@ export function DiceRoll({ id, label, target, value, onChange, onRoll, outcome }
           max={12}
           value={value ?? ''}
           onChange={e => onChange(e.target.value === '' ? null : Number(e.target.value))}
-          className="w-[58px] h-touch bg-text-primary text-steel-900 font-stencil text-[26px] text-center"
+          className="w-[58px] h-touch bg-text-primary text-ink font-mono font-bold text-[24px] text-center"
         />
         <button type="button" onClick={onRoll} className={dossierButtonClass('secondary', 'text-sm')}>
           ROLL 2D6
         </button>
       </div>
       {outcome && (
-        <p className={cn('m-0 text-sm', outcome.tone === 'danger' ? 'text-danger' : 'text-signal-blue')}>{outcome.text}</p>
+        <p className={cn('m-0 text-sm', outcome.tone === 'danger' ? 'text-danger' : 'text-result')}>{outcome.text}</p>
       )}
     </div>
   )

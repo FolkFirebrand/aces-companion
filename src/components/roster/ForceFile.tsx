@@ -47,7 +47,7 @@ export function UploadForceLink({ onUpload, onNote }: { onUpload: (units: ForceU
 
   return (
     <>
-      <button type="button" onClick={() => fileRef.current?.click()} className="min-h-touch dossier-label text-signal-blue"
+      <button type="button" onClick={() => fileRef.current?.click()} className="min-h-touch field-label text-result"
         title="A MegaMek .mul (e.g. from MekBay), a Unit Builder file, or a force file from this app">
         Upload a force file ›
       </button>
