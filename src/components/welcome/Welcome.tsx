@@ -2,14 +2,12 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
 import { useCampaignStore } from '@/store/campaign'
 import { selectWarchestBalance } from '@/store/selectors'
 import { latestSortie } from '@/lib/campaign-file'
-import { DossierButton } from '@/components/dossier/DossierButton'
-import { LoadCampaignFile, ReplaceCampaignDialog } from '@/components/campaign/LoadCampaignFile'
+import { LoadCampaignFile } from '@/components/campaign/LoadCampaignFile'
 import { useHydrated } from '@/lib/useHydrated'
-import { ExistingForceButton } from './ExistingForceButton'
+import { NewCampaignButtons } from './NewCampaignButtons'
 
 const STEPS = [
   'Build your force and Named Pilots.',
@@ -19,16 +17,10 @@ const STEPS = [
 
 export function Welcome() {
   const router = useRouter()
-  const { campaign, setupDraft, startSetup, hasCampaignData } = useCampaignStore()
+  const { campaign, hasCampaignData } = useCampaignStore()
   const hydrated = useHydrated()
-  const [confirmNew, setConfirmNew] = useState(false)
   const hasCampaign = hasCampaignData()
   const latest = latestSortie(campaign)
-
-  function beginSetup() {
-    startSetup()
-    router.push('/setup')
-  }
 
   return (
     <div className="max-w-xl mx-auto px-gutter py-6 flex flex-col gap-6">
@@ -63,18 +55,7 @@ export function Welcome() {
             </div>
           )}
 
-          {setupDraft ? (
-            <DossierButton variant="primary" onClick={() => router.push('/setup')}>
-              Continue setting up{setupDraft.name ? `: ${setupDraft.name}` : ''}
-            </DossierButton>
-          ) : (
-            <>
-              <DossierButton variant="primary" onClick={() => (hasCampaign ? setConfirmNew(true) : beginSetup())}>
-                Start new campaign
-              </DossierButton>
-              <ExistingForceButton />
-            </>
-          )}
+          <NewCampaignButtons />
           <LoadCampaignFile label="Continue from Campaign File" className="w-full h-12" onLoaded={() => router.push('/campaign')} />
         </div>
       )}
@@ -102,14 +83,6 @@ export function Welcome() {
           </figure>
         </div>
       </section>
-
-      <ReplaceCampaignDialog
-        open={confirmNew}
-        title="Start a new campaign?"
-        confirmLabel="Start new campaign"
-        onCancel={() => setConfirmNew(false)}
-        onConfirm={() => { setConfirmNew(false); beginSetup() }}
-      />
     </div>
   )
 }
