@@ -101,6 +101,33 @@ function MiniTrack({ short, total, hits }: { short: string; total: number; hits:
   )
 }
 
+/** Edge left and crits taken, for a closed card's bar. */
+function TokenStrip({ shown, edgeTokens }: { shown: BattleMarks; edgeTokens?: number }) {
+  const tag = 'inline-flex items-center gap-1 h-5 px-1.5 border font-label font-bold text-[11px] tracking-[0.5px] uppercase whitespace-nowrap'
+  const crits: [string, number][] = [
+    ['Eng', shown.engine], ['FC', shown.fireControl], ['MP', shown.mp], ['Wpn', shown.weapons],
+    ['−2"', shown.motive.filter(m => m === 'minus2').length], ['½ MV', shown.motive.filter(m => m === 'half').length],
+  ]
+  const taken = crits.filter(([, n]) => n > 0)
+  const hasEdge = edgeTokens !== undefined && edgeTokens > 0
+  if (!hasEdge && taken.length === 0 && !shown.immobilized && !shown.ammoHit) return null
+  const left = hasEdge ? edgeTokensLeft(edgeTokens, shown.edgeSpent) : 0
+  return (
+    <span className="flex flex-wrap items-center gap-1">
+      {hasEdge && (
+        <span className={cn(tag, left > 0 ? 'border-active text-active' : 'border-line text-text-secondary')}>
+          <span aria-hidden="true" className={cn('block w-2 h-2 rotate-45 border-[1.5px] border-current', left > 0 && 'bg-current')} />
+          Edge {left}/{edgeTokens}
+        </span>
+      )}
+      {taken.length > 0 && <span className="sr-only">Critical hits:</span>}
+      {taken.map(([label, n]) => <span key={label} className={cn(tag, 'border-danger text-danger')}>{label} {n}</span>)}
+      {shown.immobilized && <span className={cn(tag, 'border-danger text-danger')}>Immobile</span>}
+      {shown.ammoHit && <span className={cn(tag, 'border-danger text-danger')}>Ammo</span>}
+    </span>
+  )
+}
+
 const CRITS: { key: 'engine' | 'fireControl' | 'mp' | 'weapons'; label: string; effect: string }[] = [
   { key: 'engine', label: 'Engine', effect: '+1 heat firing · 2nd destroys' },
   { key: 'fireControl', label: 'Fire control', effect: '+2 to-hit each' },
@@ -196,14 +223,22 @@ export function BattleCard({ sortieId, unit, record, pilotName, skill, open, onT
       </span>
       {open ? (
         <span className={cn('font-display font-bold text-[22px]', headerBar ? 'text-on-active' : 'text-active')}>{unit.pvAtSkill4}</span>
-      ) : !readout.missingStats && !committedDestroyed && (
+      ) : !committedDestroyed && (
         <>
-          <span className="flex flex-col items-end gap-[3px]">
-            <MiniTrack short="A" total={unit.armor ?? 0} hits={shown.armor} />
-            <MiniTrack short="S" total={unit.structure ?? 0} hits={shown.structure} />
+          {/* Its own row under the name on a narrow card; beside the tracks on a wide one. */}
+          <span className="order-last basis-full pl-9 @xl:order-none @xl:basis-auto @xl:pl-0 empty:hidden">
+            <TokenStrip shown={shown} edgeTokens={edgeTokens} />
           </span>
-          <span className="sr-only">Armor {readout.armorLeft} of {unit.armor ?? 0}, structure {readout.structureLeft} of {unit.structure ?? 0} left</span>
-          {heatShown && <StatusTag tone="keyword">{shown.heat >= SHUTDOWN ? 'Heat S' : `Heat ${shown.heat}`}</StatusTag>}
+          {!readout.missingStats && (
+            <>
+              <span className="flex flex-col items-end gap-[3px]">
+                <MiniTrack short="A" total={unit.armor ?? 0} hits={shown.armor} />
+                <MiniTrack short="S" total={unit.structure ?? 0} hits={shown.structure} />
+              </span>
+              <span className="sr-only">Armor {readout.armorLeft} of {unit.armor ?? 0}, structure {readout.structureLeft} of {unit.structure ?? 0} left</span>
+              {heatShown && <StatusTag tone="keyword">{shown.heat >= SHUTDOWN ? 'Heat S' : `Heat ${shown.heat}`}</StatusTag>}
+            </>
+          )}
         </>
       )}
     </>
@@ -212,9 +247,9 @@ export function BattleCard({ sortieId, unit, record, pilotName, skill, open, onT
   const chip = 'h-8 px-2 border font-label font-bold text-xs tracking-[1px] uppercase inline-flex items-center gap-1.5'
 
   return (
-    <div className={cn('bg-surface border border-line', pending && 'outline-2 outline-dashed outline-danger -outline-offset-1')}>
+    <div className={cn('@container bg-surface border border-line', pending && 'outline-2 outline-dashed outline-danger -outline-offset-1')}>
       <button type="button" onClick={onToggle} aria-expanded={open}
-        className={cn('w-full flex items-center gap-2 px-2.5 py-1.5 text-left min-h-touch', headerBar && 'bg-active text-on-active')}>
+        className={cn('w-full flex flex-wrap items-center gap-x-2 gap-y-1 px-2.5 py-1.5 text-left min-h-touch', headerBar && 'bg-active text-on-active')}>
         {header}
       </button>
 
