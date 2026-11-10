@@ -16,13 +16,10 @@ function BrandIcon({ path }: { path: string }) {
   return <svg viewBox="0 0 24 24" aria-hidden="true" className="size-5 fill-current"><path d={path} /></svg>
 }
 
-/** Every page's footer: the fan-tool disclaimer, contact links and the license and legal notice. */
+/** Every page's footer: contact links and the license and legal notice, which carries the fan-tool disclaimer. */
 export function SiteFooter() {
   return (
-    <footer className="max-w-6xl w-full mx-auto px-gutter pt-2 pb-[calc(var(--spacing-tabbar)+16px)] md:pb-3 text-xs leading-snug text-text-muted border-t border-line flex flex-wrap items-center gap-x-4 gap-y-1">
-      <p className="m-0 flex-1 min-w-60">
-        Unofficial fan-made tool. Not affiliated with or endorsed by the game&apos;s publishers. Requires the Aces box set.
-      </p>
+    <footer className="max-w-6xl w-full mx-auto px-gutter pt-2 pb-[calc(var(--spacing-tabbar)+16px)] md:pb-3 text-xs leading-snug text-text-muted border-t border-line flex flex-wrap items-center justify-end gap-x-4 gap-y-1">
       <nav aria-label="Contact and legal" className="flex flex-wrap items-center">
         <a href={DISCORD_URL} target="_blank" rel="noopener noreferrer" aria-label="Discord" title="Discord" className={ICON_LINK}>
           <BrandIcon path={DISCORD_PATH} />
