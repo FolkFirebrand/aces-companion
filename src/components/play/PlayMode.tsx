@@ -154,33 +154,35 @@ export function PlayMode({ sortie }: { sortie: Sortie }) {
         {readOnly && <p className="m-0 px-1 text-[13px] text-text-secondary">This sortie is completed. Reopen it to change the battle.</p>}
       </div>
 
+      {/* A draft sortie hides the phone tab bar, so the footer sits on the bottom edge on every screen. */}
       {!readOnly && player.length + opposing.length > 0 && (
-        <div className="sticky bottom-[calc(var(--spacing-tabbar)+env(safe-area-inset-bottom,0px))] md:bottom-0 z-30 bg-surface border-t-2 border-active">
+        <div className="sticky bottom-0 z-30 bg-surface border-t-2 border-active pb-[env(safe-area-inset-bottom,0px)]">
           {finishing && (
-            <div className="max-w-6xl mx-auto px-gutter pt-3 flex flex-col gap-2">
+            <div className="max-w-6xl mx-auto px-gutter pt-2.5 flex flex-col gap-1.5">
               <span className="field-label text-text-secondary">Battle over · did you complete the Primary Objective?</span>
               {pendingCount > 0 && (
-                <p className="m-0 text-[13px] text-danger">{pendingCount} {pendingCount === 1 ? 'card has' : 'cards have'} pending damage. End the round or discard it first so the damage counts.</p>
+                <p className="m-0 text-[13px] leading-snug text-danger">{pendingCount} {pendingCount === 1 ? 'card has' : 'cards have'} pending damage. End the round or discard it first so the damage counts.</p>
               )}
               <div className="grid grid-cols-2 gap-2">
-                <DossierButton variant="primary" disabled={pendingCount > 0} onClick={() => finish('victory')}>Yes · After-Sortie Steps</DossierButton>
-                <DossierButton variant="danger" className="self-stretch h-auto!" disabled={pendingCount > 0} onClick={() => finish('failed')}>No · Failed</DossierButton>
+                <DossierButton variant="primary" className="h-touch px-2 text-sm sm:text-base whitespace-nowrap" disabled={pendingCount > 0} onClick={() => finish('victory')}>Yes · After-Sortie</DossierButton>
+                <DossierButton variant="danger" className="self-stretch" disabled={pendingCount > 0} onClick={() => finish('failed')}>No · Failed</DossierButton>
               </div>
             </div>
           )}
-          <div className="max-w-6xl mx-auto px-gutter py-2 flex items-center justify-between gap-3">
-            <span className="text-[13px] text-text-secondary">
-              <span className="font-label font-bold text-[15px] text-active">ROUND {battle.round}</span>
-              {pendingCount > 0 ? ` · ${pendingCount} pending` : ' · nothing pending'}
+          <div className="max-w-6xl mx-auto px-gutter py-2 flex items-center justify-between gap-2">
+            <span className="shrink-0 flex flex-col text-[13px] leading-tight text-text-secondary">
+              <span className="font-label font-bold text-[15px] text-active whitespace-nowrap">ROUND {battle.round}</span>
+              {pendingCount > 0 ? (
+                <span className="whitespace-nowrap">
+                  {pendingCount} pending · <button type="button" className="underline text-text-primary" onClick={() => discardAllBattle(sortie.id)}>Discard all</button>
+                </span>
+              ) : <span>Nothing pending</span>}
             </span>
-            <span className="flex gap-2">
-              {pendingCount > 0 && (
-                <DossierButton variant="secondary" className="border-line text-text-secondary" onClick={() => discardAllBattle(sortie.id)}>Discard all</DossierButton>
-              )}
-              <DossierButton variant="secondary" className="w-auto h-touch px-4" aria-expanded={finishing} onClick={() => setFinishing(!finishing)}>
+            <span className="flex gap-1.5 sm:gap-2 min-w-0">
+              <DossierButton variant="secondary" className="w-auto h-touch px-2.5 sm:px-3.5 text-sm sm:text-[15px] whitespace-nowrap" aria-expanded={finishing} onClick={() => setFinishing(!finishing)}>
                 {finishing ? 'Keep playing' : 'Battle over'}
               </DossierButton>
-              <DossierButton variant="primary" className="w-auto h-touch px-5 text-base" onClick={() => endRound(sortie.id)}>End round</DossierButton>
+              <DossierButton variant="primary" className="w-auto h-touch px-3 sm:px-4 text-sm sm:text-base whitespace-nowrap" onClick={() => endRound(sortie.id)}>End round</DossierButton>
             </span>
           </div>
         </div>
