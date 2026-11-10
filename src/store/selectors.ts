@@ -138,6 +138,11 @@ export function selectPilotAssignedUnit(units: Unit[], pilotId: string): Unit | 
   return units.find(u => u.pilotId === pilotId)
 }
 
+/** A Named Pilot only crews units of their own type: a BattleMech pilot only pilots BattleMechs, and so on. */
+export function selectCanPilot(pilot: Pick<NamedPilot, 'pilotType'>, unit: Pick<Unit, 'unitType'>): boolean {
+  return pilot.pilotType === unit.unitType
+}
+
 export function selectSortieSteps(sortie: Sortie): (StepDefinition & { done: boolean })[] {
   return STEPS.map(step => ({ ...step, done: sortie.stepsDone.includes(step.id) }))
 }

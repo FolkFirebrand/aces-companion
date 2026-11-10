@@ -2,13 +2,13 @@
 
 import Link from 'next/link'
 import { useCampaignStore } from '@/store/campaign'
-import { selectAssignedPilot, selectEffectivePilot, selectPilotAssignedUnit, selectPilotSkill, selectPilotEdgeTokens } from '@/store/selectors'
+import { selectAssignedPilot, selectCanPilot, selectEffectivePilot, selectPilotAssignedUnit, selectPilotSkill, selectPilotEdgeTokens } from '@/store/selectors'
 import { Select } from '@/components/sortie/fields'
 import { StatusTag } from '@/components/dossier/StatusTag'
 import { PilotPhoto, WOUNDED_LABEL } from '@/components/pilots/PilotPhoto'
 import type { Unit } from '@/lib/types'
 
-/** A unit's Named Pilot: pick one from the Roster, or none. Picking a pilot moves them off any other unit. */
+/** A unit's Named Pilot: pick one of its type from the Roster, or none. Picking a pilot moves them off any other unit. */
 export function PilotSelect({ unit }: { unit: Unit }) {
   const { campaign, assignPilot } = useCampaignStore()
   const stored = selectAssignedPilot(campaign.units, campaign.namedPilots, unit.id)
@@ -20,10 +20,10 @@ export function PilotSelect({ unit }: { unit: Unit }) {
     <div className="flex items-center gap-2.5">
       {pilot && <PilotPhoto pilot={pilot} size={40} />}
       <div className="flex-1 min-w-0 flex flex-col gap-1">
-        <label htmlFor={selectId} className="field-label text-text-secondary">Named Pilot</label>
+        <label htmlFor={selectId} className="field-label text-text-secondary">Named Pilot · {unit.unitType}</label>
         <Select id={selectId} value={unit.pilotId ?? ''} onChange={v => assignPilot(unit.id, v || null)} className="max-w-none">
           <option value="">No Named Pilot</option>
-          {campaign.namedPilots.map(p => {
+          {campaign.namedPilots.filter(p => selectCanPilot(p, unit) || p.id === unit.pilotId).map(p => {
             const on = selectPilotAssignedUnit(campaign.units, p.id)
             return (
               <option key={p.id} value={p.id}>

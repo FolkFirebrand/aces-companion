@@ -90,11 +90,37 @@ describe('pilots', () => {
 
   it('move to another fielded unit in one pick, leaving their old one with a generic crew', () => {
     field('stalker')
+    field('talon')
+
+    act(() => store().assignFieldedPilot(sortieId, 'talon', 'ghost'))
+
+    expect(pilotOn('talon')).toBe('ghost')
+    expect(pilotOn('stalker')).toBeNull()
+  })
+
+  it('only crew a fielded unit of their own type', () => {
+    field('stalker')
     field('hauler')
 
     act(() => store().assignFieldedPilot(sortieId, 'hauler', 'ghost'))
 
-    expect(pilotOn('hauler')).toBe('ghost')
+    expect(pilotOn('hauler')).toBeNull()
+    expect(pilotOn('stalker')).toBe('ghost')
+  })
+
+  it('stay off a Roster unit of another type', () => {
+    act(() => store().assignPilot('hauler', 'ghost'))
+
+    expect(store().campaign.units.find(u => u.id === 'hauler')!.pilotId).toBeNull()
+    expect(store().campaign.units.find(u => u.id === 'stalker')!.pilotId).toBe('ghost')
+  })
+
+  it('leave their units when their type changes', () => {
+    field('stalker')
+
+    act(() => store().updatePilot('ghost', { pilotType: 'Combat Vehicle' }))
+
+    expect(store().campaign.units.find(u => u.id === 'stalker')!.pilotId).toBeNull()
     expect(pilotOn('stalker')).toBeNull()
   })
 
