@@ -63,14 +63,6 @@ export function UnitListPicker({ onPick, initialText = '', pvLeft, label = 'Sear
   return (
     <div className="flex flex-col gap-2.5">
       <label htmlFor="unit-list-search" className={cn('field-label', tapToAdd ? 'text-active' : 'text-text-secondary')}>{label}</label>
-      <div className="relative">
-        <TextInput id="unit-list-search" type="search" value={text} onChange={setText} placeholder="Search the unit list, e.g. Atlas AS7-D"
-          autoComplete="off" className="max-w-none pr-12 [&::-webkit-search-cancel-button]:hidden" />
-        {text && (
-          <button type="button" aria-label="Clear search" onClick={() => setText('')}
-            className="absolute right-0 top-0 w-touch h-touch text-text-secondary hover:text-text-primary">✕</button>
-        )}
-      </div>
       <div className="flex flex-wrap items-center gap-2">
         <button type="button" aria-expanded={showFilters} aria-controls="unit-list-filters" onClick={() => setShowFilters(o => !o)}
           className={cn('h-touch px-3 flex items-center gap-2 border border-active text-active font-label font-bold text-[13px] tracking-[1px] uppercase',
@@ -176,6 +168,15 @@ export function UnitListPicker({ onPick, initialText = '', pvLeft, label = 'Sear
           </div>
         </div>
       )}
+
+      <div className="relative">
+        <TextInput id="unit-list-search" type="search" value={text} onChange={setText} placeholder="Search the unit list, e.g. Atlas AS7-D"
+          autoComplete="off" className="max-w-none pr-12 [&::-webkit-search-cancel-button]:hidden" />
+        {text && (
+          <button type="button" aria-label="Clear search" onClick={() => setText('')}
+            className="absolute right-0 top-0 w-touch h-touch text-text-secondary hover:text-text-primary">✕</button>
+        )}
+      </div>
 
       {error && <p role="alert" className="m-0 text-sm text-danger">{error}</p>}
       {!units && !error && <p className="m-0 text-sm text-text-secondary">Loading the unit list…</p>}
