@@ -6,7 +6,10 @@ export interface Campaign {
   difficultyLevel: DifficultyLevel
   customPvPercent: number
   customSpPercent: number
+  /** The Starting Warchest Balance; follows the force's unspent PV until the campaign is under way. */
   startingWarchest: number
+  /** The Starting Warchest before unspent PV converts: 400 SP, or an Existing Force's carried Warchest. */
+  warchestBase: number
   units: Unit[]
   namedPilots: NamedPilot[]
   memorial: MemorialEntry[]

@@ -1,6 +1,7 @@
 'use client'
 
 import { useCampaignStore } from '@/store/campaign'
+import { selectCanEditStartingForce } from '@/store/selectors'
 import { DifficultySettings } from './DifficultySettings'
 import { DossierButton } from '@/components/dossier/DossierButton'
 import { LoadCampaignFile, useDownloadBackup } from '@/components/campaign/LoadCampaignFile'
@@ -36,6 +37,9 @@ export function ExportPanel() {
           <Input id="starting-warchest" type="number" value={campaign.startingWarchest}
             onChange={e => updateCampaignMeta({ startingWarchest: Number(e.target.value) })}
             className="bg-bt-background border-bt-border focus:border-bt-accent w-28" />
+          {selectCanEditStartingForce(campaign) && (
+            <p className="m-0 text-xs text-bt-text-primary/60">Still setting up: this moves by 40 SP per PV as units join or leave the force.</p>
+          )}
         </div>
       </div>
 

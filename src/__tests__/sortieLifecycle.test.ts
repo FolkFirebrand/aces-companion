@@ -45,6 +45,8 @@ beforeEach(() => {
     store().addUnit(unit('u1'))
     store().addUnit(unit('u2', { pvAtSkill4: 18, unitType: 'Combat Vehicle' }))
     store().addUnit(unit('u3', { pvAtSkill4: 40, size: 3 }))
+    // These worked examples start from 400 SP, whatever the force's unspent PV.
+    store().updateCampaignMeta({ startingWarchest: 400 })
   })
 })
 

@@ -209,6 +209,34 @@ describe('v11 → v12', () => {
   })
 })
 
+describe('v12 → v13', () => {
+  const units = [{ pvAtSkill4: 59 }, { pvAtSkill4: 40 }, { pvAtSkill4: 22 }]
+
+  it('starts a new force from the 400 SP base, whatever Starting Warchest it saved', () => {
+    const v12 = { campaign: { startingWarchest: -6440, units, sorties: [] } }
+
+    expect(runUpgrades(v12, 12, 13, UPGRADE_STEPS).campaign.warchestBase).toBe(400)
+  })
+
+  it("keeps an Existing Force's carried Warchest as its base", () => {
+    const v12 = { campaign: { startingWarchest: 900 + 279 * 40, units, existingForceFrom: 'First Contract', sorties: [] } }
+
+    expect(runUpgrades(v12, 12, 13, UPGRADE_STEPS).campaign.warchestBase).toBe(900)
+  })
+
+  it('works out the Starting Warchest again when a force still being set up is loaded', () => {
+    const file = { schemaVersion: 12, exportedAt: NOW.toISOString(), latestSortie: null, campaign: {
+      ...store().campaign, startingWarchest: -6440, warchestBase: undefined, sorties: [],
+      units: units.map((u, i) => ({ ...u, id: `u${i}`, nameAndVariant: `u${i}`, unitType: 'BattleMech', size: 2, ene: false, pilotId: null, totalSpEarned: 0 })),
+    } }
+    const result = store().readCampaignFile(JSON.stringify(file))
+    if (!result.ok) throw new Error('the file should load')
+    act(() => store().loadCampaignFile(result.file))
+
+    expect(store().campaign.startingWarchest).toBe(400 + 279 * 40)
+  })
+})
+
 describe('upgrade steps', () => {
   const steps: UpgradeSteps = {
     2: data => ({ ...data, campaign: { ...data.campaign, addedInV3: true } }),

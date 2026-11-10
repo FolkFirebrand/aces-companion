@@ -42,6 +42,8 @@ function setUp(pilots: NamedPilot[] = [pilot('flint'), pilot('sable'), pilot('ta
     store().addUnit(unit('u2', 'sable'))
     store().addUnit(unit('u3', 'talon'))
     store().addUnit(unit('u4', null))
+    // These worked examples start from 400 SP, whatever the force's unspent PV.
+    store().updateCampaignMeta({ startingWarchest: 400 })
     sortieId = store().addSortie()
     for (const id of ['u1', 'u2', 'u3']) store().setFielded(sortieId, id, true)
   })

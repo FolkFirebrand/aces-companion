@@ -8,7 +8,7 @@ import { UNIT_TYPES } from '@/lib/types'
 import { FileHeader } from '@/components/dossier/FileHeader'
 import { ChassisCheckButton, ForceBuilder, ForceRules } from '@/components/roster/ForceBuilder'
 
-/** Build the Force again from the Roster, for a unit missed at setup. Only until the first sortie is logged. */
+/** Build the Force again from the Roster, for a unit missed at setup. Only until the first sortie is completed. */
 export default function RosterForcePage() {
   const { campaign, addStartingUnit, removeStartingUnit } = useCampaignStore()
   const pv = selectTotalRosterPV(campaign.units)
@@ -34,7 +34,7 @@ export default function RosterForcePage() {
           </>
         ) : (
           <p className="m-0 text-sm text-text-secondary">
-            Your first sortie is logged, so the starting force is set. New units join through Purchase Additional Units after a sortie.
+            Your first sortie is completed, so the starting force is set. New units join through Purchase Additional Units after a sortie.
           </p>
         )}
         <Link href="/roster" className="self-start min-h-touch flex items-center field-label text-result">‹ Back to the Roster</Link>
