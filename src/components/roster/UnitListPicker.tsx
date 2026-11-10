@@ -2,10 +2,12 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { loadUnitListFile } from '@/lib/unit-list/load'
-import { ACES_UNIT_TYPES, ERAS, searchUnitList, unitListName, unitListRoles } from '@/lib/unit-list/convert'
+import { ACES_UNIT_TYPES, ERAS, searchUnitList, unitFromEntry, unitListName, unitListRoles } from '@/lib/unit-list/convert'
 import type { AcesTypeCode, UnitListEntry, UnitListFaction, UnitListQuery } from '@/lib/unit-list/convert'
 import { unitIconUrl } from '@/lib/unit-list/icons'
 import { NumberInput, Select, TextInput } from '@/components/sortie/fields'
+import { StatusTag } from '@/components/dossier/StatusTag'
+import { UnitStats } from './UnitStats'
 import { cn } from '@/lib/utils'
 
 const TYPE_LABELS: Record<AcesTypeCode, string> = { BM: "'Mech", CV: 'Vehicle', BA: 'B. Armor', CI: 'Infantry' }
@@ -22,8 +24,8 @@ function chip(on: boolean) {
 }
 
 /**
- * Search MegaMek's unit list (ADR 0005) and pick a unit. `pvLeft` adds a hint in setup; `tapToAdd` marks each result
- * with + for pickers that add on tap; `aside` sits right of the Filters button.
+ * Search MegaMek's unit list (ADR 0005) and pick a unit. `pvLeft` adds a hint in setup; with `tapToAdd`, tapping a
+ * result opens its full stats and its + button picks it; `aside` sits right of the Filters button.
  */
 export function UnitListPicker({ onPick, initialText = '', pvLeft, label = 'Search the unit list', tapToAdd = false, aside }: {
   onPick: (entry: UnitListEntry) => void
@@ -39,6 +41,7 @@ export function UnitListPicker({ onPick, initialText = '', pvLeft, label = 'Sear
   const [text, setText] = useState(initialText)
   const [filters, setFilters] = useState<Filters>(NO_FILTERS)
   const [showFilters, setShowFilters] = useState(false)
+  const [openId, setOpenId] = useState<string | null>(null)
 
   useEffect(() => {
     let live = true
@@ -185,9 +188,14 @@ export function UnitListPicker({ onPick, initialText = '', pvLeft, label = 'Sear
 
       {results.length > 0 && (
         <ul className="m-0 p-0 list-none flex flex-col border-t border-line">
-          {results.map(e => (
-            <li key={e.id}>
-              <button type="button" onClick={() => onPick(e)} className="w-full min-h-touch flex items-center gap-3 py-2 border-b border-line text-left hover:bg-ground">
+          {results.map(e => {
+            const pv = (
+              <span className={cn('font-display font-bold text-lg whitespace-nowrap', pvLeft !== undefined && e.pv > pvLeft ? 'text-danger' : 'text-active')}>
+                {e.pv} <span className="text-xs text-text-secondary">PV</span>
+              </span>
+            )
+            const summary = (
+              <>
                 <span className="w-10 h-10 shrink-0 bg-surface-deep border border-line flex items-center justify-center overflow-hidden" aria-hidden="true">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   {e.icon && <img src={unitIconUrl(e.icon)} alt="" loading="lazy" className="w-full h-full object-contain" />}
@@ -198,19 +206,61 @@ export function UnitListPicker({ onPick, initialText = '', pvLeft, label = 'Sear
                     {TYPE_LABELS[e.type]} · Size {e.size} · A{e.armor} S{e.structure} · {e.damage.join('/')}{e.role ? ` · ${e.role}` : ''}
                   </span>
                 </span>
-                <span className={cn('font-display font-bold text-lg whitespace-nowrap', pvLeft !== undefined && e.pv > pvLeft ? 'text-danger' : 'text-active')}>
-                  {e.pv} <span className="text-xs text-text-secondary">PV</span>
-                </span>
-                {tapToAdd && (
-                  <span aria-hidden="true" className="w-8 h-8 shrink-0 flex items-center justify-center border border-active text-active font-label font-bold text-lg">+</span>
-                )}
-              </button>
-            </li>
-          ))}
+                {pv}
+              </>
+            )
+            if (!tapToAdd) {
+              return (
+                <li key={e.id}>
+                  <button type="button" onClick={() => onPick(e)} className="w-full min-h-touch flex items-center gap-3 py-2 border-b border-line text-left hover:bg-ground">
+                    {summary}
+                  </button>
+                </li>
+              )
+            }
+            const open = openId === e.id
+            return (
+              <li key={e.id} className={cn('border-b border-line', open && 'bg-surface')}>
+                <div className="flex items-center gap-2">
+                  <button type="button" aria-expanded={open} aria-controls={`unit-list-card-${e.id}`} onClick={() => setOpenId(open ? null : e.id)}
+                    className={cn('flex-1 min-w-0 min-h-touch flex items-center gap-3 py-2 text-left', !open && 'hover:bg-ground')}>
+                    {summary}
+                  </button>
+                  <button type="button" onClick={() => onPick(e)} aria-label={`Add ${unitListName(e)}`}
+                    className="w-touch h-touch shrink-0 flex items-center justify-center border border-active text-active font-label font-bold text-lg hover:bg-active hover:text-on-active">
+                    +
+                  </button>
+                </div>
+                {open && <UnitListCard id={`unit-list-card-${e.id}`} entry={e} />}
+              </li>
+            )
+          })}
         </ul>
       )}
-      {tapToAdd && results.length > 0 && <p className="m-0 text-[13px] text-text-secondary">Tap a unit to add it. Tap again to add another.</p>}
+      {tapToAdd && results.length > 0 && <p className="m-0 text-[13px] text-text-secondary">Tap a unit to see its full stats. Tap + to add it to your force; tap + again to add another.</p>}
       {matches.length > LIMIT && <p className="m-0 text-[13px] text-text-secondary">Showing the first {LIMIT}. Narrow the search or add a filter.</p>}
+    </div>
+  )
+}
+
+/** A unit-list entry's full card: everything the force would get if it were added. */
+function UnitListCard({ id, entry }: { id: string; entry: UnitListEntry }) {
+  const unit = unitFromEntry(entry)
+  return (
+    <div id={id} className="flex gap-3 px-3 pb-3 pt-1">
+      <span className="w-24 h-24 shrink-0 bg-surface-deep border border-line flex items-center justify-center overflow-hidden" aria-hidden="true">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        {entry.icon && <img src={unitIconUrl(entry.icon)} alt="" className="w-full h-full object-contain" />}
+      </span>
+      <div className="flex-1 min-w-0 flex flex-col gap-2.5">
+        <div className="flex flex-wrap gap-1.5">
+          <StatusTag tone="neutral">{unit.unitType}</StatusTag>
+          <StatusTag tone="neutral">Size {unit.size}</StatusTag>
+          <StatusTag tone="neutral">{unit.pvAtSkill4} PV at Skill 4</StatusTag>
+          {entry.omni && <StatusTag tone="neutral">Omni</StatusTag>}
+        </div>
+        <UnitStats unit={unit} />
+      </div>
     </div>
   )
 }

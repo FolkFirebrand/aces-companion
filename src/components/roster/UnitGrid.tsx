@@ -2,17 +2,17 @@
 
 import Link from 'next/link'
 import { useCampaignStore } from '@/store/campaign'
-import { selectAssignedPilot, selectCanEditStartingForce } from '@/store/selectors'
+import { selectCanEditStartingForce } from '@/store/selectors'
 import { UnitCard } from './UnitCard'
 
 export function UnitGrid() {
-  const { campaign, updateUnit, removeUnit, assignPilot } = useCampaignStore()
+  const { campaign, updateUnit, removeUnit } = useCampaignStore()
 
   return (
     <section className="flex flex-col gap-3">
       <div className="flex flex-col gap-0.5 pb-1 border-b-2 border-line">
         <h2 className="m-0 text-lg text-active">Units</h2>
-        <span className="text-sm text-text-secondary">Drag a Named Pilot onto a unit to assign them.</span>
+        <span className="text-sm text-text-secondary">Pick each unit’s Named Pilot from its list.</span>
       </div>
 
       {selectCanEditStartingForce(campaign) && (
@@ -27,14 +27,7 @@ export function UnitGrid() {
         : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
             {campaign.units.map(unit => (
-              <UnitCard
-                key={unit.id}
-                unit={unit}
-                assignedPilot={selectAssignedPilot(campaign.units, campaign.namedPilots, unit.id)}
-                onUpdate={updateUnit}
-                onRemove={removeUnit}
-                onUnassignPilot={unitId => assignPilot(unitId, null)}
-              />
+              <UnitCard key={unit.id} unit={unit} onUpdate={updateUnit} onRemove={removeUnit} />
             ))}
           </div>
         )}

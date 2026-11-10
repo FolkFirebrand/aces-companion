@@ -1,27 +1,24 @@
 'use client'
 
-import { useDraggable } from '@dnd-kit/core'
 import Link from 'next/link'
 import { useCampaignStore } from '@/store/campaign'
 import { selectAvailableSP, selectEffectivePilot, selectPilotAssignedUnit, selectPilotSkill, selectPilotEdgeTokens } from '@/store/selectors'
 import { StatusTag } from '@/components/dossier/StatusTag'
+import { Select } from '@/components/sortie/fields'
 import { PilotPhoto, WOUNDED_LABEL } from '@/components/pilots/PilotPhoto'
 import type { NamedPilot } from '@/lib/types'
-import { cn } from '@/lib/utils'
 
-/** A Named Pilot on the Roster; drag the handle onto a unit to assign or move them. */
+/** A Named Pilot on the Roster; pick a unit to assign or move them. */
 export function BenchPilotCard({ pilot: stored }: { pilot: NamedPilot }) {
-  const campaign = useCampaignStore(s => s.campaign)
+  const { campaign, assignPilot } = useCampaignStore()
   const pilot = selectEffectivePilot(campaign, stored)
-  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id: pilot.id })
   const tokens = selectPilotEdgeTokens(pilot)
   const available = selectAvailableSP(pilot)
   const unit = selectPilotAssignedUnit(campaign.units, pilot.id)
-  const style = transform ? { transform: `translate3d(${transform.x}px, ${transform.y}px, 0)` } : undefined
+  const selectId = `pilot-unit-${pilot.id}`
 
   return (
-    <div ref={setNodeRef} style={style}
-      className={cn('bg-surface border border-line flex flex-col select-none', isDragging && 'opacity-60 z-50 shadow-lg')}>
+    <div className="bg-surface border border-line flex flex-col">
       <div className="flex gap-2.5 p-3">
         <PilotPhoto pilot={pilot} size={48} editable />
         <div className="flex-1 min-w-0 flex flex-col gap-0.5">
@@ -45,13 +42,21 @@ export function BenchPilotCard({ pilot: stored }: { pilot: NamedPilot }) {
           )}
         </div>
       </div>
-      <button type="button" {...listeners} {...attributes}
-        className="touch-none min-h-touch flex items-center justify-center gap-1.5 border-t border-line field-label text-result cursor-grab active:cursor-grabbing">
-        <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" className="w-3.5 h-3.5">
-          <path d="M7 2a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm6 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-6 6a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm6 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-6 6a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm6 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4z" />
-        </svg>
-        {unit ? 'Drag to move to another unit' : 'Drag onto a unit'}
-      </button>
+      <div className="border-t border-line p-2 flex flex-col gap-1">
+        <label htmlFor={selectId} className="field-label text-text-secondary">Unit</label>
+        <Select id={selectId} value={unit?.id ?? ''} className="max-w-none"
+          onChange={v => (v ? assignPilot(v, pilot.id) : unit && assignPilot(unit.id, null))}>
+          <option value="">No unit</option>
+          {campaign.units.map(u => {
+            const other = u.pilotId && u.pilotId !== pilot.id ? campaign.namedPilots.find(p => p.id === u.pilotId) : undefined
+            return (
+              <option key={u.id} value={u.id}>
+                {u.nameAndVariant || 'Unnamed unit'}{other ? ` · replaces ${other.callsign || 'unnamed pilot'}` : ''}
+              </option>
+            )
+          })}
+        </Select>
+      </div>
     </div>
   )
 }

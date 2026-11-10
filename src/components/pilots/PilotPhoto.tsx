@@ -1,26 +1,14 @@
 'use client'
 
-import { useRef } from 'react'
-import { compressImage } from '@/hooks/useCompressImage'
+import { usePhotoPicker } from '@/components/photo/PhotoCropper'
 import { useCampaignStore } from '@/store/campaign'
 import type { NamedPilot } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
-/** A Named Pilot's photo, or a camera placeholder. With `editable`, tapping it uploads a new one. */
+/** A Named Pilot's photo, or a camera placeholder. With `editable`, tapping it uploads and crops a new one. */
 export function PilotPhoto({ pilot, size, editable = false }: { pilot: NamedPilot; size: number; editable?: boolean }) {
   const updatePilot = useCampaignStore(s => s.updatePilot)
-  const fileRef = useRef<HTMLInputElement>(null)
-
-  async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    e.target.value = ''
-    if (!file) return
-    try {
-      updatePilot(pilot.id, { photoUrl: await compressImage(file) })
-    } catch (err) {
-      console.error('Failed to compress image:', err)
-    }
-  }
+  const { choose, picker } = usePhotoPicker(photoUrl => updatePilot(pilot.id, { photoUrl }), `Crop ${pilot.callsign || 'the pilot'}’s photo`)
 
   const face = pilot.photoUrl
     // eslint-disable-next-line @next/next/no-img-element
@@ -36,11 +24,11 @@ export function PilotPhoto({ pilot, size, editable = false }: { pilot: NamedPilo
   if (!editable) return <div className={box} style={{ width: size, height: size }}>{face}</div>
   return (
     <>
-      <button type="button" onClick={() => fileRef.current?.click()} aria-label={`Upload a photo of ${pilot.callsign || 'this pilot'}`}
+      <button type="button" onClick={choose} aria-label={`Upload a photo of ${pilot.callsign || 'this pilot'}`}
         className={cn(box, 'hover:border-active')} style={{ width: size, height: size }}>
         {face}
       </button>
-      <input ref={fileRef} type="file" accept="image/*" onChange={handleFile} className="hidden" aria-hidden="true" tabIndex={-1} />
+      {picker}
     </>
   )
 }
