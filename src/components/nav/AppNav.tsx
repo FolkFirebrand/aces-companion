@@ -25,7 +25,8 @@ export function TopBar() {
   return (
     <div className="bg-surface-deep border-b border-line">
       <div className="max-w-6xl mx-auto px-gutter min-h-12 flex items-center gap-6">
-        <span className="field-label text-active truncate">{forceName || 'NEW FORCE'}</span>
+        {/* Back to the welcome page, where campaigns are started and loaded. */}
+        <Link href="/" className="field-label text-active truncate min-h-touch flex items-center">{forceName || 'NEW FORCE'}</Link>
         {inCampaign && (
           <nav aria-label="Main" className="hidden md:flex">
             {MAIN_TABS.map(tab => {

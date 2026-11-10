@@ -5,6 +5,7 @@ import { selectCanEditStartingForce } from '@/store/selectors'
 import { DifficultySettings } from './DifficultySettings'
 import { DossierButton } from '@/components/dossier/DossierButton'
 import { LoadCampaignFile, useDownloadBackup } from '@/components/campaign/LoadCampaignFile'
+import { NewCampaignButtons } from '@/components/welcome/NewCampaignButtons'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
@@ -54,6 +55,17 @@ export function ExportPanel() {
             Download Campaign File
           </DossierButton>
           <LoadCampaignFile label="Load Campaign File" className="sm:flex-1 h-button-primary" />
+        </div>
+      </div>
+
+      {/* New campaign */}
+      <div className="border border-bt-border rounded p-4 bg-bt-surface space-y-4">
+        <h2 className="text-bt-accent">New Campaign</h2>
+        <p className="text-sm text-bt-text-primary/60">
+          Start another campaign, fresh or with this force. This campaign stays until the new one starts.
+        </p>
+        <div className="flex flex-col gap-3">
+          <NewCampaignButtons />
         </div>
       </div>
 
