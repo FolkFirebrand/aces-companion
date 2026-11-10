@@ -17,6 +17,7 @@ import type { OpposingTemplate } from '@/lib/opposing-force'
 import type { UnitListEntry } from '@/lib/unit-list/convert'
 import { NAMED_PILOT_STARTING_SP, STARTING_SP, omniReconfigurationCost, purchasePrice, salePrice, unspentPvSp } from '@/lib/rules'
 import { applySortie, revertSortie } from '@/lib/sortie-effects'
+import { selectCanPilot } from './selectors'
 import {
   CAMPAIGN_SCHEMA_VERSION, UPGRADE_STEPS, runUpgrades, createCampaignFile,
   readCampaignFile, hasCampaignData,
@@ -299,27 +300,43 @@ export const useCampaignStore = create<CampaignStore>()(
         set(s => withStartingForce(s.campaign, s.campaign.units.filter(u => u.id !== id))),
 
       assignPilot: (unitId, pilotId) =>
-        set(s => ({
-          campaign: touch({
-            ...s.campaign,
-            units: s.campaign.units.map(u => {
-              if (u.pilotId === pilotId && pilotId !== null) return { ...u, pilotId: null }
-              if (u.id === unitId) return { ...u, pilotId }
-              return u
+        set(s => {
+          const pilot = pilotId ? s.campaign.namedPilots.find(p => p.id === pilotId) : null
+          const unit = s.campaign.units.find(u => u.id === unitId)
+          if (pilot && unit && !selectCanPilot(pilot, unit)) return s
+          return {
+            campaign: touch({
+              ...s.campaign,
+              units: s.campaign.units.map(u => {
+                if (u.pilotId === pilotId && pilotId !== null) return { ...u, pilotId: null }
+                if (u.id === unitId) return { ...u, pilotId }
+                return u
+              }),
             }),
-          }),
-        })),
+          }
+        }),
 
       addPilot: (pilot) =>
         set(s => ({ campaign: touch({ ...s.campaign, namedPilots: [...s.campaign.namedPilots, pilot] }) })),
 
       updatePilot: (id, partial) =>
-        set(s => ({
-          campaign: touch({
-            ...s.campaign,
-            namedPilots: s.campaign.namedPilots.map(p => p.id === id ? { ...p, ...partial } : p),
-          }),
-        })),
+        set(s => {
+          const namedPilots = s.campaign.namedPilots.map(p => p.id === id ? { ...p, ...partial } : p)
+          const pilot = namedPilots.find(p => p.id === id)
+          // A new type takes the pilot off a unit they can no longer crew, on the Roster and in draft sorties.
+          const keeps = (unitType: Unit['unitType']) => !pilot || selectCanPilot(pilot, { unitType })
+          return {
+            campaign: touch({
+              ...s.campaign,
+              namedPilots,
+              units: s.campaign.units.map(u => u.pilotId === id && !keeps(u.unitType) ? { ...u, pilotId: null } : u),
+              sorties: s.campaign.sorties.map(s2 => s2.status !== 'draft' ? s2 : withValidCommander({
+                ...s2,
+                fieldedUnits: s2.fieldedUnits.map(f => f.pilotId === id && !keeps(f.unitType) ? { ...f, pilotId: null } : f),
+              })),
+            }),
+          }
+        }),
 
       spendOnStat: (pilotId, track, cost) =>
         set(s => {
@@ -539,9 +556,9 @@ export const useCampaignStore = create<CampaignStore>()(
                 if (s2.id !== sortieId || s2.status !== 'draft') return s2
                 const others = s2.fieldedUnits.filter(f => f.unitId !== unitId)
                 if (!fielded || !unit) return withValidCommander({ ...s2, fieldedUnits: others })
-                // The roster's assignment carries over, unless that pilot is Wounded or already fielded.
+                // The roster's assignment carries over, unless that pilot is Wounded, already fielded or the wrong type.
                 const rosterPilot = s.campaign.namedPilots.find(p => p.id === unit.pilotId)
-                const pilotId = rosterPilot && !rosterPilot.wounded && !others.some(f => f.pilotId === rosterPilot.id)
+                const pilotId = rosterPilot && !rosterPilot.wounded && selectCanPilot(rosterPilot, unit) && !others.some(f => f.pilotId === rosterPilot.id)
                   ? rosterPilot.id : null
                 const entry: FieldedUnit = {
                   unitId, nameAndVariant: unit.nameAndVariant, unitType: unit.unitType,
@@ -556,7 +573,10 @@ export const useCampaignStore = create<CampaignStore>()(
 
       assignFieldedPilot: (sortieId, unitId, pilotId) =>
         set(s => {
-          if (pilotId && s.campaign.namedPilots.find(p => p.id === pilotId)?.wounded !== false) return s
+          const pilot = pilotId ? s.campaign.namedPilots.find(p => p.id === pilotId) : null
+          if (pilotId && pilot?.wounded !== false) return s
+          const fieldedUnit = s.campaign.sorties.find(s2 => s2.id === sortieId)?.fieldedUnits.find(f => f.unitId === unitId)
+          if (pilot && fieldedUnit && !selectCanPilot(pilot, fieldedUnit)) return s
           return {
             campaign: touch({
               ...s.campaign,

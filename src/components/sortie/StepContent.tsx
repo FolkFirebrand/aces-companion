@@ -2,13 +2,13 @@
 
 import { useState } from 'react'
 import { useCampaignStore } from '@/store/campaign'
-import { selectCampaignKeywords, selectFieldedPv, selectRearmingUnits, selectPvLimit, selectTotalExpenses, selectTotalIncome, selectSortieEarnings, selectDifficulty, selectWaypointsNet } from '@/store/selectors'
+import { selectCampaignKeywords, selectCanPilot, selectFieldedPv, selectRearmingUnits, selectPvLimit, selectTotalExpenses, selectTotalIncome, selectSortieEarnings, selectDifficulty, selectWaypointsNet } from '@/store/selectors'
 import { omniReconfigurationCost } from '@/lib/rules'
 import { useUnitList } from '@/lib/unit-list/load'
 import { OpposingForceStep } from './OpposingForceStep'
 import { BuyUnitPanel } from './BuyUnitPanel'
 import { omniConfigurations, unitListName } from '@/lib/unit-list/convert'
-import type { PurchaseEntry, Sortie } from '@/lib/types'
+import type { PurchaseEntry, Sortie, Unit } from '@/lib/types'
 import { DossierButton } from '@/components/dossier/DossierButton'
 import { StatusTag } from '@/components/dossier/StatusTag'
 import { Field, NumberInput, Readout, Section, Select, TextInput } from './fields'
@@ -64,8 +64,19 @@ function PlayerForce({ sortie }: Props) {
   const fieldedPilots = sortie.fieldedUnits.flatMap(f => (f.pilotId ? [f.pilotId] : []))
   const rearming = selectRearmingUnits(sortie)
   const pilotName = (id: string | null) => campaign.namedPilots.find(p => p.id === id)?.callsign ?? ''
+  // A unit reconfigured this sortie goes by its new configuration everywhere on this step.
+  const unitName = (unitId: string, name: string) => reconfigurationOf(sortie, unitId)?.toName ?? name
 
-  // A pilot left out can climb into any unit: a fielded one swaps out its crew, an unfielded one joins the sortie.
+  // A pilot left out can climb into a unit of their type: a fielded one swaps out its crew, an unfielded one joins the sortie.
+  // Once units are fielded, only those are offered.
+  function mountableUnits(pilotId: string) {
+    const pilot = campaign.namedPilots.find(p => p.id === pilotId)!
+    const pool = sortie.fieldedUnits.length > 0
+      ? campaign.units.filter(u => sortie.fieldedUnits.some(f => f.unitId === u.id))
+      : campaign.units
+    return pool.filter(u => selectCanPilot(pilot, u))
+  }
+
   function mountUp(pilotId: string, unitId: string) {
     if (!unitId) return
     if (!sortie.fieldedUnits.some(f => f.unitId === unitId)) setFielded(sortie.id, unitId, true)
@@ -75,17 +86,17 @@ function PlayerForce({ sortie }: Props) {
   function mountOptionLabel(unitId: string): string {
     const unit = campaign.units.find(u => u.id === unitId)!
     const fielded = sortie.fieldedUnits.find(f => f.unitId === unitId)
-    if (!fielded) return `${unit.nameAndVariant} · not fielded, adds ${unit.pvAtSkill4} PV`
-    return `${unit.nameAndVariant} · ${fielded.pilotId ? `replaces ${pilotName(fielded.pilotId)}` : 'replaces generic crew'}`
+    if (!fielded) return `${unitName(unitId, unit.nameAndVariant)} · not fielded, adds ${reconfigurationOf(sortie, unitId)?.toPv ?? unit.pvAtSkill4} PV`
+    return `${unitName(unitId, unit.nameAndVariant)} · ${fielded.pilotId ? `replaces ${pilotName(fielded.pilotId)}` : 'replaces generic crew'}`
   }
 
   // Where a pilot usually sits, so the picker can say "usually Talon TL-3, not fielded".
   function pilotOptionLabel(pilotId: string): string {
     const pilot = campaign.namedPilots.find(p => p.id === pilotId)!
     const here = sortie.fieldedUnits.find(f => f.pilotId === pilotId)
-    if (here) return `${pilot.callsign} · on ${here.nameAndVariant}`
+    if (here) return `${pilot.callsign} · on ${unitName(here.unitId, here.nameAndVariant)}`
     const home = campaign.units.find(u => u.pilotId === pilotId)
-    return home ? `${pilot.callsign} · usually ${home.nameAndVariant}, not fielded` : `${pilot.callsign} · unassigned`
+    return home ? `${pilot.callsign} · usually ${unitName(home.id, home.nameAndVariant)}, not fielded` : `${pilot.callsign} · unassigned`
   }
 
   return (
@@ -114,7 +125,10 @@ function PlayerForce({ sortie }: Props) {
         {campaign.units.length === 0 && <p className="m-0 text-sm text-text-secondary">Your roster has no units yet.</p>}
         {campaign.units.map(unit => {
           const fielded = sortie.fieldedUnits.find(f => f.unitId === unit.id)
-          const wouldOver = !fielded && sortie.listedPv > 0 && fieldedPv + unit.pvAtSkill4 > limit
+          const reconfigured = reconfigurationOf(sortie, unit.id)
+          const pv = reconfigured?.toPv ?? unit.pvAtSkill4
+          const wouldOver = !fielded && sortie.listedPv > 0 && fieldedPv + pv > limit
+          const fits = !fielded && sortie.listedPv > 0 && !wouldOver
           const meta = [unit.unitType, `Size ${unit.size}`, unit.ene ? 'ENE' : null].filter(Boolean).join(' · ')
           return (
             <div key={unit.id} className="flex flex-col gap-1.5 py-2.5 border-b border-line">
@@ -126,23 +140,27 @@ function PlayerForce({ sortie }: Props) {
                   className="w-6 h-6 shrink-0 accent-[var(--color-active)]"
                 />
                 <span className="flex-1 flex flex-col gap-0.5">
-                  <span className={fielded ? '' : 'text-text-secondary'}>{unit.nameAndVariant || 'Unnamed unit'}</span>
+                  <span className={fielded ? '' : 'text-text-secondary'}>
+                    {reconfigured?.toName ?? (unit.nameAndVariant || 'Unnamed unit')}
+                    {reconfigured && <StatusTag tone="keyword" className="ml-2 align-middle">Reconfigured</StatusTag>}
+                  </span>
                   <span className="font-label font-semibold text-xs tracking-[1px] uppercase text-text-secondary">
-                    {meta}{wouldOver ? ` · would go ${fieldedPv + unit.pvAtSkill4 - limit} PV over` : ''}
+                    {meta}{wouldOver ? ` · would go ${fieldedPv + pv - limit} PV over` : ''}
                   </span>
                 </span>
-                <span className={`font-display font-bold text-lg tabular-nums ${fielded ? 'text-active' : 'text-text-disabled'}`}>{unit.pvAtSkill4}</span>
+                <span className={`font-display font-bold text-lg tabular-nums ${fielded ? 'text-active' : fits ? 'text-result' : 'text-text-disabled'}`}>{pv}</span>
               </label>
               {fielded && (
                 <div className="flex items-center gap-2 pl-[34px]">
                   <label htmlFor={`pilot-${unit.id}`} className="field-label text-text-secondary w-12">Pilot</label>
                   <Select id={`pilot-${unit.id}`} value={fielded.pilotId ?? ''} onChange={v => assignFieldedPilot(sortie.id, unit.id, v || null)} className="flex-1">
                     <option value="">Generic Skill 4 crew</option>
-                    {healthy.map(p => <option key={p.id} value={p.id}>{pilotOptionLabel(p.id)}</option>)}
+                    {healthy.filter(p => selectCanPilot(p, unit) || p.id === fielded.pilotId).map(p => <option key={p.id} value={p.id}>{pilotOptionLabel(p.id)}</option>)}
                   </Select>
                   {fielded.pilotId && fielded.pilotId === sortie.forceCommanderPilotId && <StatusTag tone="active">Commander</StatusTag>}
                 </div>
               )}
+              {isOmni(unit) && <OmniReconfigure sortie={sortie} unit={unit} />}
             </div>
           )
         })}
@@ -150,24 +168,34 @@ function PlayerForce({ sortie }: Props) {
 
       {campaign.namedPilots.length > 0 && (
         <Section title="Named Pilots" aside={`${fieldedPilots.length} of ${campaign.namedPilots.length} fielded`}>
-          {healthy.filter(p => !fieldedPilots.includes(p.id)).map(p => (
-            <div key={p.id} className="flex flex-col gap-1.5 py-2 border-b border-line text-[15px]">
-              <div className="flex justify-between items-center gap-2">
-                <span>{p.callsign}</span><StatusTag tone="neutral">Sitting out · half SP</StatusTag>
-              </div>
-              {campaign.units.length > 0 && (
-                <div className="flex items-center gap-2">
-                  <label htmlFor={`mount-${p.id}`} className="field-label text-text-secondary whitespace-nowrap">Mount up</label>
-                  <Select id={`mount-${p.id}`} value="" onChange={unitId => mountUp(p.id, unitId)} className="flex-1">
-                    <option value="">Choose a unit for {p.callsign}</option>
-                    {[...campaign.units]
-                      .sort((a, b) => Number(!sortie.fieldedUnits.some(f => f.unitId === a.id)) - Number(!sortie.fieldedUnits.some(f => f.unitId === b.id)))
-                      .map(u => <option key={u.id} value={u.id}>{mountOptionLabel(u.id)}</option>)}
-                  </Select>
+          {healthy.filter(p => !fieldedPilots.includes(p.id)).map(p => {
+            const mountable = mountableUnits(p.id)
+            return (
+              <div key={p.id} className="flex flex-col gap-1.5 py-2 border-b border-line text-[15px]">
+                <div className="flex justify-between items-center gap-2">
+                  <span className="flex items-baseline gap-2">
+                    {p.callsign}
+                    <span className="font-label font-bold text-xs tracking-[1px] uppercase text-text-secondary">{p.pilotType}</span>
+                  </span>
+                  <StatusTag tone="neutral">Sitting out · half SP</StatusTag>
                 </div>
-              )}
-            </div>
-          ))}
+                {mountable.length === 0 && campaign.units.length > 0 && (
+                  <p className="m-0 text-[13px] text-text-secondary">
+                    {sortie.fieldedUnits.length > 0 ? `No fielded ${p.pilotType} for ${p.callsign} to crew.` : `No ${p.pilotType} on your Roster for ${p.callsign} to crew.`}
+                  </p>
+                )}
+                {mountable.length > 0 && (
+                  <div className="flex items-center gap-2">
+                    <label htmlFor={`mount-${p.id}`} className="field-label text-text-secondary whitespace-nowrap">Mount up</label>
+                    <Select id={`mount-${p.id}`} value="" onChange={unitId => mountUp(p.id, unitId)} className="flex-1">
+                      <option value="">Choose a {p.pilotType} for {p.callsign}</option>
+                      {mountable.map(u => <option key={u.id} value={u.id}>{mountOptionLabel(u.id)}</option>)}
+                    </Select>
+                  </div>
+                )}
+              </div>
+            )
+          })}
           {wounded.map(p => (
             <div key={p.id} className="flex justify-between items-center py-2 border-b border-line text-[15px]">
               <span>{p.callsign}</span><StatusTag tone="hurt">Wounded · sits out</StatusTag>
@@ -183,81 +211,99 @@ function PlayerForce({ sortie }: Props) {
             <option value="">Choose a Force Commander</option>
             {fieldedPilots.map(id => {
               const unit = sortie.fieldedUnits.find(f => f.pilotId === id)
-              return <option key={id} value={id}>{pilotName(id)} · {unit?.nameAndVariant}</option>
+              return <option key={id} value={id}>{pilotName(id)} · {unit && unitName(unit.unitId, unit.nameAndVariant)}</option>
             })}
           </Select>
         </Field>
       </Section>
 
       <Readout label={`Rearming · ${rearming} × 20 SP`} value={`${rearming * 20} SP`} tone="text-result" />
-
-      <OmniReconfiguration sortie={sortie} />
     </>
   )
 }
 
-function OmniReconfiguration({ sortie }: Props) {
-  const { campaign, reconfigureOmni, removePurchase } = useSortie()
-  const [unitId, setUnitId] = useState('')
+const isOmni = (unit: Unit) => !!unit.abilities?.some(a => a.trim().toUpperCase() === 'OMNI')
+
+/** The OMNI reconfiguration this sortie made to a unit, if any; the latest one wins. */
+function reconfigurationOf(sortie: Sortie, unitId: string) {
+  const found = [...sortie.purchases].reverse().find(p => p.kind === 'omni' && p.unitId === unitId)
+  return found?.kind === 'omni' ? found : undefined
+}
+
+/** Setup step 5: reconfigure an OMNI from its own row, so the PV Limit counts its new PV straight away. */
+function OmniReconfigure({ sortie, unit }: Props & { unit: Unit }) {
+  const { reconfigureOmni, removePurchase } = useSortie()
+  const [open, setOpen] = useState(false)
   const [toName, setToName] = useState('')
   const [toPv, setToPv] = useState(0)
   const [toEntryId, setToEntryId] = useState('')
-  const unit = campaign.units.find(u => u.id === unitId)
-  const omni = sortie.purchases.filter(p => p.kind === 'omni')
+  const done = reconfigurationOf(sortie, unit.id)
   // A unit linked to the unit list offers its real configurations (#39).
-  const unitList = useUnitList(!!unit?.unitListId)
-  const entry = unitList?.find(e => e.id === unit?.unitListId)
+  const unitList = useUnitList(open && !!unit.unitListId)
+  const entry = unitList?.find(e => e.id === unit.unitListId)
   const configurations = unitList && entry ? omniConfigurations(unitList, entry).filter(e => e.id !== entry.id) : []
   const toEntry = configurations.find(e => e.id === toEntryId)
 
-  function reset() {
-    setUnitId(''); setToName(''); setToPv(0); setToEntryId('')
+  function close() {
+    setOpen(false); setToName(''); setToPv(0); setToEntryId('')
   }
 
+  if (done) {
+    return (
+      <div className="flex items-center gap-2 pl-[34px] text-[13px] text-text-secondary">
+        <span className="flex-1">
+          Was {unit.nameAndVariant} ({done.fromPv} PV) · costs {done.spCost} SP
+        </span>
+        <button type="button" onClick={() => removePurchase(sortie.id, done.id)}
+          aria-label={`Undo reconfiguring ${unit.nameAndVariant}`}
+          className="min-h-touch px-2 field-label text-result hover:underline">Undo</button>
+      </div>
+    )
+  }
+  if (!open) {
+    return (
+      <button type="button" onClick={() => setOpen(true)} className="self-start ml-[34px] min-h-touch field-label text-result hover:underline">
+        Reconfigure OMNI ›
+      </button>
+    )
+  }
   return (
-    <Section title="OMNI reconfiguration" aside="Size × 5 or PV diff × 40">
-      {omni.map(p => <PurchaseLine key={p.id} purchase={p} onRemove={() => removePurchase(sortie.id, p.id)} />)}
-      <Field id="omni-unit" label="OMNI unit">
-        <Select id="omni-unit" value={unitId} onChange={id => { reset(); setUnitId(id) }}>
-          <option value="">Choose a unit</option>
-          {campaign.units.map(u => <option key={u.id} value={u.id}>{u.nameAndVariant} ({u.pvAtSkill4} PV)</option>)}
-        </Select>
-      </Field>
-      {unit && (
+    <div className="flex flex-col gap-2.5 ml-[34px] p-3 bg-surface border border-line">
+      {unit.unitListId && !unitList && <p className="m-0 text-sm text-text-secondary">Loading configurations…</p>}
+      {(!unit.unitListId || unitList) && (configurations.length > 0 ? (
+        <Field id={`omni-config-${unit.id}`} label="New configuration" hint={toEntry ? `Costs ${omniReconfigurationCost(unit.pvAtSkill4, toEntry.pv, unit.size)} SP` : 'Size × 5 or PV difference × 40 SP'}>
+          <Select id={`omni-config-${unit.id}`} value={toEntryId} onChange={id => {
+            const picked = configurations.find(e => e.id === id)
+            setToEntryId(id)
+            if (picked) { setToName(unitListName(picked)); setToPv(picked.pv) }
+          }}>
+            <option value="">Choose a configuration</option>
+            {configurations.map(e => (
+              <option key={e.id} value={e.id}>
+                {e.model} · {e.pv} PV · {omniReconfigurationCost(unit.pvAtSkill4, e.pv, unit.size)} SP
+              </option>
+            ))}
+          </Select>
+        </Field>
+      ) : (
+        // Not in the unit list (an imported or hand-entered OMNI): name the configuration by hand.
         <>
-          {configurations.length > 0 && (
-            <Field id="omni-config" label="Configuration from the unit list">
-              <Select id="omni-config" value={toEntryId} onChange={id => {
-                const picked = configurations.find(e => e.id === id)
-                setToEntryId(id)
-                if (picked) { setToName(unitListName(picked)); setToPv(picked.pv) }
-              }}>
-                <option value="">Choose a configuration</option>
-                {configurations.map(e => (
-                  <option key={e.id} value={e.id}>
-                    {e.model} · {e.pv} PV · Size {e.size} · {omniReconfigurationCost(unit.pvAtSkill4, e.pv, unit.size)} SP
-                  </option>
-                ))}
-              </Select>
-            </Field>
-          )}
-          <Field id="omni-to" label="New configuration">
-            <TextInput id="omni-to" value={toName} onChange={setToName} />
+          <Field id={`omni-to-${unit.id}`} label="New configuration">
+            <TextInput id={`omni-to-${unit.id}`} value={toName} onChange={setToName} />
           </Field>
-          <Field id="omni-pv" label="New PV at Skill 4" hint={`Costs ${omniReconfigurationCost(unit.pvAtSkill4, toPv, unit.size)} SP`}>
-            <NumberInput id="omni-pv" value={toPv} onChange={setToPv} />
+          <Field id={`omni-pv-${unit.id}`} label="New PV at Skill 4" hint={`Costs ${omniReconfigurationCost(unit.pvAtSkill4, toPv, unit.size)} SP`}>
+            <NumberInput id={`omni-pv-${unit.id}`} value={toPv} onChange={setToPv} />
           </Field>
-          <DossierButton
-            variant="secondary"
-            className="self-start"
-            disabled={!toName || toPv <= 0}
-            onClick={() => { reconfigureOmni(sortie.id, unit.id, toName, toPv, toEntry); reset() }}
-          >
-            + Reconfigure
-          </DossierButton>
         </>
-      )}
-    </Section>
+      ))}
+      <div className="flex gap-2">
+        <DossierButton variant="secondary" disabled={!toName || toPv <= 0}
+          onClick={() => { reconfigureOmni(sortie.id, unit.id, toName, toPv, toEntry); close() }}>
+          Reconfigure
+        </DossierButton>
+        <button type="button" onClick={close} className="min-h-touch px-3 field-label text-text-secondary hover:text-text-primary">Cancel</button>
+      </div>
+    </div>
   )
 }
 

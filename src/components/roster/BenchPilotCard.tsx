@@ -2,13 +2,13 @@
 
 import Link from 'next/link'
 import { useCampaignStore } from '@/store/campaign'
-import { selectAvailableSP, selectEffectivePilot, selectPilotAssignedUnit, selectPilotSkill, selectPilotEdgeTokens } from '@/store/selectors'
+import { selectAvailableSP, selectCanPilot, selectEffectivePilot, selectPilotAssignedUnit, selectPilotSkill, selectPilotEdgeTokens } from '@/store/selectors'
 import { StatusTag } from '@/components/dossier/StatusTag'
 import { Select } from '@/components/sortie/fields'
 import { PilotPhoto, WOUNDED_LABEL } from '@/components/pilots/PilotPhoto'
 import type { NamedPilot } from '@/lib/types'
 
-/** A Named Pilot on the Roster; pick a unit to assign or move them. */
+/** A Named Pilot on the Roster; pick a unit of their type to assign or move them. */
 export function BenchPilotCard({ pilot: stored }: { pilot: NamedPilot }) {
   const { campaign, assignPilot } = useCampaignStore()
   const pilot = selectEffectivePilot(campaign, stored)
@@ -43,11 +43,11 @@ export function BenchPilotCard({ pilot: stored }: { pilot: NamedPilot }) {
         </div>
       </div>
       <div className="border-t border-line p-2 flex flex-col gap-1">
-        <label htmlFor={selectId} className="field-label text-text-secondary">Unit</label>
+        <label htmlFor={selectId} className="field-label text-text-secondary">Unit · {pilot.pilotType} only</label>
         <Select id={selectId} value={unit?.id ?? ''} className="max-w-none"
           onChange={v => (v ? assignPilot(v, pilot.id) : unit && assignPilot(unit.id, null))}>
           <option value="">No unit</option>
-          {campaign.units.map(u => {
+          {campaign.units.filter(u => selectCanPilot(pilot, u) || u.id === unit?.id).map(u => {
             const other = u.pilotId && u.pilotId !== pilot.id ? campaign.namedPilots.find(p => p.id === u.pilotId) : undefined
             return (
               <option key={u.id} value={u.id}>
