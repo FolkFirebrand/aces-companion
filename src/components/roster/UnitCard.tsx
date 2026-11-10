@@ -1,37 +1,25 @@
 'use client'
 
 import { useState } from 'react'
-import { PilotDropZone } from './PilotDropZone'
+import { PilotSelect } from './PilotSelect'
 import { LinkUnitPanel } from './LinkUnitPanel'
 import { UnitPhoto } from './UnitPhoto'
-import { StatusTag } from '@/components/dossier/StatusTag'
+import { UnitStats } from './UnitStats'
 import { UNIT_TYPES } from '@/lib/types'
-import type { Unit, NamedPilot } from '@/lib/types'
+import type { Unit } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
 interface Props {
   unit: Unit
-  assignedPilot: NamedPilot | undefined
   onUpdate: (id: string, partial: Partial<Unit>) => void
   onRemove: (id: string) => void
-  onUnassignPilot: (unitId: string) => void
 }
 
 const INPUT = 'h-touch w-full bg-surface-deep border border-line px-2 text-[15px] text-text-primary focus:border-active'
 const MAX_ABILITIES = 5
 
-function Stat({ abbr, title, value, tone }: { abbr: string; title: string; value: React.ReactNode; tone?: string }) {
-  return (
-    <span className="flex flex-col items-center min-w-10 px-1.5 py-1 bg-surface-deep border border-line">
-      <abbr title={title} className="field-label text-[11px] text-text-secondary no-underline">{abbr}</abbr>
-      <span className={cn('font-label font-bold text-base', tone)}>{value}</span>
-    </span>
-  )
-}
-
-export function UnitCard({ unit, assignedPilot, onUpdate, onRemove, onUnassignPilot }: Props) {
+export function UnitCard({ unit, onUpdate, onRemove }: Props) {
   const id = (field: string) => `unit-${field}-${unit.id}`
-  const abilities = unit.abilities ?? []
   const [linking, setLinking] = useState(false)
 
   return (
@@ -77,42 +65,7 @@ export function UnitCard({ unit, assignedPilot, onUpdate, onRemove, onUnassignPi
             </label>
           </div>
 
-          {(unit.role || unit.tonnage !== undefined) && (
-            <span className="text-[13px] text-text-secondary uppercase tracking-[1px]">
-              {[unit.role, unit.tonnage !== undefined ? `${unit.tonnage} tons` : null].filter(Boolean).join(' · ')}
-            </span>
-          )}
-
-          {(unit.tmm !== undefined || unit.armor !== undefined || unit.structure !== undefined || unit.move?.length) && (
-            <div className="flex flex-wrap gap-1.5">
-              {unit.move?.map((m, i) => <Stat key={i} abbr="MV" title="Movement" value={`${m.move}${m.type ?? ''}`} />)}
-              {unit.tmm !== undefined && <Stat abbr="TMM" title="Target Movement Modifier" value={unit.tmm} />}
-              {unit.armor !== undefined && <Stat abbr="ARM" title="Armor" value={unit.armor} />}
-              {unit.structure !== undefined && <Stat abbr="STR" title="Structure" value={unit.structure} />}
-              {unit.overheat !== undefined && unit.overheat > 0 && <Stat abbr="OV" title="Overheat" value={unit.overheat} tone="text-danger" />}
-            </div>
-          )}
-
-          {unit.damage && (
-            <div className="flex items-center gap-2">
-              <span className="field-label text-text-secondary">Damage</span>
-              <div data-testid="damage-band" className="flex border border-line">
-                {(['short', 'medium', 'long'] as const).map((range, i) => (
-                  <span key={range} className={cn('flex flex-col items-center px-2.5 py-0.5', i > 0 && 'border-l border-line')}>
-                    <span className="field-label text-[11px] text-text-secondary">{['S', 'M', 'L'][i]}</span>
-                    <span className="font-label font-bold">{unit.damage![range]}</span>
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {abilities.length > 0 && (
-            <div className="flex flex-wrap gap-1">
-              {abilities.slice(0, MAX_ABILITIES).map(a => <StatusTag key={a} tone={a === 'ENE' ? 'keyword' : 'neutral'}>{a}</StatusTag>)}
-              {abilities.length > MAX_ABILITIES && <StatusTag tone="neutral">+{abilities.length - MAX_ABILITIES}</StatusTag>}
-            </div>
-          )}
+          <UnitStats unit={unit} maxAbilities={MAX_ABILITIES} />
         </div>
       </div>
 
@@ -132,7 +85,7 @@ export function UnitCard({ unit, assignedPilot, onUpdate, onRemove, onUnassignPi
       )}
 
       <div className="border-t border-line p-2">
-        <PilotDropZone unitId={unit.id} assignedPilot={assignedPilot} onUnassign={() => onUnassignPilot(unit.id)} />
+        <PilotSelect unit={unit} />
       </div>
     </div>
   )

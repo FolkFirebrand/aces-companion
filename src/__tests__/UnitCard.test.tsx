@@ -2,8 +2,8 @@ import { render, screen, within } from '@testing-library/react'
 import { UnitCard } from '@/components/roster/UnitCard'
 import type { Unit } from '@/lib/types'
 
-jest.mock('@/components/roster/PilotDropZone', () => ({
-  PilotDropZone: () => <div data-testid="pilot-drop-zone" />,
+jest.mock('@/components/roster/PilotSelect', () => ({
+  PilotSelect: () => <div data-testid="pilot-select" />,
 }))
 
 const mockRichUnit: Unit = {
@@ -29,11 +29,8 @@ const mockRichUnit: Unit = {
 const noop = () => {}
 const defaultProps = {
   unit: mockRichUnit,
-  assignedPilot: undefined,
   onUpdate: noop,
   onRemove: noop,
-  onToggleDropDeck: noop,
-  onUnassignPilot: noop,
 }
 
 describe('UnitCard rich mode', () => {

@@ -1,34 +1,22 @@
 'use client'
 
-import { useRef } from 'react'
-import { compressImage } from '@/hooks/useCompressImage'
+import { usePhotoPicker } from '@/components/photo/PhotoCropper'
 import { useUnitIcon } from '@/lib/unit-list/icons'
 import type { Unit } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
 /**
  * A unit's picture (ADR 0006): the player's own photo, else a picture from an older import, else MegaMek's
- * icon, else a placeholder. With `onPhotoChange`, tapping it uploads a photo, e.g. of the painted miniature.
+ * icon, else a placeholder. With `onPhotoChange`, tapping it uploads and crops a photo, e.g. of the painted miniature.
  */
 export function UnitPhoto({ unit, size, onPhotoChange }: {
   unit: Pick<Unit, 'nameAndVariant' | 'photoUrl' | 'imageURL' | 'iconPath'>
   size: number
   onPhotoChange?: (photoUrl: string | undefined) => void
 }) {
-  const fileRef = useRef<HTMLInputElement>(null)
+  const { choose, picker } = usePhotoPicker(photoUrl => onPhotoChange?.(photoUrl), `Crop ${unit.nameAndVariant || 'the unit'}’s photo`)
   const icon = useUnitIcon(unit.photoUrl || unit.imageURL ? undefined : unit.iconPath)
   const src = unit.photoUrl || unit.imageURL || icon
-
-  async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    e.target.value = ''
-    if (!file || !onPhotoChange) return
-    try {
-      onPhotoChange(await compressImage(file))
-    } catch (err) {
-      console.error('Failed to compress image:', err)
-    }
-  }
 
   const face = src
     // eslint-disable-next-line @next/next/no-img-element
@@ -43,11 +31,11 @@ export function UnitPhoto({ unit, size, onPhotoChange }: {
   if (!onPhotoChange) return <div className={box} style={{ width: size, height: size }}>{face}</div>
   return (
     <div className="flex flex-col items-center gap-0.5 shrink-0">
-      <button type="button" onClick={() => fileRef.current?.click()} aria-label={`Add a photo of ${unit.nameAndVariant || 'this unit'}`}
+      <button type="button" onClick={choose} aria-label={`Add a photo of ${unit.nameAndVariant || 'this unit'}`}
         className={cn(box, 'hover:border-active')} style={{ width: size, height: size }}>
         {face}
       </button>
-      <input ref={fileRef} type="file" accept="image/*" onChange={handleFile} className="hidden" aria-hidden="true" tabIndex={-1} />
+      {picker}
       {unit.photoUrl && (
         <button type="button" onClick={() => onPhotoChange(undefined)} className="field-label text-[11px] text-result min-h-6 px-1">Use icon</button>
       )}
