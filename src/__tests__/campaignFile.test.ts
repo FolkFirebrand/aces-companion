@@ -237,6 +237,14 @@ describe('v12 → v13', () => {
   })
 })
 
+describe('v13 → v14', () => {
+  it('drops the waypoint gain from every sortie', () => {
+    const v13 = { campaign: { sorties: [{ id: 's1', waypointsSP: 30, waypointsGainedSP: 50 }] } }
+
+    expect(runUpgrades(v13, 13, 14, UPGRADE_STEPS).campaign.sorties).toEqual([{ id: 's1', waypointsSP: 30 }])
+  })
+})
+
 describe('upgrade steps', () => {
   const steps: UpgradeSteps = {
     2: data => ({ ...data, campaign: { ...data.campaign, addedInV3: true } }),
