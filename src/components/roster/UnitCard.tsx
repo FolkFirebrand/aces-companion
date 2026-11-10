@@ -12,7 +12,8 @@ import { cn } from '@/lib/utils'
 interface Props {
   unit: Unit
   onUpdate: (id: string, partial: Partial<Unit>) => void
-  onRemove: (id: string) => void
+  /** Left out once the campaign is under way: units then leave by being sold in a sortie. */
+  onRemove?: (id: string) => void
 }
 
 const INPUT = 'h-touch w-full bg-surface-deep border border-line px-2 text-[15px] text-text-primary focus:border-active'
@@ -35,8 +36,10 @@ export function UnitCard({ unit, onUpdate, onRemove }: Props) {
               onChange={e => onUpdate(unit.id, { nameAndVariant: e.target.value })}
               className={cn(INPUT, 'font-label font-bold text-[17px] tracking-[0.5px]')}
             />
-            <button type="button" onClick={() => onRemove(unit.id)} aria-label={`Remove ${unit.nameAndVariant || 'unit'}`}
-              className="w-touch h-touch shrink-0 text-text-secondary hover:text-danger">✕</button>
+            {onRemove && (
+              <button type="button" onClick={() => onRemove(unit.id)} aria-label={`Remove ${unit.nameAndVariant || 'unit'}`}
+                className="w-touch h-touch shrink-0 text-text-secondary hover:text-danger">✕</button>
+            )}
           </div>
 
           <div className="grid grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)_minmax(0,1fr)_auto] gap-2 items-end">

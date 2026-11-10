@@ -1,11 +1,11 @@
 import type { Campaign } from './types'
-import { DIFFICULTY_LEVELS } from './rules'
+import { DIFFICULTY_LEVELS, STARTING_SP, unspentPvSp } from './rules'
 import { ALL_STEP_IDS } from './steps'
 
 // Version 2 is the clean break (ADR 0001): anything saved before it is discarded or refused.
 // To change the saved shape: bump this, add an UPGRADE_STEPS entry keyed by the version it
 // upgrades FROM, and add a test with a real old-format fixture (see campaignFile.test.ts).
-export const CAMPAIGN_SCHEMA_VERSION = 12
+export const CAMPAIGN_SCHEMA_VERSION = 13
 
 export type SavedData = { campaign: Record<string, unknown> } & Record<string, unknown>
 export type UpgradeSteps = Record<number, (data: SavedData) => SavedData>
@@ -158,6 +158,15 @@ export const UPGRADE_STEPS: UpgradeSteps = {
       sorties: (data.campaign.sorties as Record<string, unknown>[]).map(sortie => ({ ...sortie, waypointsGainedSP: 0 })),
     },
   }),
+  // v12 → v13 (ADR 0009): the Warchest base is kept apart from the unspent-PV SP, so the Starting Warchest
+  // can be worked out again while the force is set up. Only an Existing Force carries a base above 400 SP.
+  12: data => {
+    const campaign = data.campaign as { startingWarchest: number; units: { pvAtSkill4: number }[]; existingForceFrom?: string }
+    const warchestBase = campaign.existingForceFrom
+      ? Math.max(STARTING_SP, campaign.startingWarchest - unspentPvSp(campaign.units))
+      : STARTING_SP
+    return { ...data, campaign: { ...data.campaign, warchestBase } }
+  },
 }
 
 export function runUpgrades(data: SavedData, fromVersion: number, toVersion: number, steps: UpgradeSteps): SavedData {

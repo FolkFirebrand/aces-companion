@@ -37,7 +37,7 @@ function pilot(id: string, totalSpEarned: number, overrides: Partial<NamedPilot>
 function finishedCampaign(pilots: NamedPilot[] = [pilot('ghost', 900), pilot('rook', 600)]): Campaign {
   return {
     id: 'old', name: 'First Contract', forceName: 'Iron Ravens', commandingOfficer: 'Vance',
-    difficultyLevel: 'standard', customPvPercent: 0, customSpPercent: 100, startingWarchest: 230,
+    difficultyLevel: 'standard', customPvPercent: 0, customSpPercent: 100, startingWarchest: 230, warchestBase: 400,
     units: [unit('a', 100), unit('b', 90), unit('c', 88)],
     namedPilots: pilots, memorial: [], sorties: [], createdAt: '', updatedAt: '',
   }

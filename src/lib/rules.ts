@@ -92,6 +92,12 @@ export function setupStartingWarchest(forcePv: number): number {
   return STARTING_SP + Math.max(0, FORCE_PV_LIMIT - forcePv) * SP_PER_UNSPENT_PV
 }
 
+// The SP a force's unspent PV converts to. A roster with no units yet has no force to convert.
+export function unspentPvSp(units: { pvAtSkill4: number }[]): number {
+  if (units.length === 0) return 0
+  return Math.max(0, FORCE_PV_LIMIT - units.reduce((sum, u) => sum + u.pvAtSkill4, 0)) * SP_PER_UNSPENT_PV
+}
+
 // Aces Rulebook: an Existing Force's Warchest is raised to 400 SP if lower, then unspent PV converts as above.
 export function existingForceStartingWarchest(warchest: number, forcePv: number): number {
   return Math.max(STARTING_SP, warchest) + Math.max(0, FORCE_PV_LIMIT - forcePv) * SP_PER_UNSPENT_PV

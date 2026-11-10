@@ -8,23 +8,20 @@ import type {
 import {
   selectAvailableSP, selectCompletionBlockers, selectEffectivePilot, selectMvpCandidates, selectPilotHasSortieSp,
   selectPilotShares, selectReopenBlocker, selectHireBlocker, selectDismissBlocker, MAX_NAMED_PILOTS,
-  selectSetupForceErrors, selectSetupPilotErrors, selectTotalRosterPV, selectWarchestBalance, selectCanEditStartingForce,
+  selectSetupForceErrors, selectSetupPilotErrors, selectWarchestBalance, selectCanEditStartingForce,
 } from './selectors'
 import { configurationStats } from '@/lib/unit-list/convert'
 import { battleDamageState, commitUnit, sortieBattle, trulyDestroyedCause, unitBattle, withPending } from '@/lib/battle'
 import { addCopies } from '@/lib/opposing-force'
 import type { OpposingTemplate } from '@/lib/opposing-force'
 import type { UnitListEntry } from '@/lib/unit-list/convert'
-import { FORCE_PV_LIMIT, NAMED_PILOT_STARTING_SP, SP_PER_UNSPENT_PV, existingForceStartingWarchest, omniReconfigurationCost, purchasePrice, salePrice, setupStartingWarchest } from '@/lib/rules'
+import { NAMED_PILOT_STARTING_SP, STARTING_SP, omniReconfigurationCost, purchasePrice, salePrice, unspentPvSp } from '@/lib/rules'
 import { applySortie, revertSortie } from '@/lib/sortie-effects'
 import {
   CAMPAIGN_SCHEMA_VERSION, UPGRADE_STEPS, runUpgrades, createCampaignFile,
   readCampaignFile, hasCampaignData,
 } from '@/lib/campaign-file'
 import type { CampaignFile, ReadCampaignFileResult, SavedData } from '@/lib/campaign-file'
-
-// Aces Rulebook: a new force starts with 400 SP (setup adds 40 SP per unspent PV).
-const STARTING_WARCHEST = 400
 
 function defaultCampaign(): Campaign {
   return {
@@ -35,7 +32,8 @@ function defaultCampaign(): Campaign {
     difficultyLevel: 'standard',
     customPvPercent: 0,
     customSpPercent: 100,
-    startingWarchest: STARTING_WARCHEST,
+    startingWarchest: STARTING_SP,
+    warchestBase: STARTING_SP,
     units: [],
     namedPilots: [],
     memorial: [],
@@ -51,8 +49,15 @@ const trackField: Record<StatTrack, 'spSpentOnSkill' | 'spSpentOnEdgeTokens' | '
   edgeAbilities: 'spSpentOnEdgeAbilities',
 }
 
+// While the force is set up (ADR 0009), the Starting Warchest is its base plus 40 SP per unspent PV, worked out
+// again after every change so no route in (setup, Build the Force, an upload, a loaded file) can leave it stale.
+function settle(campaign: Campaign): Campaign {
+  if (!selectCanEditStartingForce(campaign)) return campaign
+  return { ...campaign, startingWarchest: campaign.warchestBase + unspentPvSp(campaign.units) }
+}
+
 function touch(campaign: Campaign): Campaign {
-  return { ...campaign, updatedAt: new Date().toISOString() }
+  return settle({ ...campaign, updatedAt: new Date().toISOString() })
 }
 
 function withDraftSortie(campaign: Campaign, sortieId: string, change: (sortie: Sortie) => Partial<Sortie>) {
@@ -80,12 +85,14 @@ function withValidCommander(sortie: Sortie): Sortie {
   return stillFielded ? sortie : { ...sortie, forceCommanderPilotId: null }
 }
 
-// Setup's Starting Warchest is a base plus 40 SP per unspent PV, so a change to the starting force moves it by that much.
+// Units join and leave the force for free until the campaign is under way; a removed unit also leaves any draft sortie.
 function withStartingForce(campaign: Campaign, units: Unit[]) {
   if (!selectCanEditStartingForce(campaign)) return { campaign }
-  const bonus = (list: Unit[]) => Math.max(0, FORCE_PV_LIMIT - selectTotalRosterPV(list)) * SP_PER_UNSPENT_PV
-  const startingWarchest = campaign.startingWarchest - bonus(campaign.units) + bonus(units)
-  return { campaign: touch({ ...campaign, units, startingWarchest }) }
+  const kept = new Set(units.map(u => u.id))
+  const sorties = campaign.sorties.map(s => (s.status === 'draft'
+    ? withValidCommander({ ...s, fieldedUnits: s.fieldedUnits.filter(f => kept.has(f.unitId)) })
+    : s))
+  return { campaign: touch({ ...campaign, units, sorties }) }
 }
 
 type SetCampaign = (fn: (s: { campaign: Campaign }) => { campaign: Campaign }) => void
@@ -248,21 +255,28 @@ export const useCampaignStore = create<CampaignStore>()(
           difficultyLevel: draft.difficultyLevel,
           customPvPercent: draft.customPvPercent,
           customSpPercent: draft.customSpPercent,
-          startingWarchest: draft.existingForce
-            ? existingForceStartingWarchest(draft.existingForce.warchest, selectTotalRosterPV(draft.units))
-            : setupStartingWarchest(selectTotalRosterPV(draft.units)),
+          // Aces Rulebook: an Existing Force's Warchest is raised to 400 SP if lower.
+          warchestBase: draft.existingForce ? Math.max(STARTING_SP, draft.existingForce.warchest) : STARTING_SP,
           ...(draft.existingForce ? { existingForceFrom: draft.existingForce.fromCampaign } : {}),
           units: draft.units,
           namedPilots: draft.pilots.map(p => ({ ...p, callsign: p.callsign.trim() })),
           createdAt: now,
           updatedAt: now,
         }
-        set({ campaign, setupDraft: null })
+        set({ campaign: settle(campaign), setupDraft: null })
         return true
       },
 
       updateCampaignMeta: (partial) =>
-        set(s => ({ campaign: touch({ ...s.campaign, ...partial }) })),
+        set(s => {
+          // While the force is set up, a typed Starting Warchest sets the base under the unspent-PV SP.
+          if (partial.startingWarchest !== undefined && selectCanEditStartingForce(s.campaign)) {
+            const { startingWarchest, ...rest } = partial
+            const units = rest.units ?? s.campaign.units
+            return { campaign: touch({ ...s.campaign, ...rest, warchestBase: startingWarchest - unspentPvSp(units) }) }
+          }
+          return { campaign: touch({ ...s.campaign, ...partial }) }
+        }),
 
       addUnit: (unit) =>
         set(s => ({ campaign: touch({ ...s.campaign, units: [...s.campaign.units, unit] }) })),
@@ -701,7 +715,7 @@ export const useCampaignStore = create<CampaignStore>()(
 
       readCampaignFile: (text) => readCampaignFile(text, get().campaign),
 
-      loadCampaignFile: (file) => set({ campaign: file.campaign }),
+      loadCampaignFile: (file) => set({ campaign: settle(file.campaign) }),
 
       hasCampaignData: () => hasCampaignData(get().campaign),
 
@@ -715,7 +729,8 @@ export const useCampaignStore = create<CampaignStore>()(
         if (fromVersion < CAMPAIGN_SCHEMA_VERSION && !(fromVersion in UPGRADE_STEPS)) {
           return { campaign: defaultCampaign() }
         }
-        return runUpgrades(persistedState as SavedData, fromVersion, CAMPAIGN_SCHEMA_VERSION, UPGRADE_STEPS)
+        const upgraded = runUpgrades(persistedState as SavedData, fromVersion, CAMPAIGN_SCHEMA_VERSION, UPGRADE_STEPS)
+        return { ...upgraded, campaign: settle(upgraded.campaign as unknown as Campaign) }
       },
     }
   )

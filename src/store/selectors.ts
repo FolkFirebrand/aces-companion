@@ -99,9 +99,12 @@ export function selectCampaignLog(campaign: Campaign): CampaignLogRow[] {
   })
 }
 
-/** The starting force can still change until the first sortie is logged; after that, units are bought. */
+/**
+ * The force is still being set up until the first sortie is completed (ADR 0009): units come and go for free
+ * and the Starting Warchest follows the unspent PV. After that the campaign is under way and units are bought and sold.
+ */
 export function selectCanEditStartingForce(campaign: Campaign): boolean {
-  return campaign.sorties.length === 0
+  return !campaign.sorties.some(s => s.status === 'completed')
 }
 
 export function selectWarchestBalance(campaign: Campaign): number {
