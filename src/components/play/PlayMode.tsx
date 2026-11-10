@@ -37,7 +37,7 @@ function summaryText(s: SideSummary): string {
   ].filter(Boolean).join(' · ')
 }
 
-function SideColumn({ title, tone, cards, summary, extra, empty, sortieId, readOnly, crewLabel }: {
+function SideColumn({ title, tone, cards, summary, extra, empty, sortieId, readOnly }: {
   title: string
   tone: string
   cards: Card[]
@@ -46,7 +46,6 @@ function SideColumn({ title, tone, cards, summary, extra, empty, sortieId, readO
   empty: React.ReactNode
   sortieId: string
   readOnly: boolean
-  crewLabel: string
 }) {
   const [openId, setOpenId] = useState<string | null>(null)
   return (
@@ -58,7 +57,7 @@ function SideColumn({ title, tone, cards, summary, extra, empty, sortieId, readO
       {cards.length === 0 && <p className="m-0 px-1 text-sm text-text-secondary">{empty}</p>}
       {cards.map(c => (
         <BattleCard key={c.unit.id} sortieId={sortieId} unit={c.unit} record={c.record} pilotName={c.pilotName} skill={c.skill} edgeTokens={c.edgeTokens}
-          crewLabel={crewLabel} open={openId === c.unit.id} onToggle={() => setOpenId(openId === c.unit.id ? null : c.unit.id)} readOnly={readOnly} />
+          open={openId === c.unit.id} onToggle={() => setOpenId(openId === c.unit.id ? null : c.unit.id)} readOnly={readOnly} />
       ))}
     </section>
   )
@@ -100,12 +99,12 @@ export function PlayMode({ sortie }: { sortie: Sortie }) {
   }
 
   const playerColumn = (
-    <SideColumn title="Player Force" tone="text-active" cards={player} summary={playerSummary} sortieId={sortie.id} readOnly={readOnly} crewLabel="Crew"
+    <SideColumn title="Player Force" tone="text-active" cards={player} summary={playerSummary} sortieId={sortie.id} readOnly={readOnly}
       empty={<>No Fielded Units yet. Choose them in <Link href={`/sortie/${sortie.id}/step/setup-5`} className="text-result underline">Sortie Setup step 5</Link>.</>} />
   )
   const opposingColumn = (
     <SideColumn title="Opposing Force" tone="text-result" cards={opposing} summary={opposingSummary} extra={`${opposingForcePv(sortie.opposingForce ?? [])} PV`}
-      sortieId={sortie.id} readOnly={readOnly} crewLabel="Enemy"
+      sortieId={sortie.id} readOnly={readOnly}
       empty={<>No enemy units yet. Add them in <Link href={`/sortie/${sortie.id}/step/setup-6`} className="text-result underline">Sortie Setup step 6</Link>.</>} />
   )
 

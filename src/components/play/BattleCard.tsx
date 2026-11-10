@@ -8,14 +8,12 @@ import {
   usesVehicleCrits, withMotiveCount,
 } from '@/lib/battle'
 import type { MotiveHit } from '@/lib/types'
-import type { BattleMarks, Unit, UnitBattle, UnitType } from '@/lib/types'
+import type { BattleMarks, Unit, UnitBattle } from '@/lib/types'
 import { StatusTag } from '@/components/dossier/StatusTag'
 import { DossierButton } from '@/components/dossier/DossierButton'
 import { TextInput } from '@/components/sortie/fields'
 import { UnitPhoto } from '@/components/roster/UnitPhoto'
 import { cn } from '@/lib/utils'
-
-const TYPE_CODES: Record<UnitType, string> = { BattleMech: 'BM', 'Combat Vehicle': 'CV', 'Battle Armor': 'BA', 'Conventional Infantry': 'CI' }
 
 type PipState = 'empty' | 'hit' | 'pendingHit' | 'pendingHeal'
 
@@ -153,7 +151,7 @@ function heatEffect(heat: number): string {
 }
 
 /** One unit's Alpha Strike card in play mode (#41, #43): compact when closed, full when open. */
-export function BattleCard({ sortieId, unit, record, pilotName, skill, open, onToggle, readOnly, crewLabel = 'Crew', edgeTokens }: {
+export function BattleCard({ sortieId, unit, record, pilotName, skill, open, onToggle, readOnly, edgeTokens }: {
   sortieId: string
   unit: Unit
   record: UnitBattle
@@ -162,8 +160,6 @@ export function BattleCard({ sortieId, unit, record, pilotName, skill, open, onT
   open: boolean
   onToggle: () => void
   readOnly: boolean
-  /** Shown in place of a Named Pilot: 'Crew' for the Player Force, 'Enemy' for the Opposing Force. */
-  crewLabel?: string
   /** The Named Pilot's Edge Tokens stat (#45); absent for crews and enemies. */
   edgeTokens?: number
 }) {
@@ -214,7 +210,13 @@ export function BattleCard({ sortieId, unit, record, pilotName, skill, open, onT
           {unit.nameAndVariant}
         </span>
         <span className={cn('flex flex-wrap items-center gap-1.5 text-xs', headerBar ? 'text-on-active' : 'text-text-secondary')}>
-          <span>{pilotName ?? crewLabel} · Sk {skill} · {TYPE_CODES[unit.unitType]} · SZ {unit.size}</span>
+          <span>
+            {pilotName && `${pilotName} · `}Sk {skill}
+            {/* Movement on the closed card; the open card has it in the stat row. */}
+            {!open && !!unit.move?.length && (
+              <> · <span className={cn(readout.move !== readout.baseMove && 'text-danger')}>MV {readout.move}</span></>
+            )}
+          </span>
           {committedDestroyed && <StatusTag tone="hurt">Destroyed{record.destroyedRound ? ` · round ${record.destroyedRound}` : ''}</StatusTag>}
           {committedReadout.crippled && <StatusTag tone="active" className={cn(onBar, headerBar && 'text-active')}>Crippled</StatusTag>}
           {committedReadout.shutdown && !committedDestroyed && <StatusTag tone="hurt" className={cn(onBar, headerBar && 'text-danger')}>Shutdown</StatusTag>}
