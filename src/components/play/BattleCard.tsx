@@ -212,9 +212,9 @@ export function BattleCard({ sortieId, unit, record, pilotName, skill, open, onT
         <span className={cn('flex flex-wrap items-center gap-1.5 text-xs', headerBar ? 'text-on-active' : 'text-text-secondary')}>
           <span>
             {pilotName && `${pilotName} · `}Sk {skill}
-            {/* Movement on the closed card; the open card has it in the stat row. */}
+            {/* Movement and sprint on the closed card; the open card has them in the stat row. */}
             {!open && !!unit.move?.length && (
-              <> · <span className={cn(readout.move !== readout.baseMove && 'text-danger')}>MV {readout.move}</span></>
+              <> · <span className={cn(readout.move !== readout.baseMove && 'text-danger')}>MV {readout.move}{readout.sprint !== '–' && ` · SPR ${readout.sprint}`}</span></>
             )}
           </span>
           {committedDestroyed && <StatusTag tone="hurt">Destroyed{record.destroyedRound ? ` · round ${record.destroyedRound}` : ''}</StatusTag>}
