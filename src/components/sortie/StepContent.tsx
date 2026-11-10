@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useCampaignStore } from '@/store/campaign'
-import { selectCampaignKeywords, selectCanPilot, selectFieldedPv, selectRearmingUnits, selectPvLimit, selectTotalExpenses, selectTotalIncome, selectSortieEarnings, selectDifficulty, selectWaypointsNet } from '@/store/selectors'
+import { selectCampaignKeywords, selectCanPilot, selectFieldedPv, selectRearmingUnits, selectPvLimit, selectTotalExpenses, selectTotalIncome, selectSortieEarnings, selectDifficulty } from '@/store/selectors'
 import { omniReconfigurationCost } from '@/lib/rules'
 import { useUnitList } from '@/lib/unit-list/load'
 import { OpposingForceStep } from './OpposingForceStep'
@@ -309,21 +309,12 @@ function OmniReconfigure({ sortie, unit }: Props & { unit: Unit }) {
 
 function TriggerGameEndWaypoints({ sortie }: Props) {
   const { updateSortie } = useSortie()
-  const net = selectWaypointsNet(sortie)
   return (
     <>
-      <p className="m-0 text-sm text-text-secondary">Add up every waypoint revealed during the battle and at game end that changed your SP. Some cost SP, some give it.</p>
+      <p className="m-0 text-sm text-text-secondary">Add up the SP paid to every waypoint revealed during the battle and at game end.</p>
       <Field id="waypoints-sp" label="SP paid to waypoints" hint="The total SP that waypoint text told you to pay.">
         <NumberInput id="waypoints-sp" min={0} value={sortie.waypointsSP} onChange={waypointsSP => updateSortie(sortie.id, { waypointsSP })} />
       </Field>
-      <Field id="waypoints-gained" label="SP gained from waypoints" hint="The total SP that waypoint text gave you.">
-        <NumberInput id="waypoints-gained" min={0} value={sortie.waypointsGainedSP} onChange={waypointsGainedSP => updateSortie(sortie.id, { waypointsGainedSP })} />
-      </Field>
-      <Readout
-        label="Waypoints on the Sortie Log"
-        value={net > 0 ? `−${net} SP` : net < 0 ? `+${-net} SP` : '0 SP'}
-        tone={net > 0 ? 'text-danger' : net < 0 ? 'text-result' : 'text-text-primary'}
-      />
       <Field id="waypoints-note" label="Which waypoints (optional)">
         <TextInput id="waypoints-note" value={sortie.waypointsNote} placeholder="e.g. Waypoint 4, Waypoint 9" onChange={waypointsNote => updateSortie(sortie.id, { waypointsNote })} />
       </Field>
@@ -391,8 +382,8 @@ function CalculateIncomeAndExpenses({ sortie }: Props) {
         <Readout label="Total Income" value={selectTotalIncome(campaign, sortie)} />
       </Section>
       <Section title="Expenses">
-        {selectWaypointsNet(sortie) !== 0 && (
-          <Readout label="Waypoints (paid less gained)" value={selectWaypointsNet(sortie)} tone="text-result" />
+        {sortie.waypointsSP > 0 && (
+          <Readout label="Waypoints" value={sortie.waypointsSP} tone="text-result" />
         )}
         <Readout label={`Rearming · ${selectRearmingUnits(sortie)} units without ENE × 20`} value={selectRearmingUnits(sortie) * 20} tone="text-result" />
         <Readout label="Total Expenses" value={selectTotalExpenses(sortie)} tone="text-text-primary" />

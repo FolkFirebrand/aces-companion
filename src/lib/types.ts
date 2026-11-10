@@ -118,8 +118,6 @@ export interface Sortie {
   reconnaissanceNote: string
   /** SP that waypoint text made you pay during or at the end of the sortie. */
   waypointsSP: number
-  /** SP that waypoint text gave you; it offsets the costs on the Sortie Log's Waypoints line. */
-  waypointsGainedSP: number
   waypointsNote: string
   /** Rearming count typed in before Fielded Units existed (v6 saves); 0 for new sorties. */
   legacyUnitsWithoutENE: number
