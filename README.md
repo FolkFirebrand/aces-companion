@@ -4,13 +4,32 @@ A digital companion app for **BattleTech: Aces** — digitizes the paper campaig
 
 ## Features
 
-- **Roster** — manage your unit roster and up to 6 named pilots, track wounded status, and maintain a memorial for lost units and pilots
-- **Campaign Log** — sortie history table with running warchest balance; create new sorties in one click
-- **Sortie Log** — per-sortie income/expense breakdown (objectives, recon, rearming, personnel, repairs) with real-time earnings calculation
-- **Pilots** — named pilot cards with Skill, Edge Tokens, and Edge Abilities stat tracks; SP guard prevents spending beyond available points; MVP button grants +20 SP per award
-- **Export / Import** — download campaign as JSON to back up or move between devices; confirmation modal before overwriting
+### Campaign setup
+- **Guided setup** — campaign and force name, Difficulty Level (Rookie to Legendary, or Custom), and a Starting Warchest Balance that includes 40 SP per unspent PV
+- **Existing Force** — carry units and Named Pilots over from a finished campaign, with Carried-over SP and the Existing-Force Modifier applied per the book
+- **Force import** — load MegaMek `.mul` files (MekBay exports them), Unit Builder JSON, or the app's own force files; units are matched to the unit list, and the rest come in as custom units
 
-All data is saved automatically to `localStorage` on every change — no save button required.
+### Player Force
+- **Unit list** — 8,000+ units from MegaMek Data, searchable and filterable by faction, era and damage by range, with a stats preview before adding
+- **PV fit** — a summary bar shows the force against the sortie's PV Limit
+- **OMNI units** — reconfigure OmniMechs on the unit card
+- **Named Pilots** — up to 6, with callsign, unit type and a cropped photo; assign them to units from a dropdown on either the pilot or the unit card
+- **Memorial** — Truly Destroyed units, pilots killed in action, and Dismissed pilots
+
+### Sorties
+- **Sortie checklist** — the book's seven Sortie Setup Steps and seven After-Sortie Steps, in order
+- **Opposing Force** — pick enemy units from the same unit list; copies are numbered and their PV totalled
+- **Play Mode** — Alpha Strike Cards for both sides: armor and structure pips, heat to shutdown, critical hits, motive damage, Edge tokens and limited-use specials, with live move, sprint, damage and to-hit. Marks stay pending until applied or the round ends; "Battle over" records the Primary Objective and opens the After-Sortie Steps
+- **Casualties** — Salvage Checks and Crew Checks; type in real dice or let the app roll
+- **Sortie Log** — income and expenses (objectives, difficulty, recon, rearming, personnel, repairs) with Earnings worked out as you go
+- **Improve pilots** — Skill, Edge Tokens and Edge Abilities tracks with an SP guard, half SP for pilots who sat out, and a +20 SP MVP award
+- **Purchases** — buy units at PV × 40 SP, sell at PV × 20 SP, and hire replacement pilots
+- **Drafts until completed** — Failed Sorties change nothing, and the latest Completed Sortie can be reopened
+
+### Campaign Log and saving
+- **Campaign Log** — one row per sortie with the running Warchest balance
+- **Autosave** — everything is saved to `localStorage` on every change; there is no save button or account
+- **Campaign File** — download the campaign as JSON to back it up or move devices, load it anywhere (with a confirmation before overwriting), or start a new campaign from inside the current one
 
 ## Tech Stack
 
