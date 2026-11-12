@@ -198,12 +198,19 @@ export interface UnitListQuery {
   pvMax?: number
   sizes?: number[]
   role?: string
-  /** Ground move at least this many inches. */
+  /** Moves in any of these ways (keys of MOVE_TYPES). */
+  moveTypes?: MoveTypeKey[]
+  /** Moves at least this many inches in one of `moveTypes`, or by its main move if none are given. */
   minMove?: number
-  /** Damage at least this much (0* counts as 0) at every range in `damageRanges`, or at every range if none are given. */
-  minDamage?: number
-  /** Ranges the damage filter checks: 0 short, 1 medium, 2 long. */
-  damageRanges?: number[]
+  minTmm?: number
+  minArmor?: number
+  minStructure?: number
+  /** Damage at least this much at short, medium and long range; 0* counts as 0. */
+  minDamage?: [short?: number, medium?: number, long?: number]
+  /** Overheat at least this much. */
+  minOv?: number
+  /** Has every one of these specials, by their codes without numbers (see specialCode). */
+  specials?: string[]
   /** Available to any of these factions (indexes into the file's factions), in `era` if one is given. */
   factions?: number[]
   /** Available in this era (an index into ERAS), to any of `factions` if some are given. */
@@ -216,10 +223,37 @@ export function unitListRoles(entries: UnitListEntry[]): string[] {
   return [...new Set(entries.flatMap(e => (e.role ? [e.role] : [])))].sort()
 }
 
+/** Ways a unit can move, as the filter groups them; each lists the catalog's move codes. */
+export const MOVE_TYPES = {
+  walk: { label: 'Walk', codes: [''] },
+  jump: { label: 'Jump', codes: ['j'] },
+  tracked: { label: 'Tracked', codes: ['t', 'qt'] },
+  wheeled: { label: 'Wheeled', codes: ['w', 'qw'] },
+  hover: { label: 'Hover', codes: ['h'] },
+  vtol: { label: 'VTOL', codes: ['v'] },
+  naval: { label: 'Naval', codes: ['n', 's'] },
+  wige: { label: 'WiGE', codes: ['g'] },
+  foot: { label: 'Foot', codes: ['f'] },
+  motorized: { label: 'Motorized', codes: ['m'] },
+} as const satisfies Record<string, { label: string; codes: readonly string[] }>
+export type MoveTypeKey = keyof typeof MOVE_TYPES
+
+/** A special's code without its numbers or bracketed contents, e.g. IF2 → IF, TUR(4/4/2,SRM2/2) → TUR, C3M2 → C3M. */
+export function specialCode(special: string): string {
+  return special.replace(/\(.*\)$/, '').replace(/[-\d./*]+$/, '').replace(/^TSEMP.*/, 'TSEMP')
+}
+
+/** Every special code in the unit list with how many units have it, most common first. */
+export function unitListSpecials(entries: UnitListEntry[]): { code: string; count: number }[] {
+  const counts = new Map<string, number>()
+  for (const entry of entries) for (const code of new Set(entry.specials.map(specialCode))) counts.set(code, (counts.get(code) ?? 0) + 1)
+  return [...counts].map(([code, count]) => ({ code, count })).sort((a, b) => b.count - a.count || a.code.localeCompare(b.code))
+}
+
 /** Every word of the search must appear in the unit's name, and every filter set must match; results keep the list's order. */
 export function searchUnitList(entries: UnitListEntry[], query: UnitListQuery): UnitListEntry[] {
-  const { text = '', types, pvMin, pvMax, sizes, role, minMove, minDamage, damageRanges, factions, era, limit = 50 } = query
-  const ranges = damageRanges?.length ? damageRanges : [0, 1, 2]
+  const { text = '', types, pvMin, pvMax, sizes, role, moveTypes, minMove, minTmm, minArmor, minStructure, minDamage, minOv, specials, factions, era, limit = 50 } = query
+  const moveCodes: string[] = (moveTypes ?? []).flatMap(t => MOVE_TYPES[t].codes)
   const words = text.toLowerCase().split(/\s+/).filter(Boolean)
   const results: UnitListEntry[] = []
   for (const entry of entries) {
@@ -228,8 +262,13 @@ export function searchUnitList(entries: UnitListEntry[], query: UnitListQuery): 
     if (pvMax !== undefined && entry.pv > pvMax) continue
     if (sizes?.length && !sizes.includes(entry.size)) continue
     if (role && entry.role !== role) continue
-    if (minMove !== undefined && (Object.values(entry.move)[0] ?? 0) < minMove) continue
-    if (minDamage !== undefined && ranges.some(r => damageNumber(entry.damage[r]) < minDamage)) continue
+    if ((moveCodes.length || minMove !== undefined) && !moves(entry, moveCodes, minMove ?? 0)) continue
+    if (minTmm !== undefined && entry.tmm < minTmm) continue
+    if (minArmor !== undefined && entry.armor < minArmor) continue
+    if (minStructure !== undefined && entry.structure < minStructure) continue
+    if (minDamage?.some((min, r) => min !== undefined && damageNumber(entry.damage[r]) < min)) continue
+    if (minOv !== undefined && entry.ov < minOv) continue
+    if (specials?.length && !specials.every(code => entry.specials.some(s => specialCode(s) === code))) continue
     if ((factions?.length || era !== undefined) && !isAvailable(entry, factions, era)) continue
     const name = unitListName(entry).toLowerCase()
     if (!words.every(w => name.includes(w))) continue
@@ -237,6 +276,41 @@ export function searchUnitList(entries: UnitListEntry[], query: UnitListQuery): 
     if (results.length >= limit) break
   }
   return results
+}
+
+/** Orders the results can be sorted in; the list's own order is by name. */
+export const UNIT_LIST_SORTS = {
+  name: 'Name',
+  pvLow: 'PV, low first',
+  pvHigh: 'PV, high first',
+  damage: 'Damage, highest band',
+  move: 'Move, fastest first',
+  armor: 'Armor + structure',
+} as const
+export type UnitListSort = keyof typeof UNIT_LIST_SORTS
+
+/** The results in `sort` order, ties kept in name order. Move counts the fastest of `moveTypes`, or the main move if none. */
+export function sortUnitList(entries: UnitListEntry[], sort: UnitListSort, moveTypes: MoveTypeKey[] = []): UnitListEntry[] {
+  const codes: string[] = moveTypes.flatMap(t => MOVE_TYPES[t].codes)
+  const fastest = (e: UnitListEntry) => codes.length
+    ? Math.max(0, ...Object.entries(e.move).filter(([c]) => codes.includes(c)).map(([, m]) => m))
+    : Object.values(e.move)[0] ?? 0
+  const key: Record<UnitListSort, ((e: UnitListEntry) => number) | null> = {
+    name: null,
+    pvLow: e => e.pv,
+    pvHigh: e => -e.pv,
+    // Highest band first; between equal peaks, the more total damage wins.
+    damage: e => -(Math.max(...e.damage.map(damageNumber)) * 100 + e.damage.reduce((sum, d) => sum + damageNumber(d), 0)),
+    move: e => -fastest(e),
+    armor: e => -(e.armor + e.structure),
+  }
+  const by = key[sort]
+  return by ? [...entries].sort((a, b) => by(a) - by(b)) : entries
+}
+
+function moves(entry: UnitListEntry, codes: string[], min: number): boolean {
+  if (!codes.length) return (Object.values(entry.move)[0] ?? 0) >= min
+  return Object.entries(entry.move).some(([code, inches]) => codes.includes(code) && inches >= min)
 }
 
 function isAvailable(entry: UnitListEntry, factions: number[] | undefined, era: number | undefined): boolean {

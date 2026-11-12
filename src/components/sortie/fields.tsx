@@ -34,6 +34,24 @@ export function NumberInput({ id, value, onChange, className, ...props }:
   )
 }
 
+/** A number that may be left blank: blank (or 0) is `undefined`, shown as the placeholder. */
+export function OptionalNumberInput({ id, value, onChange, className, placeholder = 'Any', ...props }:
+  Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange' | 'value'> & { id: string; value: number | undefined; onChange: (value: number | undefined) => void }) {
+  return (
+    <input
+      id={id}
+      type="number"
+      inputMode="numeric"
+      min={0}
+      value={value ?? ''}
+      placeholder={placeholder}
+      onChange={e => { const n = Number(e.target.value); onChange(e.target.value !== '' && n > 0 ? n : undefined) }}
+      className={cn(INPUT, 'tabular-nums placeholder:text-text-secondary', className)}
+      {...props}
+    />
+  )
+}
+
 export function Select({ id, value, onChange, children, className }:
   { id: string; value: string; onChange: (value: string) => void; children: React.ReactNode; className?: string }) {
   return (
