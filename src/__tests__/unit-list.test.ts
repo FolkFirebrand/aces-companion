@@ -1,6 +1,6 @@
 import { act } from '@testing-library/react'
 import { useCampaignStore } from '@/store/campaign'
-import { convertCatalog, omniConfigurations, searchUnitList, unitFromEntry, unitListFactions, unitListName, unitListRoles } from '@/lib/unit-list/convert'
+import { convertCatalog, omniConfigurations, searchUnitList, sortUnitList, specialCode, unitFromEntry, unitListFactions, unitListName, unitListRoles, unitListSpecials } from '@/lib/unit-list/convert'
 import { ALL_STEP_IDS } from '@/lib/steps'
 import type { CatalogUnit, FactionCatalog } from '@/lib/unit-list/convert'
 import { unitIconUrl } from '@/lib/unit-list/icons'
@@ -170,11 +170,44 @@ describe('unit list filters (#37)', () => {
     expect(searchUnitList(LIST, { minMove: 6 }).map(e => e.id)).toEqual(['BMAtlas_AS7D', 'Demolisher_Tank', 'Goth_A', 'Goth_B'])
   })
 
-  it('filter by damage at every selected range, or every range when none are selected', () => {
-    expect(searchUnitList(LIST, { minDamage: 5, damageRanges: [1] }).map(e => e.id)).toEqual(['BMAtlas_AS7D', 'Demolisher_Tank', 'Goth_A', 'Goth_B'])
-    expect(searchUnitList(LIST, { minDamage: 2, damageRanges: [0, 2] }).map(e => e.id)).toEqual(['BMAtlas_AS7D', 'Goth_A', 'Goth_B'])
-    expect(searchUnitList(LIST, { minDamage: 1, damageRanges: [0] }).map(e => e.id)).toEqual(['BMAtlas_AS7D', 'Demolisher_Tank', 'BA_Elemental', 'CI_Foot', 'Goth_A', 'Goth_B'])
-    expect(searchUnitList(LIST, { minDamage: 2 }).map(e => e.id)).toEqual(['BMAtlas_AS7D', 'Goth_A', 'Goth_B'])
+  it('filter by damage at short, medium and long range separately', () => {
+    expect(searchUnitList(LIST, { minDamage: [undefined, 5] }).map(e => e.id)).toEqual(['BMAtlas_AS7D', 'Demolisher_Tank', 'Goth_A', 'Goth_B'])
+    expect(searchUnitList(LIST, { minDamage: [2, undefined, 2] }).map(e => e.id)).toEqual(['BMAtlas_AS7D', 'Goth_A', 'Goth_B'])
+    expect(searchUnitList(LIST, { minDamage: [6, 6] }).map(e => e.id)).toEqual(['Demolisher_Tank'])
+    expect(searchUnitList(LIST, { minDamage: [1] }).map(e => e.id)).toEqual(['BMAtlas_AS7D', 'Demolisher_Tank', 'BA_Elemental', 'CI_Foot', 'Goth_A', 'Goth_B'])
+  })
+
+  it('filter by move type, and by move in those types', () => {
+    expect(searchUnitList(LIST, { moveTypes: ['jump'] }).map(e => e.id)).toEqual(['BA_Elemental'])
+    expect(searchUnitList(LIST, { moveTypes: ['tracked', 'foot'] }).map(e => e.id)).toEqual(['Demolisher_Tank', 'CI_Foot'])
+    expect(searchUnitList(LIST, { moveTypes: ['jump'], minMove: 8 }).map(e => e.id)).toEqual([])
+    expect(searchUnitList(LIST, { moveTypes: ['walk', 'jump'], minMove: 6 }).map(e => e.id)).toEqual(['BMAtlas_AS7D', 'BA_Elemental', 'Goth_A', 'Goth_B'])
+  })
+
+  it('filter by armor, structure and overheat', () => {
+    expect(searchUnitList(LIST, { minArmor: 3 }).map(e => e.id)).toEqual(['BMAtlas_AS7D', 'Demolisher_Tank', 'Goth_A', 'Goth_B'])
+    expect(searchUnitList(LIST, { minStructure: 2 }).map(e => e.id)).toEqual(['BMAtlas_AS7D', 'Demolisher_Tank', 'BA_Elemental', 'Goth_A', 'Goth_B'])
+    const hot = convertCatalog([catalogUnit('Hot', 'Hot', 'H', { OV: 2 }), ATLAS])
+    expect(searchUnitList(hot, { minOv: 1 }).map(e => e.id)).toEqual(['Hot'])
+  })
+
+  it('filter by TMM, and sort by PV, highest damage band (then total) and move', () => {
+    expect(searchUnitList(LIST, { minTmm: 2 }).map(e => e.id)).toEqual(['BA_Elemental'])
+    expect(sortUnitList(LIST, 'pvHigh').map(e => e.id)).toEqual(['BMAtlas_AS7D', 'Goth_B', 'Goth_A', 'Demolisher_Tank', 'BA_Elemental', 'CI_Foot'])
+    expect(sortUnitList(LIST, 'damage').map(e => e.id)).toEqual(['Demolisher_Tank', 'BMAtlas_AS7D', 'Goth_A', 'Goth_B', 'BA_Elemental', 'CI_Foot'])
+    expect(sortUnitList(LIST, 'move', ['jump']).map(e => e.id)[0]).toBe('BA_Elemental')
+    expect(sortUnitList(LIST, 'name')).toBe(LIST)
+  })
+
+  it('filter by every chosen special, ignoring its numbers', () => {
+    expect(specialCode('IF2')).toBe('IF')
+    expect(specialCode('TUR(4/4/2,SRM2/2)')).toBe('TUR')
+    expect(specialCode('C3M2')).toBe('C3M')
+    expect(specialCode('REAR1/1/-')).toBe('REAR')
+    expect(specialCode('ARTAIS-2')).toBe('ARTAIS')
+    expect(searchUnitList(LIST, { specials: ['IF'] }).map(e => e.id)).toEqual(['BMAtlas_AS7D', 'Demolisher_Tank', 'BA_Elemental', 'CI_Foot'])
+    expect(searchUnitList(LIST, { specials: ['ENE', 'OMNI'] }).map(e => e.id)).toEqual(['Goth_A'])
+    expect(unitListSpecials(LIST)).toEqual([{ code: 'IF', count: 4 }, { code: 'REAR', count: 4 }, { code: 'OMNI', count: 2 }, { code: 'ENE', count: 1 }])
   })
 
   it('combine with the name search and type', () => {
