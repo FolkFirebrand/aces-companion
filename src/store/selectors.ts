@@ -380,15 +380,17 @@ export function selectCampaignStarted(campaign: Campaign): boolean {
 }
 
 // Aces Rulebook: setup enforces these (unlike a sortie's PV Limit, which only warns).
+// A Custom campaign lifts all of them.
 export function selectSetupForceErrors(draft: SetupDraft): string[] {
   const pv = selectTotalRosterPV(draft.units)
   const existing = draft.existingForce
+  const custom = draft.difficultyLevel === 'custom'
   const errors: string[] = []
   // An Existing Force may only add units up to 400 PV; one already over carries over as it is.
   const addedUnits = existing ? draft.units.some(u => !existing.unitIds.includes(u.id)) : true
-  if (pv > FORCE_PV_LIMIT && addedUnits) errors.push(`Your force is ${pv - FORCE_PV_LIMIT} PV over the ${FORCE_PV_LIMIT} PV limit.`)
-  if (!existing && draft.units.length < MIN_SETUP_UNITS) errors.push(`Your force needs at least ${MIN_SETUP_UNITS} units (it has ${draft.units.length}).`)
-  if (draft.units.some(u => !UNIT_TYPES.includes(u.unitType))) errors.push('Only BattleMechs, battle armor, combat vehicles and infantry are allowed.')
+  if (!custom && pv > FORCE_PV_LIMIT && addedUnits) errors.push(`Your force is ${pv - FORCE_PV_LIMIT} PV over the ${FORCE_PV_LIMIT} PV limit.`)
+  if (!custom && !existing && draft.units.length < MIN_SETUP_UNITS) errors.push(`Your force needs at least ${MIN_SETUP_UNITS} units (it has ${draft.units.length}).`)
+  if (!custom && draft.units.some(u => !UNIT_TYPES.includes(u.unitType))) errors.push('Only BattleMechs, battle armor, combat vehicles and infantry are allowed.')
   return errors
 }
 

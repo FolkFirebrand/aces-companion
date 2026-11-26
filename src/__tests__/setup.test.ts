@@ -64,6 +64,16 @@ describe('the force rules', () => {
       'Your force needs at least 8 units (it has 1).',
     ])
   })
+
+  it('are all lifted for a Custom campaign', () => {
+    act(() => {
+      store().startSetup()
+      store().updateSetup({ difficultyLevel: 'custom' })
+      store().addSetupUnit(unit('big', 401, { unitType: 'Aerospace Fighter' as Unit['unitType'] }))
+    })
+
+    expect(selectSetupForceErrors(draft())).toEqual([])
+  })
 })
 
 describe('the Named Pilot rules', () => {

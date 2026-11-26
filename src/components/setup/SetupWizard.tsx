@@ -14,7 +14,7 @@ import { UNIT_TYPES } from '@/lib/types'
 import type { DifficultyLevel, NamedPilot, SetupDraft, UnitType } from '@/lib/types'
 import { DossierButton } from '@/components/dossier/DossierButton'
 import { TrackSteppers } from '@/components/pilots/PilotTracks'
-import { ChassisCheckButton, ForceBuilder, ForceRules } from '@/components/roster/ForceBuilder'
+import { ChassisCheckButton, ForceBuilder, ForceRules, NO_LIMITS_CHECK } from '@/components/roster/ForceBuilder'
 import { Field, NumberInput, Section, Select, TextInput } from '@/components/sortie/fields'
 import { cn } from '@/lib/utils'
 
@@ -31,6 +31,7 @@ const EXISTING_SUMMARIES = [
   `Your Named Pilots carry over with their SP. New pilots spend ${NAMED_PILOT_STARTING_SP} SP`,
   'Check everything, then start the campaign.',
 ]
+const CUSTOM_FORCE_SUMMARY = 'Custom campaign: choose any units, with no force rules'
 
 function isCarried(draft: SetupDraft, p: NamedPilot) {
   return !!draft.existingForce && p.carriedOverSp !== undefined
@@ -95,10 +96,14 @@ function ForceStep({ draft }: { draft: SetupDraft }) {
   const existing = draft.existingForce
   const carried = (unitId: string) => !!existing?.unitIds.includes(unitId)
   const added = draft.units.some(u => !carried(u.id))
+  // A Custom campaign has no force rules.
+  const custom = draft.difficultyLevel === 'custom'
   // A carried-over force already above 400 PV is allowed; it just can't add units.
-  const over = pv > FORCE_PV_LIMIT && (!existing || added)
+  const over = !custom && pv > FORCE_PV_LIMIT && (!existing || added)
   const typesOk = { ok: draft.units.every(u => UNIT_TYPES.includes(u.unitType)), text: 'BattleMechs, battle armor, vehicles and infantry only' }
-  const checks = existing
+  const checks = custom
+    ? [NO_LIMITS_CHECK]
+    : existing
     ? [{ ok: !over, text: `Added units bring it no higher than ${FORCE_PV_LIMIT} PV` }, typesOk]
     : [
         { ok: !over, text: `No more than ${FORCE_PV_LIMIT} PV` },
@@ -109,9 +114,9 @@ function ForceStep({ draft }: { draft: SetupDraft }) {
 
   return (
     <>
-      <ForceBuilder units={draft.units} onAdd={addSetupUnit} onRemove={removeSetupUnit} isCarried={carried} over={over}
-        overNote={pv > FORCE_PV_LIMIT ? 'Carried over above the limit' : null} />
-      <ForceRules checks={checks}>
+      <ForceBuilder units={draft.units} onAdd={addSetupUnit} onRemove={removeSetupUnit} isCarried={carried} over={over} unlimited={custom}
+        overNote={!custom && pv > FORCE_PV_LIMIT ? 'Carried over above the limit' : null} />
+      <ForceRules checks={checks} custom={custom}>
         {!existing && <ChassisCheckButton units={draft.units} />}
       </ForceRules>
     </>
@@ -270,7 +275,7 @@ export function SetupWizard() {
             {[1, 2, 3, 4].map(n => <span key={n} className={cn('flex-1 h-1', n <= step ? 'bg-active' : 'bg-line')} />)}
           </div>
           <h1 className="m-0 text-[28px] sm:text-[34px] leading-[1.05] text-active">{TITLES[step - 1]}</h1>
-          <p className="m-0 text-sm text-text-secondary">{(draft.existingForce ? EXISTING_SUMMARIES : SUMMARIES)[step - 1]}</p>
+          <p className="m-0 text-sm text-text-secondary">{step === 2 && draft.difficultyLevel === 'custom' ? CUSTOM_FORCE_SUMMARY : (draft.existingForce ? EXISTING_SUMMARIES : SUMMARIES)[step - 1]}</p>
         </div>
       </header>
       <div className="max-w-xl mx-auto px-gutter py-4 flex flex-col gap-3.5">
