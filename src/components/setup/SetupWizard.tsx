@@ -71,7 +71,7 @@ function NameStep({ draft }: { draft: SetupDraft }) {
               <input type="radio" name="difficulty" checked={on} onChange={() => updateSetup({ difficultyLevel: id as DifficultyLevel })} className="sr-only" />
               <span className="flex-1 flex flex-col">
                 <span className={cn('font-label font-bold text-base tracking-[1px] uppercase', on && 'text-active')}>{level ? level.name : 'Custom'}</span>
-                <span className="text-[13px] text-text-secondary">{level ? LEVEL_NOTES[id as keyof typeof LEVEL_NOTES] : 'Set your own percentages'}</span>
+                <span className="text-[13px] text-text-secondary">{level ? LEVEL_NOTES[id as keyof typeof LEVEL_NOTES] : 'Set your own percentages. Removes the force limits'}</span>
               </span>
               <span className="font-label font-bold text-[13px] tracking-[1px] text-result text-right">
                 {level ? <>PV {percent(level.pvPercent)}<br />SP {level.spPercent}%</> : <span className="text-text-secondary">Your choice</span>}
