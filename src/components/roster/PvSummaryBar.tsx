@@ -9,7 +9,8 @@ import { cn } from '@/lib/utils'
 export function PvSummaryBar() {
   const { campaign } = useCampaignStore()
   const pv = selectTotalRosterPV(campaign.units)
-  const over = pv > FORCE_PV_LIMIT
+  // A Custom campaign has no PV limit.
+  const over = campaign.difficultyLevel !== 'custom' && pv > FORCE_PV_LIMIT
 
   return (
     <div className="bg-surface border border-line px-3 py-2.5 flex flex-col gap-1.5">

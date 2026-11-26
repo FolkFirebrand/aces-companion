@@ -6,23 +6,25 @@ import { selectCanEditStartingForce, selectTotalRosterPV } from '@/store/selecto
 import { FORCE_PV_LIMIT, MIN_SETUP_UNITS } from '@/lib/rules'
 import { UNIT_TYPES } from '@/lib/types'
 import { FileHeader } from '@/components/dossier/FileHeader'
-import { ChassisCheckButton, ForceBuilder, ForceRules } from '@/components/roster/ForceBuilder'
+import { ChassisCheckButton, ForceBuilder, ForceRules, NO_LIMITS_CHECK } from '@/components/roster/ForceBuilder'
 
 /** Build the Force again from the Roster, for a unit missed at setup. Only until the first sortie is completed. */
 export default function RosterForcePage() {
   const { campaign, addStartingUnit, removeStartingUnit } = useCampaignStore()
   const pv = selectTotalRosterPV(campaign.units)
-  const over = pv > FORCE_PV_LIMIT
+  // A Custom campaign has no force rules.
+  const custom = campaign.difficultyLevel === 'custom'
+  const over = !custom && pv > FORCE_PV_LIMIT
 
   return (
     <>
       <FileHeader label={`${campaign.forceName || 'New force'} · Player force`} title="Build the Force"
-        summary={`Choose units worth up to ${FORCE_PV_LIMIT} PV at Skill 4`} />
+        summary={custom ? 'Custom campaign: choose any units, with no force rules' : `Choose units worth up to ${FORCE_PV_LIMIT} PV at Skill 4`} />
       <div className="max-w-xl mx-auto px-gutter py-4 flex flex-col gap-3.5">
         {selectCanEditStartingForce(campaign) ? (
           <>
-            <ForceBuilder units={campaign.units} onAdd={addStartingUnit} onRemove={removeStartingUnit} over={over} />
-            <ForceRules checks={[
+            <ForceBuilder units={campaign.units} onAdd={addStartingUnit} onRemove={removeStartingUnit} over={over} unlimited={custom} />
+            <ForceRules custom={custom} checks={custom ? [NO_LIMITS_CHECK] : [
               { ok: !over, text: `No more than ${FORCE_PV_LIMIT} PV` },
               { ok: campaign.units.length >= MIN_SETUP_UNITS, text: `At least ${MIN_SETUP_UNITS} units (${campaign.units.length} so far)` },
               { ok: true, text: 'All at Skill 4' },

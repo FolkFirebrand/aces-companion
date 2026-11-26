@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { Info } from 'lucide-react'
 import { v4 as uuidv4 } from 'uuid'
 import { FORCE_PV_LIMIT } from '@/lib/rules'
 import { selectTotalRosterPV } from '@/store/selectors'
@@ -18,7 +19,7 @@ import { cn } from '@/lib/utils'
  * Build the Force: the force's PV against the limit, the unit-list search (tap a result to add
  * it) and the force so far. Used by setup and, until the first sortie, from the Roster.
  */
-export function ForceBuilder({ units, onAdd, onRemove, isCarried = () => false, over, overNote }: {
+export function ForceBuilder({ units, onAdd, onRemove, isCarried = () => false, over, overNote, unlimited = false }: {
   units: Unit[]
   onAdd: (unit: Unit) => void
   onRemove: (unitId: string) => void
@@ -27,6 +28,8 @@ export function ForceBuilder({ units, onAdd, onRemove, isCarried = () => false, 
   over: boolean
   /** Shown under the PV bar instead of the overage, e.g. a carried-over force above the limit. */
   overNote?: string | null
+  /** A Custom campaign has no PV limit, so the search doesn't mark units that don't fit. */
+  unlimited?: boolean
 }) {
   const [note, setNote] = useState<UploadNote | null>(null)
   const pv = selectTotalRosterPV(units)
@@ -55,7 +58,7 @@ export function ForceBuilder({ units, onAdd, onRemove, isCarried = () => false, 
       <UnitListPicker
         label="Add a unit"
         tapToAdd
-        pvLeft={unspent}
+        pvLeft={unlimited ? undefined : unspent}
         onPick={entry => onAdd({ id: uuidv4(), ...unitFromEntry(entry) })}
         aside={<UploadForceLink onNote={setNote} onUpload={uploaded => uploaded.forEach(u => onAdd({ ...u, id: uuidv4(), pilotId: null }))} />}
       />
@@ -84,10 +87,26 @@ export function ForceBuilder({ units, onAdd, onRemove, isCarried = () => false, 
 }
 
 /** The setup rules for a force, ticked or crossed; `children` adds a confirmation under them. */
-export function ForceRules({ checks, children }: { checks: { ok: boolean; text: string }[]; children?: React.ReactNode }) {
+/** The only line in a Custom campaign's Force rules. */
+export const NO_LIMITS_CHECK = { ok: true, text: 'None: a Custom campaign has no force rules' }
+
+/** `custom`: a Custom campaign, which has no force rules, so there's no pointer to one. */
+export function ForceRules({ checks, custom = false, children }: { checks: { ok: boolean; text: string }[]; custom?: boolean; children?: React.ReactNode }) {
+  const [info, setInfo] = useState(false)
   return (
     <div className="bg-surface border border-line px-3 py-2.5 flex flex-col gap-0.5">
-      <span className="field-label text-text-secondary pb-1">Force rules</span>
+      <div className="flex items-center gap-1 pb-1">
+        <span className="field-label text-text-secondary">Force rules</span>
+        {!custom && <button type="button" aria-label="About the force rules" aria-expanded={info} aria-controls="force-rules-info" onClick={() => setInfo(o => !o)}
+          className="w-8 h-8 -my-2 flex items-center justify-center text-text-secondary">
+          <Info size={16} aria-hidden="true" />
+        </button>}
+      </div>
+      {info && !custom && (
+        <p id="force-rules-info" className="m-0 pb-1.5 text-[13px] text-text-secondary">
+          Don&apos;t like these limits? Start a Custom campaign: it has no PV limit, unit minimum or unit-type rule.
+        </p>
+      )}
       {checks.map(c => (
         <div key={c.text} className="flex items-center gap-2.5 min-h-8 text-sm">
           <span className={cn('font-label font-bold text-xs tracking-[1px] w-7', c.ok ? 'text-result' : 'text-danger')}>{c.ok ? '✓' : '✕'}</span>
