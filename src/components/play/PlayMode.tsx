@@ -12,6 +12,7 @@ import { useMediaQuery } from '@/lib/useMediaQuery'
 import type { Sortie, Unit, UnitBattle } from '@/lib/types'
 import { DossierButton } from '@/components/dossier/DossierButton'
 import { BattleCard } from './BattleCard'
+import type { BattleCardActions } from './BattleCard'
 import { cn } from '@/lib/utils'
 
 const CREW_SKILL = 4
@@ -48,6 +49,13 @@ function SideColumn({ title, tone, cards, summary, extra, empty, sortieId, readO
   readOnly: boolean
 }) {
   const [openId, setOpenId] = useState<string | null>(null)
+  const { markBattle, applyBattle, discardBattle, setBattleNotes } = useCampaignStore()
+  const actionsFor = (unitId: string): BattleCardActions => ({
+    mark: change => markBattle(sortieId, unitId, change),
+    apply: () => applyBattle(sortieId, unitId),
+    discard: () => discardBattle(sortieId, unitId),
+    setNotes: notes => setBattleNotes(sortieId, unitId, notes),
+  })
   return (
     <section className="flex flex-col gap-2 min-w-0">
       <div className="flex justify-between items-baseline gap-2 px-1 pb-1 border-b-2 border-line">
@@ -56,7 +64,7 @@ function SideColumn({ title, tone, cards, summary, extra, empty, sortieId, readO
       </div>
       {cards.length === 0 && <p className="m-0 px-1 text-sm text-text-secondary">{empty}</p>}
       {cards.map(c => (
-        <BattleCard key={c.unit.id} sortieId={sortieId} unit={c.unit} record={c.record} pilotName={c.pilotName} skill={c.skill} edgeTokens={c.edgeTokens}
+        <BattleCard key={c.unit.id} actions={actionsFor(c.unit.id)} unit={c.unit} record={c.record} pilotName={c.pilotName} skill={c.skill} edgeTokens={c.edgeTokens}
           open={openId === c.unit.id} onToggle={() => setOpenId(openId === c.unit.id ? null : c.unit.id)} readOnly={readOnly} />
       ))}
     </section>

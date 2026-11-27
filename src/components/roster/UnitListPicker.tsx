@@ -1,16 +1,16 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { loadUnitListFile } from '@/lib/unit-list/load'
-import { ACES_UNIT_TYPES, ERAS, MOVE_TYPES, UNIT_LIST_SORTS, searchUnitList, sortUnitList, unitFromEntry, unitListName, unitListRoles, unitListSpecials } from '@/lib/unit-list/convert'
-import type { AcesTypeCode, MoveTypeKey, UnitListEntry, UnitListSort, UnitListFaction, UnitListQuery } from '@/lib/unit-list/convert'
+import { loadFullUnitListFile, loadUnitListFile } from '@/lib/unit-list/load'
+import { ACES_UNIT_TYPES, ERAS, LIST_UNIT_TYPES, MOVE_TYPES, UNIT_LIST_SORTS, searchUnitList, sortUnitList, unitFromEntry, unitListName, unitListRoles, unitListSpecials } from '@/lib/unit-list/convert'
+import type { ListTypeCode, MoveTypeKey, UnitListEntry, UnitListSort, UnitListFaction, UnitListQuery } from '@/lib/unit-list/convert'
 import { unitIconUrl } from '@/lib/unit-list/icons'
 import { OptionalNumberInput, Select, TextInput } from '@/components/sortie/fields'
 import { StatusTag } from '@/components/dossier/StatusTag'
 import { UnitStats } from './UnitStats'
 import { cn } from '@/lib/utils'
 
-const TYPE_LABELS: Record<AcesTypeCode, string> = { BM: "'Mech", CV: 'Vehicle', BA: 'B. Armor', CI: 'Infantry' }
+const TYPE_LABELS: Record<ListTypeCode, string> = { BM: "'Mech", CV: 'Vehicle', BA: 'B. Armor', CI: 'Infantry', IM: 'Ind. Mech', PM: 'ProtoMech' }
 const SIZES = [1, 2, 3, 4]
 const OVS = [1, 2, 3, 4]
 const RANGES = ['S', 'M', 'L']
@@ -28,7 +28,7 @@ const SPECIAL_NAMES: Record<string, string> = {
 }
 
 type Filters = Pick<UnitListQuery, 'pvMin' | 'pvMax' | 'role' | 'minMove' | 'minTmm' | 'minArmor' | 'minStructure' | 'minOv' | 'era'> & {
-  types: AcesTypeCode[]; sizes: number[]; factions: number[]; moveTypes: MoveTypeKey[]; minDamage: [short?: number, medium?: number, long?: number]; specials: string[]
+  types: ListTypeCode[]; sizes: number[]; factions: number[]; moveTypes: MoveTypeKey[]; minDamage: [short?: number, medium?: number, long?: number]; specials: string[]
 }
 const NO_FILTERS: Filters = { types: [], sizes: [], factions: [], moveTypes: [], minDamage: [], specials: [] }
 
@@ -65,32 +65,38 @@ function chip(on: boolean) {
   return cn('h-touch border-2 font-label font-bold text-[13px] tracking-[1px] uppercase', on ? 'border-active text-active' : 'border-line text-text-secondary')
 }
 
+/** Filters a picker can start with, e.g. a Wolfnet force's faction and era. */
+export type PickerPreset = Partial<Pick<Filters, 'factions' | 'era'>>
+
 /**
  * Search MegaMek's unit list (ADR 0005) and pick a unit. `pvLeft` adds a hint in setup; with `tapToAdd`, tapping a
- * result opens its full stats and its + button picks it; `aside` sits right of the Filters button.
+ * result opens its full stats and its + button picks it; `aside` sits right of the Filters button. `allTypes` adds
+ * IndustrialMechs and ProtoMechs, which Aces forces can't include; `preset` sets filters to start with.
  */
-export function UnitListPicker({ onPick, initialText = '', pvLeft, label = 'Search the unit list', tapToAdd = false, aside }: {
+export function UnitListPicker({ onPick, initialText = '', pvLeft, label = 'Search the unit list', tapToAdd = false, aside, allTypes = false, preset }: {
   onPick: (entry: UnitListEntry) => void
   initialText?: string
   pvLeft?: number
   label?: string
   tapToAdd?: boolean
   aside?: React.ReactNode
+  allTypes?: boolean
+  preset?: PickerPreset
 }) {
   const [units, setUnits] = useState<UnitListEntry[] | null>(null)
   const [factions, setFactions] = useState<UnitListFaction[]>([])
   const [error, setError] = useState('')
   const [text, setText] = useState(initialText)
-  const [filters, setFilters] = useState<Filters>(NO_FILTERS)
+  const [filters, setFilters] = useState<Filters>({ ...NO_FILTERS, ...preset })
   const [showFilters, setShowFilters] = useState(false)
   const [openId, setOpenId] = useState<string | null>(null)
   const [sort, setSort] = useState<UnitListSort>('name')
 
   useEffect(() => {
     let live = true
-    loadUnitListFile().then(file => { if (live) { setUnits(file.units); setFactions(file.factions ?? []) } }, err => { if (live) setError(err instanceof Error ? err.message : 'The unit list could not be loaded.') })
+    ;(allTypes ? loadFullUnitListFile() : loadUnitListFile()).then(file => { if (live) { setUnits(file.units); setFactions(file.factions ?? []) } }, err => { if (live) setError(err instanceof Error ? err.message : 'The unit list could not be loaded.') })
     return () => { live = false }
-  }, [])
+  }, [allTypes])
 
   const roles = useMemo(() => (units ? unitListRoles(units) : []), [units])
   const specials = useMemo(() => (units ? unitListSpecials(units) : []), [units])
@@ -144,8 +150,8 @@ export function UnitListPicker({ onPick, initialText = '', pvLeft, label = 'Sear
           <FilterSection title="Unit" defaultOpen on={onIn(['types', 'sizes', 'pv', 'role', 'factions', 'era'])}>
             <div className="flex flex-col gap-1">
               <span className="field-label text-text-secondary">Type</span>
-              <div className="grid grid-cols-4 gap-1.5" role="group" aria-label="Unit types">
-                {(Object.keys(ACES_UNIT_TYPES) as AcesTypeCode[]).map(t => {
+              <div className={cn('grid gap-1.5', allTypes ? 'grid-cols-3' : 'grid-cols-4')} role="group" aria-label="Unit types">
+                {(Object.keys(allTypes ? LIST_UNIT_TYPES : ACES_UNIT_TYPES) as ListTypeCode[]).map(t => {
                   const on = filters.types.includes(t)
                   return <button key={t} type="button" aria-pressed={on} className={chip(on)} onClick={() => set({ types: toggled(filters.types, t) })}>{TYPE_LABELS[t]}</button>
                 })}

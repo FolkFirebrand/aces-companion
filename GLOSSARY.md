@@ -162,3 +162,30 @@ The Most Valuable Pilot chosen after a sortie, earning a 20 SP bonus that does n
 **Carried-over SP**:
 SP a Named Pilot earned in a previous campaign and brings into this one.
 _Avoid_: Legacy SP, imported SP
+
+## Wolfnet 350
+
+The tournament module beside the campaign, following the community AS350 tournament rules. Terms follow those rules.
+
+**Wolfnet Force**:
+The up-to-350 PV collection of units a player brings to a Wolfnet event, from one faction (and its General List) in one era. Kept apart from any campaign's Player Force.
+_Avoid_: Army (the rules' old word), list
+
+**Deployment**:
+The up-to-250 PV, up-to-10-unit part of a Wolfnet Force taken into one scenario. Players can save several ahead of time.
+_Avoid_: Drop, 250 list
+
+**Match**:
+One Wolfnet scenario between two players on their own devices, joined by a Match Code.
+_Avoid_: Game, sortie (that's the campaign's)
+
+**Match Code**:
+Six characters naming a live match, shared so the opponent can join.
+_Avoid_: Room code, share code
+
+**Objective Points**:
+A Wolfnet scenario's score; the first player to 4 wins.
+_Avoid_: VP, victory points
+
+**Margin of Victory (MOV)**:
+The scenario's 250 PV less the opponent's PV still on the board, crippled units counting half (rounded up). Breaks ties.

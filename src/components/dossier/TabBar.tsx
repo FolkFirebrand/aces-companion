@@ -15,7 +15,15 @@ export const MAIN_TABS: Tab[] = [
   { label: 'FILE', href: '/export' },
 ]
 
+/** The Wolfnet 350 module's tabs. */
+export const WOLFNET_TABS: Tab[] = [
+  { label: 'FORCES', href: '/wolfnet', alsoActiveOn: ['/wolfnet/force'] },
+  { label: 'MATCH', href: '/wolfnet/match', alsoActiveOn: ['/wolfnet/join'] },
+]
+
 export function isTabActive(tab: Tab, currentPath: string): boolean {
+  // A module's home tab ('/wolfnet') counts only on itself, so its other tabs' pages don't light it up too.
+  if (tab.href === '/wolfnet' && currentPath !== tab.href) return (tab.alsoActiveOn ?? []).some(p => currentPath.startsWith(p))
   return [tab.href, ...(tab.alsoActiveOn ?? [])].some(
     prefix => currentPath === prefix || currentPath.startsWith(prefix + '/')
   )

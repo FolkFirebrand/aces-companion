@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
 import { UNIT_LIST } from './manifest'
+import { isAcesType } from './convert'
 import type { UnitListEntry, UnitListFile } from './convert'
 
 const CACHE_NAME = 'aces-unit-list'
 let pending: Promise<UnitListFile> | null = null
+let acesOnly: Promise<UnitListFile> | null = null
 
 async function fetchUnitList(): Promise<UnitListFile> {
   // Cache Storage keeps the list for offline use at the table; the file name changes with each catalog version.
@@ -22,13 +24,27 @@ async function fetchUnitList(): Promise<UnitListFile> {
   return (await response.json()) as UnitListFile
 }
 
-/** Loads the unit list file once per visit: from the browser's cache when it has it, otherwise from the site. */
-export function loadUnitListFile(): Promise<UnitListFile> {
+/**
+ * Loads the whole unit list file once per visit: from the browser's cache when it has it, otherwise from the site.
+ * It includes the IndustrialMechs and ProtoMechs the Wolfnet 350 format allows.
+ */
+export function loadFullUnitListFile(): Promise<UnitListFile> {
   pending ??= fetchUnitList().catch(err => {
     pending = null
     throw err
   })
   return pending
+}
+
+/** The unit list file with only the unit types an Aces force may include. */
+export function loadUnitListFile(): Promise<UnitListFile> {
+  acesOnly ??= loadFullUnitListFile()
+    .then(file => ({ ...file, units: file.units.filter(u => isAcesType(u.type)) }))
+    .catch(err => {
+      acesOnly = null
+      throw err
+    })
+  return acesOnly
 }
 
 /** The units in the unit list. */

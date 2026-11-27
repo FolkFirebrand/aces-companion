@@ -1,6 +1,6 @@
 import { act } from '@testing-library/react'
 import { useCampaignStore } from '@/store/campaign'
-import { convertCatalog, omniConfigurations, searchUnitList, sortUnitList, specialCode, unitFromEntry, unitListFactions, unitListName, unitListRoles, unitListSpecials } from '@/lib/unit-list/convert'
+import { convertCatalog, isAcesType, omniConfigurations, searchUnitList, sortUnitList, specialCode, unitFromEntry, unitListFactions, unitListName, unitListRoles, unitListSpecials } from '@/lib/unit-list/convert'
 import { ALL_STEP_IDS } from '@/lib/steps'
 import type { CatalogUnit, FactionCatalog } from '@/lib/unit-list/convert'
 import { unitIconUrl } from '@/lib/unit-list/icons'
@@ -23,13 +23,25 @@ const ELEMENTAL = catalogUnit('BA_Elemental', 'Elemental Battle Armor', '[Laser]
 const RIFLES = catalogUnit('CI_Foot', 'Foot Platoon', '(Rifle)', { TP: 'CI', PV: 9, SZ: 1, MVm: { f: 2 }, Arm: 2, Str: 1, dmg: { dmgS: '1', dmgM: '0*', dmgL: '0' } }, { type: 'Infantry' })
 const EMPLACEMENT = catalogUnit('Bunker', 'Missile Emplacement', '', { TP: 'CV', Str: -1 }, { type: 'Building Entity' })
 const FIGHTER = catalogUnit('AF_Shilone', 'Shilone', 'SL-17', { TP: 'AF' }, { type: 'Aero' })
-const INDUSTRIAL = catalogUnit('IM_Crane', 'Crane', 'Mod', { TP: 'IM' })
+const INDUSTRIAL = catalogUnit('IM_Crane', 'Crane', 'Mod', { TP: 'IM' }, { level: 'Experimental' })
+const PROTO = catalogUnit('PM_Centaur', 'Centaur', '2', { TP: 'PM', PV: 10, SZ: 1 }, { type: 'ProtoMek' })
 
-const LIST = convertCatalog([GOTH_B, ATLAS, FIGHTER, ELEMENTAL, EMPLACEMENT, GOTH_A, INDUSTRIAL, RIFLES, BANSHEE_VEHICLE])
+const FULL_LIST = convertCatalog([GOTH_B, ATLAS, FIGHTER, ELEMENTAL, EMPLACEMENT, GOTH_A, INDUSTRIAL, PROTO, RIFLES, BANSHEE_VEHICLE])
+// What Aces's pickers see: the loader keeps its four types.
+const LIST = FULL_LIST.filter(e => isAcesType(e.type))
 
 describe('converting the catalog into the unit list', () => {
-  it('keeps only BattleMechs, combat vehicles, battle armor and conventional infantry, sorted by name', () => {
+  it('keeps BattleMechs, IndustrialMechs, ProtoMechs, combat vehicles, battle armor and conventional infantry, sorted by name', () => {
+    expect(FULL_LIST.map(e => e.id)).toEqual(['BMAtlas_AS7D', 'PM_Centaur', 'IM_Crane', 'Demolisher_Tank', 'BA_Elemental', 'CI_Foot', 'Goth_A', 'Goth_B'])
+  })
+
+  it('gives Aces only its four types', () => {
     expect(LIST.map(e => e.id)).toEqual(['BMAtlas_AS7D', 'Demolisher_Tank', 'BA_Elemental', 'CI_Foot', 'Goth_A', 'Goth_B'])
+  })
+
+  it('notes a rules level other than Standard', () => {
+    expect(FULL_LIST.find(e => e.id === 'IM_Crane')).toMatchObject({ type: 'IM', rules: 'Experimental' })
+    expect(FULL_LIST.find(e => e.id === 'BMAtlas_AS7D')).not.toHaveProperty('rules')
   })
 
   it('keeps each unit’s Alpha Strike stats, role, picture and OMNI flag', () => {

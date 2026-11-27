@@ -6,6 +6,17 @@ import type { Unit, UnitType } from '@/lib/types'
 export const ACES_UNIT_TYPES = { BM: 'BattleMech', CV: 'Combat Vehicle', BA: 'Battle Armor', CI: 'Conventional Infantry' } as const satisfies Record<string, UnitType>
 export type AcesTypeCode = keyof typeof ACES_UNIT_TYPES
 
+/** Every Alpha Strike type in the unit list: Aces's four, plus the IndustrialMechs and ProtoMechs other formats allow. */
+export const LIST_UNIT_TYPES = { ...ACES_UNIT_TYPES, IM: 'IndustrialMech', PM: 'ProtoMech' } as const
+export type ListTypeCode = keyof typeof LIST_UNIT_TYPES
+
+export function isAcesType(type: ListTypeCode): type is AcesTypeCode {
+  return type in ACES_UNIT_TYPES
+}
+
+/** A unit's rules level when it isn't Standard, as in MegaMek's catalog. */
+export type RulesLevel = 'Introductory' | 'Advanced' | 'Experimental' | 'Unofficial'
+
 /** BattleTech eras, named and dated as on Sarna (https://www.sarna.net/wiki/BattleTech_eras). */
 export const ERAS = [
   { name: 'Age of War', from: 2005, to: 2570 },
@@ -35,7 +46,7 @@ export interface UnitListEntry {
   id: string
   chassis: string
   model: string
-  type: AcesTypeCode
+  type: ListTypeCode
   pv: number
   size: number
   tmm: number
@@ -53,6 +64,8 @@ export interface UnitListEntry {
   /** MegaMek's unit icon: a path under mm-data's data/images/units/ (ADR 0006). */
   icon?: string
   mulId?: number
+  /** The rules level, when it isn't Standard. */
+  rules?: RulesLevel
   /** Factions the unit is available to: each pair is an index into the file's factions and a bitmask of ERAS indexes. */
   factions?: [faction: number, eras: number][]
 }
@@ -114,6 +127,7 @@ export interface CatalogUnit {
   tons?: number
   omni?: number
   mul1id?: number
+  level?: string
   icon?: string
   as: {
     TP: string
@@ -129,10 +143,12 @@ export interface CatalogUnit {
   }
 }
 
-function isAcesUnit(unit: CatalogUnit): boolean {
+function isListUnit(unit: CatalogUnit): boolean {
   // Emplacements share the combat vehicle type code but aren't vehicles.
-  return unit.as.TP in ACES_UNIT_TYPES && unit.type !== 'Building Entity' && unit.as.Str > 0
+  return unit.as.TP in LIST_UNIT_TYPES && unit.type !== 'Building Entity' && unit.as.Str > 0
 }
+
+const RULES_LEVELS: RulesLevel[] = ['Introductory', 'Advanced', 'Experimental', 'Unofficial']
 
 /** `iconPaths`, when given, are the icons that exist in mm-data; others are dropped so the placeholder shows. */
 export function toUnitListEntry(unit: CatalogUnit, iconPaths?: Set<string>): UnitListEntry {
@@ -142,7 +158,7 @@ export function toUnitListEntry(unit: CatalogUnit, iconPaths?: Set<string>): Uni
     id: unit.name,
     chassis: unit.chassis,
     model: unit.model,
-    type: a.TP as AcesTypeCode,
+    type: a.TP as ListTypeCode,
     pv: a.PV,
     size: a.SZ,
     tmm: a.TMM,
@@ -157,14 +173,15 @@ export function toUnitListEntry(unit: CatalogUnit, iconPaths?: Set<string>): Uni
     ...(unit.omni ? { omni: true as const } : {}),
     ...(icon ? { icon } : {}),
     ...(unit.mul1id ? { mulId: unit.mul1id } : {}),
+    ...(RULES_LEVELS.includes(unit.level as RulesLevel) ? { rules: unit.level as RulesLevel } : {}),
   }
 }
 
-/** Keeps the units an Aces force may include, trimmed to their Alpha Strike stats, sorted by name. `factions` adds availability. */
+/** Keeps the unit types any format here may include (Aces's own pickers filter to its four), trimmed to their Alpha Strike stats, sorted by name. `factions` adds availability. */
 export function convertCatalog(units: CatalogUnit[], iconPaths?: Set<string>, factions?: FactionCatalog): UnitListEntry[] {
   const availability = factions ? availabilityByMulId(factions) : new Map<number, [number, number][]>()
   return units
-    .filter(isAcesUnit)
+    .filter(isListUnit)
     .map(u => toUnitListEntry(u, iconPaths))
     .map(e => {
       const available = e.mulId ? availability.get(e.mulId) : undefined
@@ -193,7 +210,7 @@ export function configurationStats(entry: UnitListEntry): Partial<Unit> {
 
 export interface UnitListQuery {
   text?: string
-  types?: AcesTypeCode[]
+  types?: ListTypeCode[]
   pvMin?: number
   pvMax?: number
   sizes?: number[]
@@ -328,7 +345,8 @@ function damageNumber(text: string): number {
 export function unitFromEntry(entry: UnitListEntry): Omit<Unit, 'id'> {
   return {
     nameAndVariant: unitListName(entry),
-    unitType: ACES_UNIT_TYPES[entry.type],
+    // Aces's own lists hold only its four types; other formats map IndustrialMechs and ProtoMechs to the nearest card.
+    unitType: isAcesType(entry.type) ? ACES_UNIT_TYPES[entry.type] : entry.type === 'IM' ? 'BattleMech' : 'Battle Armor',
     pvAtSkill4: entry.pv,
     size: entry.size,
     ene: entry.specials.includes('ENE'),
