@@ -40,7 +40,7 @@ export function SortieChecklist({ sortie }: { sortie: Sortie }) {
   const { campaign, updateSortie, setStepDone, completeSortie, deleteSortie } = useCampaignStore()
   const [confirmDelete, setConfirmDelete] = useState(false)
   const steps = selectSortieSteps(sortie)
-  const blockers = selectCompletionBlockers(sortie)
+  const blockers = selectCompletionBlockers(sortie, campaign)
   const failed = sortie.outcome === 'failed'
   const pvLimit = selectPvLimit(campaign, sortie)
   const earnings = selectSortieEarnings(campaign, sortie)
