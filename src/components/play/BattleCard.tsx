@@ -2,7 +2,6 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
-import { useCampaignStore } from '@/store/campaign'
 import {
   CRIT_SLOTS, MOTIVE_SLOTS, SHUTDOWN, ammoHitEffect, edgeTokensLeft, specialCounter, withSpecialUse, cardReadout, hasPending, motiveRollModifier, shownMarks, tapPip, usesHeatAndMechCrits,
   usesVehicleCrits, withMotiveCount,
@@ -151,8 +150,23 @@ function heatEffect(heat: number): string {
 }
 
 /** One unit's Alpha Strike card in play mode (#41, #43): compact when closed, full when open. */
-export function BattleCard({ sortieId, unit, record, pilotName, skill, open, onToggle, readOnly, edgeTokens }: {
-  sortieId: string
+/** What a card's taps do: a campaign sortie's play mode and a Wolfnet match each keep their own battle. */
+export interface BattleCardActions {
+  mark: (change: Partial<BattleMarks>) => void
+  apply: () => void
+  discard: () => void
+  setNotes: (notes: string) => void
+}
+
+/** An on/off chip a mode adds to the open card, e.g. Wolfnet's Command Unit. */
+export interface BattleCardToggle {
+  label: string
+  pressed: boolean
+  onToggle: () => void
+}
+
+export function BattleCard({ actions, unit, record, pilotName, skill, open, onToggle, readOnly, edgeTokens, tags = [], toggles = [] }: {
+  actions: BattleCardActions
   unit: Unit
   record: UnitBattle
   pilotName: string | null
@@ -162,8 +176,11 @@ export function BattleCard({ sortieId, unit, record, pilotName, skill, open, onT
   readOnly: boolean
   /** The Named Pilot's Edge Tokens stat (#45); absent for crews and enemies. */
   edgeTokens?: number
+  /** Extra tags beside the unit's name. */
+  tags?: string[]
+  /** Extra chips on the open card; not shown read-only. */
+  toggles?: BattleCardToggle[]
 }) {
-  const { markBattle, applyBattle, discardBattle, setBattleNotes } = useCampaignStore()
   const shown = shownMarks(record)
   const readout = cardReadout(unit, shown, skill)
   const pending = hasPending(record)
@@ -190,7 +207,7 @@ export function BattleCard({ sortieId, unit, record, pilotName, skill, open, onT
           return (
             <button key={i} type="button" aria-label={`Edge token ${i + 1}${state === 'empty' ? '' : state === 'hit' ? ', spent' : state === 'pendingHit' ? ', spent (pending)' : ', restored (pending)'}`}
               disabled={readOnly}
-              onClick={() => markBattle(sortieId, unit.id, { edgeSpent: Math.min(edgeTokens, tapPip(shown.edgeSpent, i)) })}
+              onClick={() => actions.mark({ edgeSpent: Math.min(edgeTokens, tapPip(shown.edgeSpent, i)) })}
               className="w-[30px] h-[30px] flex items-center justify-center">
               <span className={cn('block w-4 h-4 rotate-45 border-2 border-active', state === 'hit' ? 'bg-active' : PIP_STYLES[state])} />
             </button>
@@ -220,6 +237,7 @@ export function BattleCard({ sortieId, unit, record, pilotName, skill, open, onT
           {committedDestroyed && <StatusTag tone="hurt">Destroyed{record.destroyedRound ? ` · round ${record.destroyedRound}` : ''}</StatusTag>}
           {committedReadout.crippled && <StatusTag tone="active" className={cn(onBar, headerBar && 'text-active')}>Crippled</StatusTag>}
           {committedReadout.shutdown && !committedDestroyed && <StatusTag tone="hurt" className={cn(onBar, headerBar && 'text-danger')}>Shutdown</StatusTag>}
+          {tags.map(tag => <StatusTag key={tag} tone="computed" className={cn(onBar, headerBar && 'text-result')}>{tag}</StatusTag>)}
           {pending && <StatusTag tone="neutral" className={cn('border-dashed', headerBar ? 'border-on-active text-on-active' : 'border-danger text-danger')}>Pending</StatusTag>}
         </span>
       </span>
@@ -297,7 +315,7 @@ export function BattleCard({ sortieId, unit, record, pilotName, skill, open, onT
                       const next = shown.heat === level && shown.heat !== record.committed.heat
                       return (
                         <button key={level} type="button" aria-pressed={shown.heat === level} disabled={readOnly}
-                          onClick={() => markBattle(sortieId, unit.id, { heat: level })}
+                          onClick={() => actions.mark({ heat: level })}
                           className={cn('w-8 h-[30px] border font-display font-bold text-[15px]',
                             next ? 'border-2 border-dashed border-danger text-danger' : now ? 'bg-active border-active text-on-active' : 'border-line bg-surface-deep text-text-secondary')}>
                           {level === SHUTDOWN ? 'S' : level}
@@ -316,9 +334,9 @@ export function BattleCard({ sortieId, unit, record, pilotName, skill, open, onT
 
               <div className="flex flex-col">
                 <PipTrack label="Armor" short="A" total={unit.armor ?? 0} field="armor" committed={record.committed} shown={shown} disabled={readOnly}
-                  onTap={hits => markBattle(sortieId, unit.id, { armor: hits })} />
+                  onTap={hits => actions.mark({ armor: hits })} />
                 <PipTrack label="Structure" short="S" total={unit.structure ?? 0} field="structure" committed={record.committed} shown={shown} structure disabled={readOnly}
-                  onTap={hits => markBattle(sortieId, unit.id, { structure: hits })} />
+                  onTap={hits => actions.mark({ structure: hits })} />
                 {shown.structure > record.committed.structure && (
                   <span className="text-[11px] text-danger">Structure hit: roll for a critical hit{mech || vehicle ? ' and mark it below' : ''}.</span>
                 )}
@@ -333,7 +351,7 @@ export function BattleCard({ sortieId, unit, record, pilotName, skill, open, onT
                     <CritBox key={c.key} label={c.key === 'fireControl' ? 'Fire ctrl' : c.label} effect={c.effect} pending={shown[c.key] !== record.committed[c.key]}>
                       {Array.from({ length: CRIT_SLOTS[c.key] }, (_, i) => (
                         <CritPip key={i} label={`${c.label} ${i + 1}`} state={pipState(i, record.committed[c.key], shown[c.key])} disabled={readOnly}
-                          onClick={() => markBattle(sortieId, unit.id, { [c.key]: tapPip(shown[c.key], i) })} />
+                          onClick={() => actions.mark({ [c.key]: tapPip(shown[c.key], i) })} />
                       ))}
                     </CritBox>
                   ))}
@@ -344,7 +362,7 @@ export function BattleCard({ sortieId, unit, record, pilotName, skill, open, onT
                       <CritBox key={m.kind} label={m.label} effect={m.effect} pending={shownCount !== committedCount}>
                         {Array.from({ length: MOTIVE_SLOTS[m.kind] }, (_, i) => (
                           <CritPip key={i} label={`${m.label} ${i + 1}`} state={pipState(i, committedCount, shownCount)} disabled={readOnly}
-                            onClick={() => markBattle(sortieId, unit.id, { motive: withMotiveCount(shown.motive, m.kind, tapPip(shownCount, i)) })} />
+                            onClick={() => actions.mark({ motive: withMotiveCount(shown.motive, m.kind, tapPip(shownCount, i)) })} />
                         ))}
                       </CritBox>
                     )
@@ -352,7 +370,7 @@ export function BattleCard({ sortieId, unit, record, pilotName, skill, open, onT
                   {vehicle && (
                     <CritBox label="Immobile" effect="No move, TMM −4" pending={shown.immobilized !== record.committed.immobilized}>
                       <CritPip label="Immobilized" state={pipState(0, record.committed.immobilized ? 1 : 0, shown.immobilized ? 1 : 0)} disabled={readOnly}
-                        onClick={() => markBattle(sortieId, unit.id, { immobilized: !shown.immobilized })} />
+                        onClick={() => actions.mark({ immobilized: !shown.immobilized })} />
                     </CritBox>
                   )}
                 </div>
@@ -364,7 +382,7 @@ export function BattleCard({ sortieId, unit, record, pilotName, skill, open, onT
                   if (!counter) return <span key={a} className={cn(chip, 'border-line bg-surface-deep text-text-primary')}>{a}</span>
                   const used = shown.specialsUsed[a] ?? 0
                   const pendingUse = used !== (record.committed.specialsUsed[a] ?? 0)
-                  const step = (change: 1 | -1) => markBattle(sortieId, unit.id, { specialsUsed: withSpecialUse(shown.specialsUsed, a, change) })
+                  const step = (change: 1 | -1) => actions.mark({ specialsUsed: withSpecialUse(shown.specialsUsed, a, change) })
                   const frame = cn('h-8 flex border bg-surface-deep', pendingUse ? 'border-dashed border-danger' : 'border-result')
                   if (counter.kind === 'uses') {
                     return (
@@ -387,19 +405,25 @@ export function BattleCard({ sortieId, unit, record, pilotName, skill, open, onT
                   )
                 })}
                 {crits.length > 0 && (
-                  <button type="button" disabled={readOnly} aria-pressed={shown.ammoHit} onClick={() => markBattle(sortieId, unit.id, { ammoHit: !shown.ammoHit })}
+                  <button type="button" disabled={readOnly} aria-pressed={shown.ammoHit} onClick={() => actions.mark({ ammoHit: !shown.ammoHit })}
                     className={cn(chip, shown.ammoHit !== record.committed.ammoHit ? 'border-2 border-dashed border-danger text-danger'
                       : shown.ammoHit ? 'bg-text-primary text-ink border-text-primary' : 'border-line bg-surface-deep text-text-secondary')}>
                     Ammo hit
                   </button>
                 )}
+                {!readOnly && toggles.map(t => (
+                  <button key={t.label} type="button" aria-pressed={t.pressed} onClick={t.onToggle}
+                    className={cn(chip, t.pressed ? 'border-result text-result bg-surface-deep' : 'border-line bg-surface-deep text-text-secondary')}>
+                    {t.label}
+                  </button>
+                ))}
                 <button type="button" aria-expanded={notesOpen} onClick={() => setNotesOpen(!notesOpen)}
                   className={cn(chip, 'border-line bg-surface-deep', record.notes ? 'text-text-primary' : 'text-text-secondary')}>
                   Notes {notesOpen ? '−' : '+'}
                 </button>
                 <span className="flex-1" />
                 {!readOnly && !structureGone && (
-                  <button type="button" onClick={() => markBattle(sortieId, unit.id, { destroyed: !shown.destroyed })}
+                  <button type="button" onClick={() => actions.mark({ destroyed: !shown.destroyed })}
                     className={cn(chip, shown.destroyed ? 'border-result text-result' : 'border-danger text-danger')}>
                     {shown.destroyed ? 'Not destroyed' : 'Mark destroyed'}
                   </button>
@@ -412,14 +436,14 @@ export function BattleCard({ sortieId, unit, record, pilotName, skill, open, onT
           {(readout.missingStats || notesOpen) && (
             <div className="px-2 pb-2">
               <label htmlFor={`notes-${unit.id}`} className="sr-only">Notes</label>
-              <TextInput id={`notes-${unit.id}`} value={record.notes} disabled={readOnly} onChange={notes => setBattleNotes(sortieId, unit.id, notes)} />
+              <TextInput id={`notes-${unit.id}`} value={record.notes} disabled={readOnly} onChange={notes => actions.setNotes(notes)} />
             </div>
           )}
 
           {pending && !readOnly && (
             <div className="px-2 pb-2 grid grid-cols-[1fr_auto] gap-1.5">
-              <DossierButton variant="primary" className="h-touch text-base" onClick={() => applyBattle(sortieId, unit.id)}>Apply</DossierButton>
-              <DossierButton variant="secondary" onClick={() => discardBattle(sortieId, unit.id)}>Discard</DossierButton>
+              <DossierButton variant="primary" className="h-touch text-base" onClick={() => actions.apply()}>Apply</DossierButton>
+              <DossierButton variant="secondary" onClick={() => actions.discard()}>Discard</DossierButton>
             </div>
           )}
         </>
