@@ -35,7 +35,11 @@ function stepValue(stepId: string, sortie: Sortie, pvLimit: number, earnings: nu
   }
 }
 
-export function SortieChecklist({ sortie }: { sortie: Sortie }) {
+export function SortieChecklist({ sortie, completeError, onCompleteError }: {
+  sortie: Sortie
+  completeError: string | null
+  onCompleteError: (error: string | null) => void
+}) {
   const router = useRouter()
   const { campaign, updateSortie, setStepDone, completeSortie, deleteSortie } = useCampaignStore()
   const [confirmDelete, setConfirmDelete] = useState(false)
@@ -156,9 +160,10 @@ export function SortieChecklist({ sortie }: { sortie: Sortie }) {
                 : `${blockers.length} steps left before you can complete.`}
             </p>
           )}
-          <DossierButton variant="primary" disabled={blockers.length > 0} onClick={() => completeSortie(sortie.id)}>
+          <DossierButton variant="primary" disabled={blockers.length > 0} onClick={() => onCompleteError(completeSortie(sortie.id))}>
             Complete Sortie
           </DossierButton>
+          {completeError && <p role="alert" className="m-0 text-sm text-danger">{completeError}</p>}
           {confirmDelete ? (
             <div className="flex flex-wrap items-center gap-3">
               <span className="text-sm text-danger">Delete this draft and everything recorded in it?</span>

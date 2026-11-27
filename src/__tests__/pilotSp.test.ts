@@ -109,6 +109,21 @@ describe('sharing SP between Named Pilots', () => {
     expect(Object.values(shares())).toEqual([0, 0, 0, 0])
   })
 
+  it("won't complete without an MVP, and the checklist shows why", () => {
+    earn(1000, 80)
+    allocate('flint', 'skill', 80)
+    allocate('sable', 'skill', 80)
+    allocate('talon', 'skill', 80)
+    allocate('wren', 'skill', 40)
+    act(() => ALL_STEP_IDS.forEach(step => store().setStepDone(sortieId, step, true)))
+
+    expect(selectCompletionBlockers(sortie(sortieId), store().campaign)).toEqual(['Improving Named Pilots: choose an MVP'])
+    let result: string | null = null
+    act(() => { result = store().completeSortie(sortieId) })
+    expect(result).toBe('Not completed. Still to do: Improving Named Pilots: choose an MVP.')
+    expect(sortie(sortieId).status).toBe('draft')
+  })
+
   it('takes the shares out of the Warchest, but not the MVP bonus', () => {
     earn(1000, 80)
     act(() => store().setMvp(sortieId, 'flint'))
