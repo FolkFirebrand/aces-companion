@@ -61,6 +61,10 @@ function touch(campaign: Campaign): Campaign {
   return settle({ ...campaign, updatedAt: new Date().toISOString() })
 }
 
+function errorText(error: unknown): string {
+  return error instanceof Error ? error.message : String(error)
+}
+
 function withDraftSortie(campaign: Campaign, sortieId: string, change: (sortie: Sortie) => Partial<Sortie>) {
   const sortie = campaign.sorties.find(s => s.id === sortieId)
   if (!sortie || sortie.status !== 'draft') return { campaign }
@@ -174,7 +178,8 @@ interface CampaignStore {
   sellUnit: (sortieId: string, unitId: string) => void
   /** `toEntry`, a configuration from the unit list, also brings that configuration's stats on completion. */
   reconfigureOmni: (sortieId: string, unitId: string, toName: string, toPv: number, toEntry?: UnitListEntry) => void
-  completeSortie: (sortieId: string) => void
+  /** Returns why the sortie wasn't completed (or wasn't saved), or null when it was. */
+  completeSortie: (sortieId: string) => string | null
   hirePilot: (sortieId: string, hire: HireRequest) => void
   removeHire: (sortieId: string, pilotId: string) => void
   dismissPilot: (pilotId: string) => void
@@ -673,35 +678,46 @@ export const useCampaignStore = create<CampaignStore>()(
           }
         }),
 
-      completeSortie: (sortieId) =>
-        set(s => {
-          const sortie = s.campaign.sorties.find(s2 => s2.id === sortieId)
-          if (!sortie || sortie.status === 'completed' || selectCompletionBlockers(sortie, s.campaign).length > 0) return s
+      completeSortie: (sortieId) => {
+        const { campaign } = get()
+        const sortie = campaign.sorties.find(s2 => s2.id === sortieId)
+        if (!sortie) return 'This sortie is no longer in the campaign. Go back to the Campaign Log and check it is still there.'
+        if (sortie.status === 'completed') return 'This sortie is already completed.'
+        const blockers = selectCompletionBlockers(sortie, campaign)
+        if (blockers.length > 0) return `Not completed. Still to do: ${blockers.join('; ')}.`
+        let next: Campaign
+        try {
           // A Failed Sortie is recorded but changes nothing.
           if (sortie.outcome === 'failed') {
-            return {
-              campaign: touch({
-                ...s.campaign,
-                sorties: s.campaign.sorties.map(s2 =>
-                  s2.id === sortieId ? { ...s2, status: 'completed' as const, appliedEffects: null } : s2
-                ),
-              }),
-            }
-          }
-          const pilotShares = selectPilotShares(s.campaign, sortie)
-          const { units, namedPilots, memorial, effects } = applySortie(s.campaign, sortie, uuidv4)
-          return {
-            campaign: touch({
-              ...s.campaign,
+            next = touch({
+              ...campaign,
+              sorties: campaign.sorties.map(s2 =>
+                s2.id === sortieId ? { ...s2, status: 'completed' as const, appliedEffects: null } : s2
+              ),
+            })
+          } else {
+            const pilotShares = selectPilotShares(campaign, sortie)
+            const { units, namedPilots, memorial, effects } = applySortie(campaign, sortie, uuidv4)
+            next = touch({
+              ...campaign,
               units,
               namedPilots,
               memorial,
-              sorties: s.campaign.sorties.map(s2 =>
+              sorties: campaign.sorties.map(s2 =>
                 s2.id === sortieId ? { ...s2, status: 'completed' as const, appliedEffects: effects, pilotShares } : s2
               ),
-            }),
+            })
           }
-        }),
+        } catch (error) {
+          return `Not completed: something went wrong applying this sortie (${errorText(error)}). Nothing was changed. Export your campaign file from the Campaign Log and report the problem.`
+        }
+        try {
+          set({ campaign: next })
+        } catch (error) {
+          return `The sortie was completed, but this browser could not save it (${errorText(error)}). Use Download Campaign File below now so it isn't lost.`
+        }
+        return null
+      },
 
       reopenSortie: (sortieId) =>
         set(s => {

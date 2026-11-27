@@ -5,6 +5,7 @@ import {
 } from '@/store/selectors'
 import { ALL_STEP_IDS, SETUP_STEP_IDS } from '@/lib/steps'
 import { CAMPAIGN_SCHEMA_VERSION, UPGRADE_STEPS, runUpgrades } from '@/lib/campaign-file'
+import * as effects from '@/lib/sortie-effects'
 import type { Sortie, Unit } from '@/lib/types'
 
 function store() {
@@ -173,6 +174,50 @@ describe('completing a sortie', () => {
 
     expect(sortie(id).status).toBe('completed')
     expect(store().campaign.units.map(u => u.id)).toEqual(['u1', 'u2', 'u3'])
+  })
+})
+
+describe("completing a sortie that can't be completed", () => {
+  afterEach(() => jest.restoreAllMocks())
+
+  function tryComplete(id: string): string | null {
+    let result: string | null = null
+    act(() => { result = store().completeSortie(id) })
+    return result
+  }
+
+  it('says why when steps are left to do', () => {
+    const id = startSortie()
+
+    expect(tryComplete(id)).toMatch(/^Not completed\. Still to do: Record Campaign Log;/)
+    expect(sortie(id).status).toBe('draft')
+  })
+
+  it('says so when the sortie is missing or already completed', () => {
+    const id = startSortie()
+    finishAllSteps(id)
+    complete(id)
+
+    expect(tryComplete(id)).toBe('This sortie is already completed.')
+    expect(tryComplete('no-such-sortie')).toMatch(/no longer in the campaign/)
+  })
+
+  it('reports an error applying the sortie and changes nothing', () => {
+    const id = startSortie()
+    finishAllSteps(id)
+    jest.spyOn(effects, 'applySortie').mockImplementation(() => { throw new Error('boom') })
+
+    expect(tryComplete(id)).toMatch(/^Not completed: something went wrong applying this sortie \(boom\)/)
+    expect(sortie(id).status).toBe('draft')
+  })
+
+  it("reports when the browser can't save the completed sortie", () => {
+    const id = startSortie()
+    finishAllSteps(id)
+    jest.mocked(window.localStorage.setItem).mockImplementationOnce(() => { throw new Error('QuotaExceededError') })
+
+    expect(tryComplete(id)).toMatch(/^The sortie was completed, but this browser could not save it \(QuotaExceededError\)/)
+    expect(sortie(id).status).toBe('completed')
   })
 })
 

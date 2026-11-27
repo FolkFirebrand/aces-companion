@@ -19,7 +19,7 @@ function Line({ label, value, tone }: { label: React.ReactNode; value: string; t
   )
 }
 
-export function SortieCompleted({ sortie }: { sortie: Sortie }) {
+export function SortieCompleted({ sortie, saveError = null }: { sortie: Sortie; saveError?: string | null }) {
   const { campaign, exportCampaignFile, reopenSortie } = useCampaignStore()
   const [confirmReopen, setConfirmReopen] = useState(false)
   const rows = selectCampaignLog(campaign)
@@ -37,6 +37,7 @@ export function SortieCompleted({ sortie }: { sortie: Sortie }) {
         title={sortie.name || `Sortie ${sortie.sortieNumber}`}
         summary={failed ? 'Recorded as a Failed Sortie. Nothing changed; replay it.' : 'These results are applied to your force.'} />
       <PageBody>
+        {saveError && <p role="alert" className="m-0 p-3 text-sm text-danger border-2 border-danger">{saveError}</p>}
         {isLatest && (
           <div className="bg-surface border border-line">
             <div className="px-3 py-2 bg-active text-on-active font-label font-bold text-sm tracking-[1px]">BACK UP YOUR CAMPAIGN</div>
