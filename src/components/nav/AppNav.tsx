@@ -17,11 +17,18 @@ export function inWolfnet(pathname: string): boolean {
   return pathname === '/wolfnet' || pathname.startsWith('/wolfnet/')
 }
 
+/** Marks the Wolfnet 350 module as still in beta. */
+function BetaTag() {
+  return <span className="shrink-0 border border-active text-active px-1.5 text-[10px] leading-4">BETA</span>
+}
+
 /** The link across to the other module: the Aces campaign and the Wolfnet 350 tournament format. */
 function ModuleSwitch({ wolfnet }: { wolfnet: boolean }) {
   return (
-    <Link href={wolfnet ? '/' : '/wolfnet'} className="field-label text-result whitespace-nowrap min-h-touch flex items-center">
-      {wolfnet ? 'Aces campaign' : 'Wolfnet 350'} &gt;
+    <Link href={wolfnet ? '/' : '/wolfnet'} className="field-label text-result whitespace-nowrap min-h-touch flex items-center gap-2">
+      {wolfnet ? 'Aces campaign' : 'Wolfnet 350'}
+      {!wolfnet && <BetaTag />}
+      &gt;
     </Link>
   )
 }
@@ -49,8 +56,9 @@ export function TopBar() {
     <div className="bg-surface-deep border-b border-line">
       <div className="max-w-6xl mx-auto px-gutter min-h-12 flex items-center gap-6">
         {/* Back to the module's home: the welcome page, where campaigns are started and loaded, or Wolfnet's forces. */}
-        <Link href={wolfnet ? '/wolfnet' : '/'} className="field-label text-active truncate min-h-touch flex items-center">
-          {wolfnet ? 'WOLFNET 350' : forceName || 'NEW FORCE'}
+        <Link href={wolfnet ? '/wolfnet' : '/'} className="field-label text-active min-w-0 min-h-touch flex items-center gap-2">
+          <span className="truncate">{wolfnet ? 'WOLFNET 350' : forceName || 'NEW FORCE'}</span>
+          {wolfnet && <BetaTag />}
         </Link>
         {(inCampaign || wolfnet) && (
           <nav aria-label="Main" className="hidden md:flex">
