@@ -154,7 +154,7 @@ export function SortieChecklist({ sortie, completeError, onCompleteError }: {
 
         <div className="flex flex-col gap-2.5 pt-2">
           {blockers.length > 0 && (
-            <p className="m-0 text-sm text-text-secondary">
+            <p className="m-0 text-sm text-result">
               {blockers.length <= 3
                 ? `${blockers.length} ${blockers.length === 1 ? 'step' : 'steps'} left before you can complete: ${blockers.join(', ')}.`
                 : `${blockers.length} steps left before you can complete.`}
